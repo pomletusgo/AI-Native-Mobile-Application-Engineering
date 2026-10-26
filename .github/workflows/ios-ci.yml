@@ -22,7 +22,7 @@ jobs:
     name: OpenSpec Validate
     runs-on: ubuntu-latest
     env:
-      # 关闭遥测，避免在沙箱/受限环境下产生无关报错。
+      # 关闭遥测，避免在受限环境下产生无关报错。
       OPENSPEC_TELEMETRY: "0"
       DO_NOT_TRACK: "1"
     steps:
@@ -58,12 +58,8 @@ jobs:
     name: Build & Test (iOS Simulator)
     runs-on: macos-15
     env:
-      SCHEME: CamCardClone
       PROJECT: CamCardClone.xcodeproj
-      # 仅做模拟器构建/测试，不涉及真机签名。
-      CODE_SIGN_IDENTITY: ""
-      CODE_SIGNING_REQUIRED: "NO"
-      CODE_SIGNING_ALLOWED: "NO"
+      SCHEME: CamCardClone
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -73,8 +69,20 @@ jobs:
           xcodebuild -version
           xcrun simctl list runtimes
 
-      - name: List available iPhone simulators
-        run: xcrun simctl list devices available | grep -i iphone || true
+      # 机型名随镜像更新会变，因此不写死 iPhone 16，而是从当前可用设备里挑第一个 iPhone。
+      # 完整列表会打印出来，便于排查。
+      - name: Pick an available iPhone simulator
+        run: |
+          xcrun simctl list devices available
+          SIM_UDID=$(xcrun simctl list devices available \
+            | grep -m1 -E '^[[:space:]]+iPhone ' \
+            | sed -E 's/^[^(]*\(([0-9A-Fa-f-]{36})\).*/\1/' || true)
+          if [ -z "$SIM_UDID" ]; then
+            echo "::error::No available iPhone simulator found on this runner"
+            exit 1
+          fi
+          echo "SIM_UDID=$SIM_UDID" >> "$GITHUB_ENV"
+          echo "Using simulator UDID: $SIM_UDID"
 
       - name: Build for testing
         run: |
@@ -82,7 +90,7 @@ jobs:
           xcodebuild build-for-testing \
             -project "$PROJECT" \
             -scheme "$SCHEME" \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            -destination "id=$SIM_UDID" \
             -derivedDataPath .build-xcode \
             -resultBundlePath TestResults-build.xcresult \
             2>&1 | tee build-for-testing.log
@@ -93,10 +101,25 @@ jobs:
           xcodebuild test-without-building \
             -project "$PROJECT" \
             -scheme "$SCHEME" \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            -destination "id=$SIM_UDID" \
             -derivedDataPath .build-xcode \
             -resultBundlePath TestResults-test.xcresult \
             2>&1 | tee unit-tests.log
+
+      # 日志归档需要仓库权限才能下载；这里把关键错误行提升为注解（annotation），
+      # 使失败原因可以通过公开 API 读到，无需登录即可排查。
+      - name: Surface errors as annotations
+        if: failure()
+        run: |
+          for f in build-for-testing.log unit-tests.log; do
+            [ -f "$f" ] || continue
+            echo "===== $f ====="
+            grep -E "error:|xcodebuild: error|Unable to find|Testing failed" "$f" | head -n 10 > errs.txt || true
+            cat errs.txt
+            while IFS= read -r line; do
+              echo "::error::$line"
+            done < errs.txt
+          done
 
       - name: Upload build and test logs
         if: always()

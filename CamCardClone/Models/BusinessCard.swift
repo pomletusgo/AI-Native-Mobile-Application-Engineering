@@ -54,6 +54,8 @@ struct BusinessCard: Identifiable, Codable, Equatable, Hashable {
         email: String? = nil,
         website: String? = nil,
         address: String? = nil,
+        postalCode: String? = nil,
+        department: String? = nil,
         tags: [String] = [],
         notes: String? = nil,
         createdAt: Date = Date()
