@@ -1,0 +1,553 @@
+{
+  "meta": {
+    "name": "CamCard 功能切片复刻 — 统一测试名片数据集",
+    "version": "1.0",
+    "createdAt": "2026-10-26",
+    "note": "全部为虚构/合成数据，不含真实个人敏感信息。用于 OCR 与字段抽取的概率性功能量化评价。字段缺失时对应值为 null，且必须出现在 expectedAbsent 中，用于验证『AI 不得虚构信息』。",
+    "fieldSchema": ["name", "company", "jobTitle", "mobile", "phone", "fax", "email", "website", "address"]
+  },
+  "cards": [
+    {
+      "id": "TC01",
+      "categories": ["chinese", "good"],
+      "layout": "horizontal",
+      "quality": "good",
+      "groundTruth": {
+        "name": "张伟",
+        "company": "上海远景科技有限公司",
+        "jobTitle": "技术总监",
+        "mobile": "138-0000-0001",
+        "phone": null,
+        "fax": null,
+        "email": "zhangwei@example.com",
+        "website": null,
+        "address": "上海市浦东新区世纪大道100号"
+      },
+      "expectedAbsent": ["phone", "fax", "website"]
+    },
+    {
+      "id": "TC02",
+      "categories": ["english", "good"],
+      "layout": "horizontal",
+      "quality": "good",
+      "groundTruth": {
+        "name": "David Chen",
+        "company": "ABC Technologies",
+        "jobTitle": "Technical Director",
+        "mobile": "+1-555-0100",
+        "phone": null,
+        "fax": null,
+        "email": "david.chen@example.com",
+        "website": "www.example.com",
+        "address": null
+      },
+      "expectedAbsent": ["phone", "fax", "address"]
+    },
+    {
+      "id": "TC03",
+      "categories": ["bilingual", "good"],
+      "layout": "bilingual",
+      "quality": "good",
+      "groundTruth": {
+        "name": "李娜",
+        "company": "环宇国际贸易有限公司",
+        "jobTitle": "市场经理",
+        "mobile": "139-0000-0002",
+        "phone": "021-6000-1000",
+        "fax": null,
+        "email": "lina@example.com",
+        "website": null,
+        "address": "上海市静安区南京西路500号"
+      },
+      "expectedAbsent": ["fax", "website"]
+    },
+    {
+      "id": "TC04",
+      "categories": ["chinese", "vertical"],
+      "layout": "vertical",
+      "quality": "good",
+      "groundTruth": {
+        "name": "王强",
+        "company": "蓝海设计工作室",
+        "jobTitle": "首席设计师",
+        "mobile": "137-0000-0003",
+        "phone": "010-8000-2000",
+        "fax": null,
+        "email": null,
+        "website": null,
+        "address": null
+      },
+      "expectedAbsent": ["fax", "email", "website", "address"]
+    },
+    {
+      "id": "TC05",
+      "categories": ["chinese", "multiPhone"],
+      "layout": "horizontal",
+      "quality": "good",
+      "groundTruth": {
+        "name": "刘洋",
+        "company": "中远物流有限公司",
+        "jobTitle": "运营主管",
+        "mobile": "136-0000-0004",
+        "phone": "021-6000-4000",
+        "fax": "021-6000-4001",
+        "email": "liuyang@example.com",
+        "website": null,
+        "address": null
+      },
+      "expectedAbsent": ["website", "address"]
+    },
+    {
+      "id": "TC06",
+      "categories": ["english", "multiEmail"],
+      "layout": "horizontal",
+      "quality": "good",
+      "groundTruth": {
+        "name": "Sarah Miller",
+        "company": "Bright Future Inc.",
+        "jobTitle": "Sales Manager",
+        "mobile": "+1-555-0206",
+        "phone": null,
+        "fax": null,
+        "email": "sarah.miller@example.com",
+        "website": null,
+        "address": null
+      },
+      "additionalEmails": ["s.miller@brightfuture.example.com"],
+      "expectedAbsent": ["phone", "fax", "website", "address"]
+    },
+    {
+      "id": "TC07",
+      "categories": ["english", "ambiguity", "nameVsCompany"],
+      "layout": "horizontal",
+      "quality": "good",
+      "groundTruth": {
+        "name": "Jordan Lee",
+        "company": "Lee Consulting",
+        "jobTitle": "Founder",
+        "mobile": null,
+        "phone": "+1-555-0307",
+        "fax": null,
+        "email": "jordan@leeconsulting.example.com",
+        "website": null,
+        "address": null
+      },
+      "expectedAbsent": ["mobile", "fax", "website", "address"]
+    },
+    {
+      "id": "TC08",
+      "categories": ["chinese", "missingField"],
+      "layout": "horizontal",
+      "quality": "good",
+      "groundTruth": {
+        "name": "陈静",
+        "company": "启明教育",
+        "jobTitle": "教师",
+        "mobile": "135-0000-0008",
+        "phone": null,
+        "fax": null,
+        "email": null,
+        "website": null,
+        "address": null
+      },
+      "expectedAbsent": ["phone", "fax", "email", "website", "address"]
+    },
+    {
+      "id": "TC09",
+      "categories": ["chinese", "poorQuality", "tilted"],
+      "layout": "horizontal",
+      "quality": "tilted",
+      "groundTruth": {
+        "name": "赵敏",
+        "company": "恒信会计事务所",
+        "jobTitle": "注册会计师",
+        "mobile": "134-0000-0009",
+        "phone": null,
+        "fax": null,
+        "email": "zhaomin@example.com",
+        "website": null,
+        "address": "北京市朝阳区建国路88号"
+      },
+      "expectedAbsent": ["phone", "fax", "website"]
+    },
+    {
+      "id": "TC10",
+      "categories": ["english", "complexBg"],
+      "layout": "horizontal",
+      "quality": "complexBg",
+      "groundTruth": {
+        "name": "Kevin Wu",
+        "company": "Nova Robotics",
+        "jobTitle": "CTO",
+        "mobile": "+1-555-0410",
+        "phone": null,
+        "fax": null,
+        "email": "kevin.wu@example.com",
+        "website": "www.novarobotics.example.com",
+        "address": null
+      },
+      "expectedAbsent": ["phone", "fax", "address"]
+    },
+    {
+      "id": "TC11",
+      "categories": ["chinese", "good"],
+      "layout": "horizontal",
+      "quality": "good",
+      "groundTruth": {
+        "name": "朱宏明",
+        "company": "同济大学",
+        "jobTitle": "教授",
+        "mobile": null,
+        "phone": "021-6598-0000",
+        "fax": null,
+        "email": "zhuhongming@example.edu.cn",
+        "website": null,
+        "address": "上海市杨浦区四平路1239号"
+      },
+      "expectedAbsent": ["mobile", "fax", "website"]
+    },
+    {
+      "id": "TC12",
+      "categories": ["english", "bilingual", "good"],
+      "layout": "bilingual",
+      "quality": "good",
+      "groundTruth": {
+        "name": "David Chen",
+        "company": "ABC University",
+        "jobTitle": "Professor",
+        "mobile": null,
+        "phone": "+1-555-0512",
+        "fax": null,
+        "email": "david@abc.example.edu",
+        "website": null,
+        "address": null
+      },
+      "expectedAbsent": ["mobile", "fax", "website", "address"]
+    },
+    {
+      "id": "TC13",
+      "categories": ["english", "vertical"],
+      "layout": "vertical",
+      "quality": "good",
+      "groundTruth": {
+        "name": "Emily Zhang",
+        "company": "Global Vision Ltd.",
+        "jobTitle": "Art Director",
+        "mobile": "+1-555-0613",
+        "phone": null,
+        "fax": null,
+        "email": "emily@example.com",
+        "website": null,
+        "address": null
+      },
+      "expectedAbsent": ["phone", "fax", "website", "address"]
+    },
+    {
+      "id": "TC14",
+      "categories": ["chinese", "multiPhone"],
+      "layout": "horizontal",
+      "quality": "good",
+      "groundTruth": {
+        "name": "孙涛",
+        "company": "华信建设集团",
+        "jobTitle": "项目经理",
+        "mobile": "133-0000-0014",
+        "phone": "021-6000-5000",
+        "fax": "021-6000-5001",
+        "email": "suntao@example.com",
+        "website": "www.huaxin.example.com",
+        "address": "上海市徐汇区漕溪北路1号"
+      },
+      "expectedAbsent": []
+    },
+    {
+      "id": "TC15",
+      "categories": ["chinese", "missingField"],
+      "layout": "horizontal",
+      "quality": "good",
+      "groundTruth": {
+        "name": "周慧",
+        "company": "康泰医疗器械",
+        "jobTitle": "销售代表",
+        "mobile": "132-0000-0015",
+        "phone": "021-6000-6000",
+        "fax": null,
+        "email": null,
+        "website": null,
+        "address": null
+      },
+      "expectedAbsent": ["fax", "email", "website", "address"]
+    },
+    {
+      "id": "TC16",
+      "categories": ["chinese", "missingField"],
+      "layout": "horizontal",
+      "quality": "good",
+      "groundTruth": {
+        "name": "吴磊",
+        "company": "星辉传媒",
+        "jobTitle": "编导",
+        "mobile": null,
+        "phone": null,
+        "fax": null,
+        "email": "wulei@example.com",
+        "website": null,
+        "address": "广州市天河区体育西路100号"
+      },
+      "expectedAbsent": ["mobile", "phone", "fax", "website"]
+    },
+    {
+      "id": "TC17",
+      "categories": ["english", "poorQuality", "darkBg"],
+      "layout": "horizontal",
+      "quality": "darkBg",
+      "groundTruth": {
+        "name": "Michael Lee",
+        "company": "Dark Tower Studios",
+        "jobTitle": "Producer",
+        "mobile": "+1-555-0717",
+        "phone": null,
+        "fax": null,
+        "email": "michael@example.com",
+        "website": null,
+        "address": null
+      },
+      "expectedAbsent": ["phone", "fax", "website", "address"]
+    },
+    {
+      "id": "TC18",
+      "categories": ["chinese", "lightBg"],
+      "layout": "horizontal",
+      "quality": "lightBg",
+      "groundTruth": {
+        "name": "郑爽",
+        "company": "优品零售",
+        "jobTitle": "店长",
+        "mobile": "131-0000-0018",
+        "phone": "0755-8000-1000",
+        "fax": null,
+        "email": null,
+        "website": null,
+        "address": "深圳市南山区科技园路9号"
+      },
+      "expectedAbsent": ["fax", "email", "website"]
+    },
+    {
+      "id": "TC19",
+      "categories": ["chinese", "poorQuality", "shadow"],
+      "layout": "horizontal",
+      "quality": "shadow",
+      "groundTruth": {
+        "name": "冯磊",
+        "company": "天工制造",
+        "jobTitle": "车间主任",
+        "mobile": "130-0000-0019",
+        "phone": null,
+        "fax": null,
+        "email": null,
+        "website": null,
+        "address": null
+      },
+      "expectedAbsent": ["phone", "fax", "email", "website", "address"]
+    },
+    {
+      "id": "TC20",
+      "categories": ["chinese", "poorQuality", "occluded"],
+      "layout": "horizontal",
+      "quality": "occluded",
+      "groundTruth": {
+        "name": "何静",
+        "company": "美佳广告",
+        "jobTitle": "创意总监",
+        "mobile": "159-0000-0020",
+        "phone": null,
+        "fax": null,
+        "email": "hejing@example.com",
+        "website": null,
+        "address": null
+      },
+      "expectedAbsent": ["phone", "fax", "website", "address"]
+    },
+    {
+      "id": "TC21",
+      "categories": ["english", "complexBg"],
+      "layout": "horizontal",
+      "quality": "complexBg",
+      "groundTruth": {
+        "name": "Olivia Brown",
+        "company": "Ocean Analytics",
+        "jobTitle": "Data Scientist",
+        "mobile": null,
+        "phone": "+1-555-0821",
+        "fax": null,
+        "email": "olivia@example.com",
+        "website": "www.oceananalytics.example.com",
+        "address": null
+      },
+      "expectedAbsent": ["mobile", "fax", "address"]
+    },
+    {
+      "id": "TC22",
+      "categories": ["chinese", "bilingual"],
+      "layout": "bilingual",
+      "quality": "good",
+      "groundTruth": {
+        "name": "高翔",
+        "company": "金石律师事务所",
+        "jobTitle": "高级合伙人",
+        "mobile": "158-0000-0022",
+        "phone": "021-6000-7000",
+        "fax": null,
+        "email": "gaoxiang@example.com",
+        "website": null,
+        "address": "上海市黄浦区中山东一路12号"
+      },
+      "expectedAbsent": ["fax", "website"]
+    },
+    {
+      "id": "TC23",
+      "categories": ["english", "multiPhone", "multiEmail"],
+      "layout": "horizontal",
+      "quality": "good",
+      "groundTruth": {
+        "name": "Robert King",
+        "company": "King & Partners",
+        "jobTitle": "Managing Director",
+        "mobile": "+1-555-0923",
+        "phone": "+1-555-0924",
+        "fax": "+1-555-0925",
+        "email": "robert.king@example.com",
+        "website": null,
+        "address": "100 Market Street, San Francisco, CA"
+      },
+      "additionalEmails": ["rking@kingpartners.example.com"],
+      "expectedAbsent": ["website"]
+    },
+    {
+      "id": "TC24",
+      "categories": ["chinese", "vertical"],
+      "layout": "vertical",
+      "quality": "good",
+      "groundTruth": {
+        "name": "许芳",
+        "company": "雅集茶文化",
+        "jobTitle": "创始人",
+        "mobile": "157-0000-0024",
+        "phone": null,
+        "fax": null,
+        "email": null,
+        "website": null,
+        "address": null
+      },
+      "expectedAbsent": ["phone", "fax", "email", "website", "address"]
+    },
+    {
+      "id": "TC25",
+      "categories": ["chinese", "minimal", "missingField"],
+      "layout": "horizontal",
+      "quality": "good",
+      "groundTruth": {
+        "name": "林俊",
+        "company": null,
+        "jobTitle": null,
+        "mobile": "156-0000-0025",
+        "phone": null,
+        "fax": null,
+        "email": null,
+        "website": null,
+        "address": null
+      },
+      "expectedAbsent": ["company", "jobTitle", "phone", "fax", "email", "website", "address"]
+    },
+    {
+      "id": "TC26",
+      "categories": ["english", "minimal", "missingField"],
+      "layout": "horizontal",
+      "quality": "good",
+      "groundTruth": {
+        "name": "Anna White",
+        "company": null,
+        "jobTitle": null,
+        "mobile": null,
+        "phone": null,
+        "fax": null,
+        "email": "anna.white@example.com",
+        "website": null,
+        "address": null
+      },
+      "expectedAbsent": ["company", "jobTitle", "mobile", "phone", "fax", "website", "address"]
+    },
+    {
+      "id": "TC27",
+      "categories": ["bilingual", "good"],
+      "layout": "bilingual",
+      "quality": "good",
+      "groundTruth": {
+        "name": "马超",
+        "company": "云图科技有限公司",
+        "jobTitle": "产品经理",
+        "mobile": "155-0000-0027",
+        "phone": "010-8000-3000",
+        "fax": null,
+        "email": "machao@example.com",
+        "website": "www.cloudmap.example.com",
+        "address": "北京市海淀区中关村大街1号"
+      },
+      "expectedAbsent": ["fax"]
+    },
+    {
+      "id": "TC28",
+      "categories": ["chinese", "ambiguity", "brandAsCompany"],
+      "layout": "horizontal",
+      "quality": "good",
+      "groundTruth": {
+        "name": "徐磊",
+        "company": "Apple",
+        "jobTitle": "软件工程师",
+        "mobile": "154-0000-0028",
+        "phone": null,
+        "fax": null,
+        "email": "xulei@example.com",
+        "website": null,
+        "address": null
+      },
+      "expectedAbsent": ["phone", "fax", "website", "address"]
+    },
+    {
+      "id": "TC29",
+      "categories": ["chinese", "fax"],
+      "layout": "horizontal",
+      "quality": "good",
+      "groundTruth": {
+        "name": "蒋涛",
+        "company": "远东贸易有限公司",
+        "jobTitle": "外贸经理",
+        "mobile": null,
+        "phone": "021-6000-8000",
+        "fax": "021-6000-8001",
+        "email": "jiangtao@example.com",
+        "website": null,
+        "address": null
+      },
+      "expectedAbsent": ["mobile", "website", "address"]
+    },
+    {
+      "id": "TC30",
+      "categories": ["chinese", "missingField"],
+      "layout": "horizontal",
+      "quality": "good",
+      "groundTruth": {
+        "name": "邓丽",
+        "company": "悦享旅游",
+        "jobTitle": "导游",
+        "mobile": "153-0000-0030",
+        "phone": null,
+        "fax": null,
+        "email": null,
+        "website": null,
+        "address": "成都市锦江区春熙路1号"
+      },
+      "expectedAbsent": ["phone", "fax", "email", "website"]
+    }
+  ]
+}

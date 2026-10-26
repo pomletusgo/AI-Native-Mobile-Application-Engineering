@@ -1,0 +1,26 @@
+schema: spec-driven
+context: |
+  Greenfield teaching case: 100% black-box replication of the CamCard
+  "card digitization and contact management" slice with SDD + TRAE.
+  Native SwiftUI, Swift 5 language mode, iOS 17+, MVVM.
+  Chinese artifacts; keep OpenSpec English headings and SHALL/MUST.
+  Before archive, main specs are empty; all capabilities arrive as ADDED Delta.
+  Scope: card holder, capture/import, boundary detection, OCR,
+  structured extraction, human correction, save, detail, edit,
+  search, tags, delete, persistence, export.
+  Out of scope: account, membership, payment, ads, cloud/device sync,
+  team library, CRM sync, org permissions, digital card design,
+  QR exchange, email signature, AI company intelligence, meeting notes, sales funnel.
+  Deterministic features must pass the reference suite 100%;
+  OCR and field extraction are probabilistic and scored against Ground Truth.
+  AI must never fabricate fields that are absent on the card; unknown fields stay nil.
+rules:
+  proposal:
+    - Inspect the actual project files first; do not assume capture, OCR or persistence exist.
+    - Declare new capabilities and non-goals explicitly.
+  specs:
+    - New capabilities start with Purpose and use ADDED Requirements.
+    - The card holder, detail and edit screens are new; there is no MODIFIED baseline.
+  tasks:
+    - Use observable completion criteria and record actual command results.
+    - Never mark blocked UI or CLI validation complete.

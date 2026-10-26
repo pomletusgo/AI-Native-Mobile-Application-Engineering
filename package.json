@@ -1,0 +1,13 @@
+{
+  "name": "camcard-clone",
+  "version": "1.0.0",
+  "private": true,
+  "devDependencies": {
+    "@fission-ai/openspec": "1.13.2"
+  },
+  "scripts": {
+    "spec:init": "openspec init --tools trae --profile core",
+    "spec:validate": "openspec validate --all --strict",
+    "spec:status": "openspec status --change replicate-camcard-core-slice --json"
+  }
+}

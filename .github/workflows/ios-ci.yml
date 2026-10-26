@@ -1,0 +1,111 @@
+name: iOS CI
+
+# 触发条件：推送到 main 或对 main 发起 PR。
+# 也可在 GitHub 网页的 Actions 页手动触发（workflow_dispatch）。
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# 同一分支的旧任务自动取消，避免排队。
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ------------------------------------------------------------------
+  # 作业 1：规格契约校验（对应 docs/验证报告.md 的 openspec validate 一行）
+  # ------------------------------------------------------------------
+  spec:
+    name: OpenSpec Validate
+    runs-on: ubuntu-latest
+    env:
+      # 关闭遥测，避免在沙箱/受限环境下产生无关报错。
+      OPENSPEC_TELEMETRY: "0"
+      DO_NOT_TRACK: "1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate specs (--all --strict)
+        run: npm run spec:validate 2>&1 | tee openspec-validate.log
+
+      - name: Upload validate log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: openspec-validate-log
+          path: openspec-validate.log
+          if-no-files-found: warn
+
+  # ------------------------------------------------------------------
+  # 作业 2：编译 App 并在模拟器上运行 42 个单元测试
+  # 对应 docs/验证报告.md 中「iOS 编译（build-for-testing）」
+  # 与「42 个单元测试实际运行」两行。
+  # ------------------------------------------------------------------
+  ios:
+    name: Build & Test (iOS Simulator)
+    runs-on: macos-15
+    env:
+      SCHEME: CamCardClone
+      PROJECT: CamCardClone.xcodeproj
+      # 仅做模拟器构建/测试，不涉及真机签名。
+      CODE_SIGN_IDENTITY: ""
+      CODE_SIGNING_REQUIRED: "NO"
+      CODE_SIGNING_ALLOWED: "NO"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show toolchain versions
+        run: |
+          xcodebuild -version
+          xcrun simctl list runtimes
+
+      - name: List available iPhone simulators
+        run: xcrun simctl list devices available | grep -i iphone || true
+
+      - name: Build for testing
+        run: |
+          set -o pipefail
+          xcodebuild build-for-testing \
+            -project "$PROJECT" \
+            -scheme "$SCHEME" \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            -derivedDataPath .build-xcode \
+            -resultBundlePath TestResults-build.xcresult \
+            2>&1 | tee build-for-testing.log
+
+      - name: Run unit tests
+        run: |
+          set -o pipefail
+          xcodebuild test-without-building \
+            -project "$PROJECT" \
+            -scheme "$SCHEME" \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            -derivedDataPath .build-xcode \
+            -resultBundlePath TestResults-test.xcresult \
+            2>&1 | tee unit-tests.log
+
+      - name: Upload build and test logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build-test-logs
+          path: |
+            build-for-testing.log
+            unit-tests.log
+            TestResults-build.xcresult
+            TestResults-test.xcresult
+          if-no-files-found: warn
