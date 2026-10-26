@@ -12,7 +12,7 @@
 - [x] 2.5 新建 `CardHolderViewModel` 与 `CardDetailViewModel`，覆盖 S1–S4 / D1–D2 与「姓名为空拒绝保存」。
 - [x] 2.6 新建名片夹首页、空状态、名片行、详情/编辑页与扫描入口占位。
 - [x] 2.7 新建首批单元测试（Model / Repository / ViewModel）。
-- [ ] 2.8 在 Mac 上编译并运行首批单元测试，保存日志。
+- [x] 2.8 在 Mac 上编译并运行首批单元测试，保存日志（2026-10-26 通过。证据来源为 GitHub Actions 的 `macos-15` runner 而非本机 Mac：`iOS CI` run #2，commit `7e0ab39`，`Build for testing` 34 秒、`Run unit tests` 2 分 46 秒共 42 个测试，退出码 0，日志见 artifact `ios-build-test-logs`；见 docs/验证报告.md）。
 
 ## 3. Week 3 - Camera and OCR
 - [ ] 3.1 接入相机拍摄与相册导入，替换 `ScannerEntryView` 占位，覆盖 T02–T05。
@@ -39,4 +39,4 @@
 - [ ] 6.4 完成 `docs/UI验收清单.md` 手工验收。
 - [ ] 6.5 必需验证全部通过后归档，把四个 ADDED 能力合并为主规格。
 
-> 勾选状态只能根据实际证据更新。本次提交只覆盖 Week 1–2；Week 2.8 需要在 Mac 上真实编译与运行，未执行前保持未勾选，其余周次留待后续提交。
+> 勾选状态只能根据实际证据更新。本次提交覆盖 Week 1–2；2.8 的编译与测试证据来自 CI 的 macOS runner（非本机 Mac），已在条目内注明来源。其余周次留待后续提交。
