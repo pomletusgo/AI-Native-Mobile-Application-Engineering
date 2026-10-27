@@ -50,7 +50,7 @@ extension Sequence where Element == RecognizedLine {
 
         for line in topToBottom {
             if let reference = rows.last?.first {
-                let tolerance = max(reference.boundingBox.height, line.boundingBox.height) * 0.6
+                let tolerance = Swift.max(reference.boundingBox.height, line.boundingBox.height) * 0.6
                 if abs(reference.boundingBox.midY - line.boundingBox.midY) <= tolerance {
                     rows[rows.count - 1].append(line)
                     continue
