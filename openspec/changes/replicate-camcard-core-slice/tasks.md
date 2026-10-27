@@ -17,8 +17,8 @@
 ## 3. Week 3 - Camera and OCR
 - [ ] 3.1 接入相机拍摄与相册导入，替换 `ScannerEntryView` 占位，覆盖 T02–T05。
 - [ ] 3.2 实现名片区域检测与透视/方向校正，覆盖 T06。
-- [ ] 3.3 定义并实现 `OCRService`，输出原始识别文本，覆盖 T07。
-- [ ] 3.4 新增 OCR 相关自动化测试并保存日志。
+- [x] 3.3 定义并实现 `OCRService`，输出原始识别文本，覆盖 T07（2026-10-27 通过。`OCRService` 协议以图片 `Data` 为输入、输出 `OCRTextResult`（文本行按阅读顺序排列），`VisionOCRService` 用 `VNRecognizeTextRequest` 做端上识别，默认 `.accurate` 级别并同时启用 `zh-Hans` / `en-US`；识别不到文字时抛 `OCRError.noTextFound` 而不是返回空结果，与「不得保存空名片」一致。`iOS CI` run #9，commit `3308a0b`，`Build for testing` 与 `Run unit tests` 均退出码 0。**注意**：CI 只验证编译与下方单测，真实名片图片上的识别效果属人工验收）。
+- [x] 3.4 新增 OCR 相关自动化测试并保存日志（2026-10-27 通过。新增 `OCRServiceTests` 10 个方法，覆盖结果规范化与空结果判定、阅读顺序（跨行自上而下 / 行内从左到右 / 轻微纵向抖动仍归同一行 / 空输入）、错误文案，以及两条真实的 `VisionOCRService` 失败路径（不可解码图片 → `invalidImageData`；纯白图片 → `noTextFound`）与异步封装的错误传播。`iOS CI` run #10，commit `c4629ca`，单元测试总数由 108 增至 118 且全部通过，日志见 artifact `ios-build-test-logs`）。
 
 ## 4. Week 4 - Structured extraction and human verification
 - [x] 4.1 实现字段结构化抽取（姓名/公司/职位/电话/邮箱/地址等），覆盖 T08–T10（2026-10-27 通过。`BusinessCardFieldParser` 把 OCR 原始文本按固定优先级拆段判型（邮箱子串 → 网址 → 标签:值 → 邮编 → 电话 → 强地址 → 公司 → 弱地址 → 部门 → 职位 → 姓名），未确认的段落直接丢弃；`iOS CI` run #6，commit `19fb143`，`BusinessCardFieldParserTests` 19 个方法通过。**注意**：测试输入是手写 OCR 文本夹具，不是真实名片图片，T08–T10 的端到端结论要等 3.3 的 OCR 接线后复验）。
@@ -39,4 +39,4 @@
 - [ ] 6.4 完成 `docs/UI验收清单.md` 手工验收。
 - [ ] 6.5 必需验证全部通过后归档，把四个 ADDED 能力合并为主规格。
 
-> 勾选状态只能根据实际证据更新。2.8 的编译与测试证据来自 CI 的 macOS runner（非本机 Mac），已在条目内注明来源。5.2 / 5.3 的证据为 `iOS CI` run #4（commit `fe755e7`，单元测试从 42 个增至 77 个并全部通过）；Week 4 的证据为 `iOS CI` run #6（commit `19fb143`，单元测试增至 108 个并全部通过）。4.1 / 4.2 勾选的是**规则级**实现与测试，其测试输入为手写 OCR 文本夹具而非真实名片图片；一旦接上 3.3 的 OCR，需要用 `testcards/ground_truth.json` 复验端到端效果。4.3 / 4.4 因缺 UI 接线与 OCR 原文而未勾选。5.1 / 5.4 与全部依赖模拟器或真机的人工验收项仍未完成，留待拿到 Mac 后补验。
+> 勾选状态只能根据实际证据更新。2.8 的编译与测试证据来自 CI 的 macOS runner（非本机 Mac），已在条目内注明来源。5.2 / 5.3 的证据为 `iOS CI` run #4（commit `fe755e7`，单元测试从 42 个增至 77 个并全部通过）；Week 4 的证据为 `iOS CI` run #6（commit `19fb143`，单元测试增至 108 个并全部通过）；Week 3 的 3.3 / 3.4 证据为 `iOS CI` run #9 与 run #10（commit `3308a0b` / `c4629ca`，单元测试增至 118 个并全部通过；其间 run #8 因 `Sequence` 扩展内 `max` 被解析为实例方法而编译失败，已在 run #9 修正）。4.1 / 4.2 勾选的是**规则级**实现与测试，其测试输入为手写 OCR 文本夹具而非真实名片图片；3.3 只交付了 OCR 服务与失败路径，尚未接到扫描页，因此 4.1 / 4.2 的端到端复验仍待 3.1 完成。4.3 / 4.4 因缺 UI 接线与 OCR 原文而未勾选。5.1 / 5.4 与全部依赖模拟器或真机的人工验收项仍未完成，留待拿到 Mac 后补验。
