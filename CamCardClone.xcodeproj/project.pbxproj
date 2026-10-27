@@ -33,6 +33,8 @@
 		AB0000000000000000000018 /* BusinessCardFieldParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000018 /* BusinessCardFieldParserTests.swift */; };
 		AB0000000000000000000019 /* FieldExtractionEvaluator.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000019 /* FieldExtractionEvaluator.swift */; };
 		AB000000000000000000001A /* FieldExtractionEvaluatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000001A /* FieldExtractionEvaluatorTests.swift */; };
+		AB000000000000000000001B /* OCRService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000001B /* OCRService.swift */; };
+		AB000000000000000000001C /* VisionOCRService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000001C /* VisionOCRService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -72,6 +74,8 @@
 		AA0000000000000000000018 /* BusinessCardFieldParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusinessCardFieldParserTests.swift; sourceTree = "<group>"; };
 		AA0000000000000000000019 /* FieldExtractionEvaluator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FieldExtractionEvaluator.swift; sourceTree = "<group>"; };
 		AA000000000000000000001A /* FieldExtractionEvaluatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FieldExtractionEvaluatorTests.swift; sourceTree = "<group>"; };
+		AA000000000000000000001B /* OCRService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OCRService.swift; sourceTree = "<group>"; };
+		AA000000000000000000001C /* VisionOCRService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionOCRService.swift; sourceTree = "<group>"; };
 		AA0000000000000000000021 /* CamCardClone.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CamCardClone.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA0000000000000000000022 /* CamCardCloneTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CamCardCloneTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -174,6 +178,8 @@
 			isa = PBXGroup;
 			children = (
 				AA0000000000000000000017 /* BusinessCardFieldParser.swift */,
+				AA000000000000000000001B /* OCRService.swift */,
+				AA000000000000000000001C /* VisionOCRService.swift */,
 			);
 			path = Scanning;
 			sourceTree = "<group>";
@@ -323,6 +329,8 @@
 				AB000000000000000000000F /* PersistentBusinessCardRepository.swift in Sources */,
 				AB0000000000000000000010 /* VCardExporter.swift in Sources */,
 				AB0000000000000000000017 /* BusinessCardFieldParser.swift in Sources */,
+				AB000000000000000000001B /* OCRService.swift in Sources */,
+				AB000000000000000000001C /* VisionOCRService.swift in Sources */,
 				AB0000000000000000000007 /* CardHolderViewModel.swift in Sources */,
 				AB0000000000000000000008 /* CardDetailViewModel.swift in Sources */,
 				AB0000000000000000000009 /* RootView.swift in Sources */,
