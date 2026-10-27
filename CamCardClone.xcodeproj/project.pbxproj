@@ -21,10 +21,14 @@
 		AB000000000000000000000C /* EmptyCardHolderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000000C /* EmptyCardHolderView.swift */; };
 		AB000000000000000000000D /* CardDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000000D /* CardDetailView.swift */; };
 		AB000000000000000000000E /* ScannerEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000000E /* ScannerEntryView.swift */; };
+		AB000000000000000000000F /* PersistentBusinessCardRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000000F /* PersistentBusinessCardRepository.swift */; };
+		AB0000000000000000000010 /* VCardExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000010 /* VCardExporter.swift */; };
 		AB0000000000000000000011 /* BusinessCardModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000011 /* BusinessCardModelTests.swift */; };
 		AB0000000000000000000012 /* BusinessCardRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000012 /* BusinessCardRepositoryTests.swift */; };
 		AB0000000000000000000013 /* CardHolderViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000013 /* CardHolderViewModelTests.swift */; };
 		AB0000000000000000000014 /* CardDetailViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000014 /* CardDetailViewModelTests.swift */; };
+		AB0000000000000000000015 /* PersistentBusinessCardRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000015 /* PersistentBusinessCardRepositoryTests.swift */; };
+		AB0000000000000000000016 /* VCardExporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000016 /* VCardExporterTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -52,10 +56,14 @@
 		AA000000000000000000000C /* EmptyCardHolderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyCardHolderView.swift; sourceTree = "<group>"; };
 		AA000000000000000000000D /* CardDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardDetailView.swift; sourceTree = "<group>"; };
 		AA000000000000000000000E /* ScannerEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScannerEntryView.swift; sourceTree = "<group>"; };
+		AA000000000000000000000F /* PersistentBusinessCardRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistentBusinessCardRepository.swift; sourceTree = "<group>"; };
+		AA0000000000000000000010 /* VCardExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VCardExporter.swift; sourceTree = "<group>"; };
 		AA0000000000000000000011 /* BusinessCardModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusinessCardModelTests.swift; sourceTree = "<group>"; };
 		AA0000000000000000000012 /* BusinessCardRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusinessCardRepositoryTests.swift; sourceTree = "<group>"; };
 		AA0000000000000000000013 /* CardHolderViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardHolderViewModelTests.swift; sourceTree = "<group>"; };
 		AA0000000000000000000014 /* CardDetailViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardDetailViewModelTests.swift; sourceTree = "<group>"; };
+		AA0000000000000000000015 /* PersistentBusinessCardRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistentBusinessCardRepositoryTests.swift; sourceTree = "<group>"; };
+		AA0000000000000000000016 /* VCardExporterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VCardExporterTests.swift; sourceTree = "<group>"; };
 		AA0000000000000000000021 /* CamCardClone.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CamCardClone.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA0000000000000000000022 /* CamCardCloneTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CamCardCloneTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -103,6 +111,7 @@
 				AC0000000000000000000005 /* Models */,
 				AC0000000000000000000006 /* Navigation */,
 				AC0000000000000000000007 /* Repositories */,
+				AC000000000000000000000B /* Export */,
 				AC0000000000000000000008 /* ViewModels */,
 				AC0000000000000000000009 /* Views */,
 			);
@@ -139,8 +148,17 @@
 			children = (
 				AA0000000000000000000005 /* BusinessCardRepository.swift */,
 				AA0000000000000000000006 /* InMemoryBusinessCardRepository.swift */,
+				AA000000000000000000000F /* PersistentBusinessCardRepository.swift */,
 			);
 			path = Repositories;
+			sourceTree = "<group>";
+		};
+		AC000000000000000000000B /* Export */ = {
+			isa = PBXGroup;
+			children = (
+				AA0000000000000000000010 /* VCardExporter.swift */,
+			);
+			path = Export;
 			sourceTree = "<group>";
 		};
 		AC0000000000000000000008 /* ViewModels */ = {
@@ -172,6 +190,8 @@
 				AA0000000000000000000012 /* BusinessCardRepositoryTests.swift */,
 				AA0000000000000000000013 /* CardHolderViewModelTests.swift */,
 				AA0000000000000000000014 /* CardDetailViewModelTests.swift */,
+				AA0000000000000000000015 /* PersistentBusinessCardRepositoryTests.swift */,
+				AA0000000000000000000016 /* VCardExporterTests.swift */,
 			);
 			path = CamCardCloneTests;
 			sourceTree = "<group>";
@@ -280,6 +300,8 @@
 				AB0000000000000000000004 /* AppRouter.swift in Sources */,
 				AB0000000000000000000005 /* BusinessCardRepository.swift in Sources */,
 				AB0000000000000000000006 /* InMemoryBusinessCardRepository.swift in Sources */,
+				AB000000000000000000000F /* PersistentBusinessCardRepository.swift in Sources */,
+				AB0000000000000000000010 /* VCardExporter.swift in Sources */,
 				AB0000000000000000000007 /* CardHolderViewModel.swift in Sources */,
 				AB0000000000000000000008 /* CardDetailViewModel.swift in Sources */,
 				AB0000000000000000000009 /* RootView.swift in Sources */,
@@ -299,6 +321,8 @@
 				AB0000000000000000000012 /* BusinessCardRepositoryTests.swift in Sources */,
 				AB0000000000000000000013 /* CardHolderViewModelTests.swift in Sources */,
 				AB0000000000000000000014 /* CardDetailViewModelTests.swift in Sources */,
+				AB0000000000000000000015 /* PersistentBusinessCardRepositoryTests.swift in Sources */,
+				AB0000000000000000000016 /* VCardExporterTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
