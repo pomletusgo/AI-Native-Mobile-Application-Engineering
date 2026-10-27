@@ -21,10 +21,10 @@
 - [ ] 3.4 新增 OCR 相关自动化测试并保存日志。
 
 ## 4. Week 4 - Structured extraction and human verification
-- [ ] 4.1 实现字段结构化抽取（姓名/公司/职位/电话/邮箱/地址等），覆盖 T08–T10。
-- [ ] 4.2 落实「不得虚构」原则：缺失字段返回 nil，覆盖 T09。
-- [ ] 4.3 打通人工校正与保存流程，覆盖 T11–T12。
-- [ ] 4.4 用 `testcards/ground_truth.json` 统计字段级准确率并记录错误分析。
+- [x] 4.1 实现字段结构化抽取（姓名/公司/职位/电话/邮箱/地址等），覆盖 T08–T10（2026-10-27 通过。`BusinessCardFieldParser` 把 OCR 原始文本按固定优先级拆段判型（邮箱子串 → 网址 → 标签:值 → 邮编 → 电话 → 强地址 → 公司 → 弱地址 → 部门 → 职位 → 姓名），未确认的段落直接丢弃；`iOS CI` run #6，commit `19fb143`，`BusinessCardFieldParserTests` 19 个方法通过。**注意**：测试输入是手写 OCR 文本夹具，不是真实名片图片，T08–T10 的端到端结论要等 3.3 的 OCR 接线后复验）。
+- [x] 4.2 落实「不得虚构」原则：缺失字段返回 nil，覆盖 T09（2026-10-27 通过。`ExtractedCardFields` 全部字段默认 nil、`assign` 有值不覆盖；单个西文单词（如 `Apple`）既不判姓名也不判机构，宁可留空；无姓名候选时 `name` 保持 nil，且 `makeCard()` 返回 nil 不允许用公司名顶替保存。同一 CI run #6 中的 `testSingleLatinWordIsNeitherNameNorCompany`、`testCompanyOnlyCardHasNoNameAndCannotBecomeCard` 等方法覆盖）。
+- [ ] 4.3 打通人工校正与保存流程，覆盖 T11–T12（未完成。`ExtractedCardFields.makeCard()` 已提供「姓名为空则拒绝构造名片」的落库前置校验，但扫描页 `ScannerEntryView` 仍是占位视图，字段校正面板、编辑后保存与详情回填的 UI 尚未接线，T11–T12 无法在本机验收）。
+- [ ] 4.4 用 `testcards/ground_truth.json` 统计字段级准确率并记录错误分析（脚本已就绪、数值待执行。`FieldExtractionEvaluator` 实现字段级准确率与缺失字段误报率统计，含大小写/空白与电话分隔符归一化、五种判定（正确/不一致/漏抽/虚构/本应为空）与 Markdown 报告生成，12 个自测方法通过；但 `ground_truth.json` 目前只有字段真值、**没有对应 OCR 原文**，凭空计算等于编造输入，故数值仍留空，`testFieldAccuracyOnCorpusIsPendingUntilOCRTextsExist` 以 `XCTSkip` 退出，待 3.3 产出 `testcards/ocr/<卡片ID>.txt` 后运行）。
 
 ## 5. Week 5 - Card management, persistence and export
 - [ ] 5.1 补齐列表/详情/搜索/标签/备注/编辑/删除的完整交互，覆盖 T13–T17。
@@ -39,4 +39,4 @@
 - [ ] 6.4 完成 `docs/UI验收清单.md` 手工验收。
 - [ ] 6.5 必需验证全部通过后归档，把四个 ADDED 能力合并为主规格。
 
-> 勾选状态只能根据实际证据更新。2.8 的编译与测试证据来自 CI 的 macOS runner（非本机 Mac），已在条目内注明来源。5.2 / 5.3 的证据为 `iOS CI` run #4（commit `fe755e7`），该运行中单元测试从 42 个增至 77 个并全部通过；5.1 / 5.4 与全部依赖模拟器或真机的人工验收项仍未完成，留待拿到 Mac 后补验。
+> 勾选状态只能根据实际证据更新。2.8 的编译与测试证据来自 CI 的 macOS runner（非本机 Mac），已在条目内注明来源。5.2 / 5.3 的证据为 `iOS CI` run #4（commit `fe755e7`，单元测试从 42 个增至 77 个并全部通过）；Week 4 的证据为 `iOS CI` run #6（commit `19fb143`，单元测试增至 108 个并全部通过）。4.1 / 4.2 勾选的是**规则级**实现与测试，其测试输入为手写 OCR 文本夹具而非真实名片图片；一旦接上 3.3 的 OCR，需要用 `testcards/ground_truth.json` 复验端到端效果。4.3 / 4.4 因缺 UI 接线与 OCR 原文而未勾选。5.1 / 5.4 与全部依赖模拟器或真机的人工验收项仍未完成，留待拿到 Mac 后补验。
