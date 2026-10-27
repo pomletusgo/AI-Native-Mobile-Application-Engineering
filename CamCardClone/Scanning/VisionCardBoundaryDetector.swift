@@ -162,7 +162,8 @@ final class VisionCardBoundaryDetector: CardBoundaryDetecting, CardBoundaryCorre
         }
 
         let data = try encodePNG(outputCGImage)
-        return CorrectedCardImage(imageData: data, pixelSize: outputCGImage.size)
+        let pixelSize = CGSize(width: outputCGImage.width, height: outputCGImage.height)
+        return CorrectedCardImage(imageData: data, pixelSize: pixelSize)
     }
 
     private static func encodePNG(_ image: CGImage) throws -> Data {
