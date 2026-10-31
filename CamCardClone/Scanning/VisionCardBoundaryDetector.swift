@@ -105,20 +105,19 @@ final class VisionCardBoundaryDetector: CardBoundaryDetecting, CardBoundaryCorre
         quad.isReliable() ? .detected(quad) : .unreliable(quad)
     }
 
-    /// 透视校正 + 90° 摆正，输出 PNG 数据。
+    /// 透视校正，输出 PNG 数据。
+    ///
+    /// 只做透视摆正，不依据长宽比自动转 90°：竖版名片本身合法，仅凭四边形比例无法区分
+    /// 「竖版名片」与「照片方向不对」，误转会直接破坏识别。图像方向交由拍摄/导入阶段
+    /// 提供的方向信息处理，识别结果不理想时由用户重拍或手动调整。
     func correctCard(in imageData: Data, quad: CardQuad) throws -> CorrectedCardImage {
-        try VisionCardBoundaryDetector.correct(
-            imageData: imageData,
-            quad: quad,
-            rotation: quad.suggestedRotation()
-        )
+        try VisionCardBoundaryDetector.correct(imageData: imageData, quad: quad)
     }
 
     /// 同步执行一次校正，抽成静态方法便于在测试中直接调用。
     static func correct(
         imageData: Data,
-        quad: CardQuad,
-        rotation: CardRotation
+        quad: CardQuad
     ) throws -> CorrectedCardImage {
         guard let sourceImage = CIImage(data: imageData) else {
             throw CardBoundaryError.invalidImageData
@@ -139,25 +138,9 @@ final class VisionCardBoundaryDetector: CardBoundaryDetecting, CardBoundaryCorre
             throw CardBoundaryError.correctionFailed(reason: "透视校正未产出图像。")
         }
 
-        let oriented: CIImage
-        switch rotation {
-        case .none:
-            oriented = corrected
-        case .quarterTurnClockwise:
-            // Core Image 的坐标原点在左下角，正角度为逆时针，因此顺时针 90° 用 -π/2。
-            // 旋转后 extent 原点会平移，需要归一化回 (0, 0)。
-            let rotated = corrected.transformed(by: CGAffineTransform(rotationAngle: -.pi / 2))
-            oriented = rotated.transformed(
-                by: CGAffineTransform(
-                    translationX: -rotated.extent.origin.x,
-                    y: -rotated.extent.origin.y
-                )
-            )
-        }
-
         // 用软件渲染器，避免在无 GPU 的环境（如 CI）上因 Metal 不可用而失败。
         let context = CIContext(options: [.useSoftwareRenderer: true])
-        guard let outputCGImage = context.createCGImage(oriented, from: oriented.extent) else {
+        guard let outputCGImage = context.createCGImage(corrected, from: corrected.extent) else {
             throw CardBoundaryError.correctionFailed(reason: "无法渲染校正后的图像。")
         }
 

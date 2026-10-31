@@ -15,7 +15,9 @@ struct CardQuad: Equatable {
         [topLeft, topRight, bottomRight, bottomLeft]
     }
 
-    /// 有向面积；负值表示四个角的顺序反了。
+    /// 有向面积。`corners` 按 topLeft → topRight → bottomRight → bottomLeft 给出，
+    /// 在 y 轴向上的坐标系里是顺时针，鞋带公式本身对逆时针为正，故取负号使顺时针为正；
+    /// 负值表示四个角的顺序反了。
     var signedArea: CGFloat {
         let points = corners
         var total: CGFloat = 0
@@ -24,7 +26,7 @@ struct CardQuad: Equatable {
             let next = points[(index + 1) % points.count]
             total += current.x * next.y - next.x * current.y
         }
-        return total / 2
+        return -total / 2
     }
 
     /// 归一化面积（0…1）。
@@ -68,17 +70,6 @@ struct CardQuad: Equatable {
         return aspectRange.contains(aspectRatio)
     }
 
-    /// 摆正名片所需的旋转。
-    ///
-    /// 只依据几何长宽比，因此只能判断「要不要转 90°」，无法区分上下颠倒——那需要文字方向
-    /// 或人工判断。这里采用「名片以横向为主」的经验假设：竖向边长于横向边时建议顺时针转 90°；
-    /// 用户仍可重拍或在检测页手动调整。
-    func suggestedRotation() -> CardRotation {
-        let horizontal = Swift.max(topEdgeLength, bottomEdgeLength)
-        let vertical = Swift.max(leftEdgeLength, rightEdgeLength)
-        return vertical > horizontal ? .quarterTurnClockwise : .none
-    }
-
     /// 映射到图片像素坐标（原点仍在左下角，供 Core Image 使用）。
     func pixelCorners(in imageSize: CGSize) -> (
         topLeft: CGPoint,
@@ -92,24 +83,11 @@ struct CardQuad: Equatable {
         return (scaled(topLeft), scaled(topRight), scaled(bottomRight), scaled(bottomLeft))
     }
 
-    /// 校正后应输出的像素尺寸：宽取上/下边较长者，高取左/右边较长者。
-    func correctedPixelSize(in imageSize: CGSize) -> CGSize {
-        let width = Swift.max(topEdgeLength, bottomEdgeLength) * imageSize.width
-        let height = Swift.max(leftEdgeLength, rightEdgeLength) * imageSize.height
-        return CGSize(width: width.rounded(), height: height.rounded())
-    }
-
     private static func distance(_ lhs: CGPoint, _ rhs: CGPoint) -> CGFloat {
         let deltaX = lhs.x - rhs.x
         let deltaY = lhs.y - rhs.y
         return (deltaX * deltaX + deltaY * deltaY).squareRoot()
     }
-}
-
-/// 交付识别前需要施加的旋转。
-enum CardRotation: Equatable {
-    case none
-    case quarterTurnClockwise
 }
 
 /// 区域检测的三种结果。

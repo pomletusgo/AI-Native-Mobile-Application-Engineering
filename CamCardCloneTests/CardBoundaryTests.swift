@@ -32,8 +32,10 @@ final class CardBoundaryTests: XCTestCase {
         )
     }
 
-    /// 生成一张白底深灰矩形的合成图片，模拟「干净背景上的名片」。
-    private func makeCardImageData(width: Int = 400, height: Int = 250) -> Data {
+    /// 生成一张 400×250 的白底深灰矩形合成图片，深灰矩形占 0.8×0.6，模拟「干净背景上的名片」。
+    private func makeCardImageData() -> Data {
+        let width = 400
+        let height = 250
         let colorSpace = CGColorSpaceCreateDeviceRGB()
         guard let context = CGContext(
             data: nil,
@@ -118,11 +120,12 @@ final class CardBoundaryTests: XCTestCase {
     }
 
     func testSignedAreaIsNegativeWhenCornerOrderIsReversed() {
+        // 角序反转：bottomLeft → bottomRight → topRight → topLeft。
         let reversed = CardQuad(
-            topLeft: CGPoint(x: 0.1, y: 0.7),
-            topRight: CGPoint(x: 0.1, y: 0.2),
-            bottomRight: CGPoint(x: 0.9, y: 0.2),
-            bottomLeft: CGPoint(x: 0.9, y: 0.7)
+            topLeft: CGPoint(x: 0.1, y: 0.2),
+            topRight: CGPoint(x: 0.9, y: 0.2),
+            bottomRight: CGPoint(x: 0.9, y: 0.7),
+            bottomLeft: CGPoint(x: 0.1, y: 0.7)
         )
 
         XCTAssertLessThan(reversed.signedArea, 0)
@@ -179,20 +182,6 @@ final class CardBoundaryTests: XCTestCase {
         XCTAssertFalse(square.isReliable())
     }
 
-    // MARK: - 旋转建议
-
-    func testLandscapeQuadNeedsNoRotation() {
-        let landscape = rectQuad(x: 0.1, y: 0.2, width: 0.8, height: 0.5)
-
-        XCTAssertEqual(landscape.suggestedRotation(), .none)
-    }
-
-    func testPortraitQuadSuggestsQuarterTurn() {
-        let portrait = rectQuad(x: 0.2, y: 0.05, width: 0.4, height: 0.8)
-
-        XCTAssertEqual(portrait.suggestedRotation(), .quarterTurnClockwise)
-    }
-
     // MARK: - 像素映射
 
     func testPixelCornersScaleNormalizedPoints() {
@@ -203,13 +192,6 @@ final class CardBoundaryTests: XCTestCase {
         XCTAssertEqual(corners.topRight, CGPoint(x: 300, y: 150))
         XCTAssertEqual(corners.bottomRight, CGPoint(x: 300, y: 100))
         XCTAssertEqual(corners.bottomLeft, CGPoint(x: 100, y: 100))
-    }
-
-    func testCorrectedPixelSizeUsesLongerEdges() {
-        let quad = rectQuad(x: 0.25, y: 0.5, width: 0.5, height: 0.25)
-        let size = quad.correctedPixelSize(in: CGSize(width: 400, height: 200))
-
-        XCTAssertEqual(size, CGSize(width: 200, height: 50))
     }
 
     // MARK: - 结果分类
@@ -299,38 +281,31 @@ final class CardBoundaryTests: XCTestCase {
         XCTAssertFalse(imageData.isEmpty)
         let quad = rectQuad(x: 0.1, y: 0.2, width: 0.8, height: 0.6)
 
-        let result = try VisionCardBoundaryDetector.correct(
-            imageData: imageData,
-            quad: quad,
-            rotation: .none
-        )
+        let result = try VisionCardBoundaryDetector.correct(imageData: imageData, quad: quad)
 
         XCTAssertFalse(result.imageData.isEmpty)
         let size = decodedSize(of: result.imageData)
         XCTAssertNotNil(size)
         XCTAssertEqual(result.pixelSize, size ?? .zero)
-        XCTAssertGreaterThan(result.pixelSize.width, result.pixelSize.height)
+        // 四边形在 400×250 的图里占 0.8×0.6，校正后应接近 320×150。
+        XCTAssertEqual(result.pixelSize.width, 320, accuracy: 2)
+        XCTAssertEqual(result.pixelSize.height, 150, accuracy: 2)
     }
 
-    func testCorrectWithQuarterTurnSwapsOrientation() throws {
+    func testCorrectStraightensRotatedQuadToAxisAlignedBounds() throws {
+        // 旋转过的四边形（上边略窄于下边），校正后宽度应回落到与下边一致。
         let imageData = makeCardImageData()
-        let quad = rectQuad(x: 0.1, y: 0.2, width: 0.8, height: 0.6)
-
-        let landscape = try VisionCardBoundaryDetector.correct(
-            imageData: imageData,
-            quad: quad,
-            rotation: .none
-        )
-        let portrait = try VisionCardBoundaryDetector.correct(
-            imageData: imageData,
-            quad: quad,
-            rotation: .quarterTurnClockwise
+        let tilted = CardQuad(
+            topLeft: CGPoint(x: 0.15, y: 0.80),
+            topRight: CGPoint(x: 0.85, y: 0.80),
+            bottomRight: CGPoint(x: 0.90, y: 0.20),
+            bottomLeft: CGPoint(x: 0.10, y: 0.20)
         )
 
-        XCTAssertGreaterThan(landscape.pixelSize.width, landscape.pixelSize.height)
-        XCTAssertGreaterThan(portrait.pixelSize.height, portrait.pixelSize.width)
-        XCTAssertEqual(landscape.pixelSize.width, portrait.pixelSize.height, accuracy: 1)
-        XCTAssertEqual(landscape.pixelSize.height, portrait.pixelSize.width, accuracy: 1)
+        let result = try VisionCardBoundaryDetector.correct(imageData: imageData, quad: tilted)
+
+        XCTAssertFalse(result.imageData.isEmpty)
+        XCTAssertGreaterThan(result.pixelSize.width, result.pixelSize.height)
     }
 
     func testCorrectRejectsUndecodableImageData() {
@@ -339,15 +314,15 @@ final class CardBoundaryTests: XCTestCase {
         XCTAssertThrowsError(
             try VisionCardBoundaryDetector.correct(
                 imageData: Data([0xFF, 0xFE]),
-                quad: quad,
-                rotation: .none
+                quad: quad
             )
         ) { error in
             XCTAssertEqual(error as? CardBoundaryError, .invalidImageData)
         }
     }
 
-    func testCorrectCardUsesSuggestedRotation() throws {
+    func testCorrectCardKeepsDetectedOrientation() throws {
+        // 竖版四边形不做自动 90° 旋转，输出仍为竖版，避免误转破坏竖版名片。
         let imageData = makeCardImageData()
         let portrait = rectQuad(x: 0.2, y: 0.05, width: 0.4, height: 0.8)
         let detector = VisionCardBoundaryDetector()
@@ -355,5 +330,7 @@ final class CardBoundaryTests: XCTestCase {
         let result = try detector.correctCard(in: imageData, quad: portrait)
 
         XCTAssertGreaterThan(result.pixelSize.height, result.pixelSize.width)
+        XCTAssertEqual(result.pixelSize.width, 160, accuracy: 2)
+        XCTAssertEqual(result.pixelSize.height, 200, accuracy: 2)
     }
 }
