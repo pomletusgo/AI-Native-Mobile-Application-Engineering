@@ -183,9 +183,14 @@ M17（保存后完全退出并重启）用 `xcrun simctl terminate` + `launch`�
 
 需要三样东西：
 
-**① 30 张名片图片**
+**① 30 张名片图片 —— 已就位**
 
-`testcards/ground_truth.json` 里有 30 张卡的字段真值，ID 为 `TC01` … `TC30`。该文件 meta 已注明「全部为虚构 / 合成数据，不含真实个人敏感信息」，因此照真值渲染出 30 张合成名片图片即可，**这一步在 Windows 上就能做完，不必等 Mac**。
+`testcards/ground_truth.json` 里有 30 张卡的字段真值，ID 为 `TC01` … `TC30`。该文件 meta 已注明「全部为虚构 / 合成数据，不含真实个人敏感信息」，因此照真值渲染出 30 张合成名片图片即可，这一步已在 Windows 上完成：
+
+- 图片：`testcards/images/TC01.png` … `TC30.png`（横版 1400×900、竖版 900×1400）
+- 生成脚本：`testcards/tools/generate_card_images.py`（`python testcards/tools/generate_card_images.py` 可重生成）
+- 文字内容逐字取自 `groundTruth`，`additionalEmails`（TC06 / TC23）按出现顺序各占一行；**不做翻译**，`bilingual` 只通过排版体现
+- 六种降质（`tilted` / `complexBg` / `darkBg` / `lightBg` / `shadow` / `occluded`）由脚本确定性生成，只覆盖数据集已声明的类别，不代表真实拍照的退化分布
 
 **② 30 个 OCR 原文**
 
@@ -247,7 +252,7 @@ openspec archive replicate-camcard-core-slice
 | 3 | 真实比对通过的 CI run 号 | `docs/验证报告.md`、`tasks.md` 5.4 | 2 |
 | 4 | M01–M36 回填（36 行全部有实际记录） | `docs/UI验收清单.md` | 3 |
 | 5 | 截图与录屏 | `docs/evidence/` | 3 |
-| 6 | 30 张名片图片 | `testcards/images/`（需新建） | 4 |
+| 6 | 30 张名片图片 | `testcards/images/` | 4 **（已完成，本机可做）** |
 | 7 | 30 个 OCR 原文 | `testcards/ocr/TC01–TC30.txt`（需新建） | 4 |
 | 8 | 字段级准确率报告（含精度局限说明） | 贴进 `docs/` | 4 |
 | 9 | `isReliable()` 标定结论 | `docs/验证报告.md`、`docs/能力边界分析.md` | 4 |
