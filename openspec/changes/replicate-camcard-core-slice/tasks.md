@@ -33,7 +33,7 @@
 - [ ] 5.4 增加 UI Golden Test 与首批截图对比。
 
 ## 6. Week 6 - Acceptance and regression
-- [ ] 6.1 全量回归 Reference Test Suite T01–T20，确定性功能 100% 通过。
+- [ ] 6.1 全量回归 Reference Test Suite T01–T20，确定性功能 100% 通过（2026-10-31 完成矩阵编制，**尚未判定通过**。已在 `docs/规格测试追踪表.md` 建立「Reference Test Suite T01–T20 回归矩阵」，逐条标注每项的判定口径（逻辑层 / 人工 / 真实数据）、可引用的自动化断言（具体测试类与方法名）与对应人工验收项（M 项）：T01–T20 全部在逻辑层有断言覆盖，这些断言由 `iOS CI` run #40 / #42 真实运行通过；但「100% 通过」还包含界面、真实相机 / 相册与真实名片数据三部分——其中人工部分见 6.4（`docs/UI验收清单.md` M01–M35，本轮补 M34 / M35 覆盖相机与相册权限被拒 E1 / E2），真实数据部分见 4.4（字段准确率）与 T06 的 `isReliable()` 阈值标定，两者均需拿到 Mac / 真实名片后才能执行，故本项保持未勾选）。
 - [ ] 6.2 汇总 OCR 与字段抽取的错误原因与能力边界分析。
 - [x] 6.3 在可用环境执行 `openspec validate --all --strict` 并保存日志（2026-10-26 通过，见 docs/logs/openspec-validate.log）。
 - [ ] 6.4 完成 `docs/UI验收清单.md` 手工验收。
