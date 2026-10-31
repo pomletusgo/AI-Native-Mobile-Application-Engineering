@@ -4,7 +4,6 @@ import Foundation
 ///
 /// 用途：
 /// - SwiftUI Preview；
-/// - 扫描入口占位的「模拟识别」结果（用于验证 T12 保存闭环）；
 /// - 单元测试的固定样本。
 ///
 /// 数据来源参考 `testcards/ground_truth.json` 中的合成名片定义（不含真实个人信息）。
@@ -49,22 +48,4 @@ enum BusinessCardMockData {
             createdAt: Date(timeIntervalSince1970: 1_730_200_000)
         )
     ]
-
-    /// 扫描入口占位使用的「模拟识别结果」。
-    ///
-    /// Week3 接入真实 OCR 后，本方法将被 `OCRService` + `BusinessCardFieldParser` 的输出取代；
-    /// 同时**不得修改** `BusinessCard` 与 `BusinessCardRepository` 的既有接口。
-    static func makeRecognizedCard() -> BusinessCard {
-        BusinessCard(
-            originalImageName: "mock_scan.jpg",
-            processedImageName: "mock_scan_processed.jpg",
-            name: "王小明",
-            company: "示例科技有限公司",
-            jobTitle: "产品经理",
-            mobile: "138-0000-9999",
-            email: "wangxiaoming@example.com",
-            tags: [],
-            createdAt: Date()
-        )
-    }
 }
