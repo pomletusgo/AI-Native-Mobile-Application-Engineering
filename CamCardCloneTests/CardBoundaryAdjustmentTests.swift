@@ -101,7 +101,9 @@ final class CardBoundaryAdjustmentTests: XCTestCase {
         adjustment.offset(.bottomRight, by: CGSize(width: -0.05, height: 0.04))
         adjustment.offset(.bottomRight, by: CGSize(width: -0.05, height: 0.04))
 
-        XCTAssertEqual(adjustment.position(of: .bottomRight), CGPoint(x: 0.80, y: 0.34))
+        let position = adjustment.position(of: .bottomRight)
+        XCTAssertEqual(position.x, 0.80, accuracy: 0.0001)
+        XCTAssertEqual(position.y, 0.34, accuracy: 0.0001)
     }
 
     func testOffsetClampsAfterRepeatedDrags() {
