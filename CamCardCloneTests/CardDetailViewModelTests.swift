@@ -3,7 +3,8 @@ import XCTest
 
 /// 名片详情 / 编辑 ViewModel 单元测试。
 ///
-/// 覆盖 T13 详情、T14 编辑保存、T17 删除，以及 T20「姓名为空不得保存」。
+/// 覆盖 T13 详情（含 `postalCode` / `department`）、T14 编辑保存、T16 标签增删、
+/// T17 删除，以及 T20「姓名为空不得保存」。
 @MainActor
 final class CardDetailViewModelTests: XCTestCase {
 
@@ -34,6 +35,21 @@ final class CardDetailViewModelTests: XCTestCase {
 
         XCTAssertTrue(viewModel.isMissing)
         XCTAssertNil(viewModel.card)
+    }
+
+    func testReloadExposesPostalCodeAndDepartment() {
+        let card = BusinessCard(
+            name: "李娜",
+            company: "环宇国际贸易有限公司",
+            address: "上海市浦东新区世纪大道 100 号",
+            postalCode: "200120",
+            department: "国际业务部"
+        )
+        let repository = InMemoryBusinessCardRepository(cards: [card])
+        let viewModel = CardDetailViewModel(repository: repository, cardID: card.id)
+
+        XCTAssertEqual(viewModel.card?.postalCode, "200120")
+        XCTAssertEqual(viewModel.card?.department, "国际业务部")
     }
 
     // MARK: - T14 编辑
@@ -87,6 +103,137 @@ final class CardDetailViewModelTests: XCTestCase {
         viewModel.saveEditing()
 
         XCTAssertEqual(repository.card(withID: card.id)?.name, "李娜")
+    }
+
+    func testSaveEditingPersistsPostalCodeAndDepartment() {
+        let (repository, card) = makeRepositoryWithCard()
+        let viewModel = CardDetailViewModel(repository: repository, cardID: card.id)
+
+        viewModel.beginEditing()
+        viewModel.draft?.department = "技术中心"
+        viewModel.draft?.postalCode = "200092"
+        let result = viewModel.saveEditing()
+
+        XCTAssertTrue(result)
+        XCTAssertEqual(repository.card(withID: card.id)?.department, "技术中心")
+        XCTAssertEqual(repository.card(withID: card.id)?.postalCode, "200092")
+    }
+
+    func testSaveEditingClearsOptionalFieldWhenEmptied() {
+        let card = BusinessCard(name: "张伟", jobTitle: "技术总监")
+        let repository = InMemoryBusinessCardRepository(cards: [card])
+        let viewModel = CardDetailViewModel(repository: repository, cardID: card.id)
+
+        viewModel.beginEditing()
+        viewModel.draft?.jobTitle = nil
+        viewModel.saveEditing()
+
+        XCTAssertNil(repository.card(withID: card.id)?.jobTitle, "清空的字段应回到 nil，而不是空字符串")
+    }
+
+    // MARK: - T16 标签
+
+    func testEditableTagsFallBackToSavedCardWhenNotEditing() {
+        let card = BusinessCard(name: "张伟", tags: ["客户", "上海"])
+        let repository = InMemoryBusinessCardRepository(cards: [card])
+        let viewModel = CardDetailViewModel(repository: repository, cardID: card.id)
+
+        XCTAssertFalse(viewModel.isEditing)
+        XCTAssertEqual(viewModel.editableTags, ["客户", "上海"])
+    }
+
+    func testAddTagAppendsTrimmedTag() {
+        let (repository, card) = makeRepositoryWithCard()
+        let viewModel = CardDetailViewModel(repository: repository, cardID: card.id)
+        viewModel.beginEditing()
+
+        XCTAssertTrue(viewModel.addTag("  客户  "))
+
+        XCTAssertEqual(viewModel.editableTags, ["客户"])
+    }
+
+    func testAddTagRejectsBlankTag() {
+        let (repository, card) = makeRepositoryWithCard()
+        let viewModel = CardDetailViewModel(repository: repository, cardID: card.id)
+        viewModel.beginEditing()
+
+        XCTAssertFalse(viewModel.addTag(""))
+        XCTAssertFalse(viewModel.addTag("   "))
+        XCTAssertTrue(viewModel.editableTags.isEmpty)
+    }
+
+    func testAddTagRejectsDuplicateIgnoringCase() {
+        let card = BusinessCard(name: "张伟", tags: ["Client"])
+        let repository = InMemoryBusinessCardRepository(cards: [card])
+        let viewModel = CardDetailViewModel(repository: repository, cardID: card.id)
+        viewModel.beginEditing()
+
+        XCTAssertFalse(viewModel.addTag("client"))
+        XCTAssertEqual(viewModel.editableTags, ["Client"], "重复标签不应被追加，也不应改变原有写法")
+    }
+
+    func testAddTagRequiresEditingState() {
+        let (repository, card) = makeRepositoryWithCard()
+        let viewModel = CardDetailViewModel(repository: repository, cardID: card.id)
+
+        XCTAssertFalse(viewModel.addTag("客户"), "未进入编辑态时不得改动标签")
+        XCTAssertTrue(viewModel.editableTags.isEmpty)
+        XCTAssertEqual(repository.card(withID: card.id)?.tags, [])
+    }
+
+    func testRemoveTagDropsMatchingTagIgnoringCase() {
+        let card = BusinessCard(name: "张伟", tags: ["Client", "上海"])
+        let repository = InMemoryBusinessCardRepository(cards: [card])
+        let viewModel = CardDetailViewModel(repository: repository, cardID: card.id)
+        viewModel.beginEditing()
+
+        XCTAssertTrue(viewModel.removeTag("client"))
+        XCTAssertEqual(viewModel.editableTags, ["上海"])
+    }
+
+    func testRemoveTagReportsFalseForUnknownTag() {
+        let card = BusinessCard(name: "张伟", tags: ["客户"])
+        let repository = InMemoryBusinessCardRepository(cards: [card])
+        let viewModel = CardDetailViewModel(repository: repository, cardID: card.id)
+        viewModel.beginEditing()
+
+        XCTAssertFalse(viewModel.removeTag("不存在"))
+        XCTAssertEqual(viewModel.editableTags, ["客户"])
+    }
+
+    func testRemoveTagRequiresEditingState() {
+        let card = BusinessCard(name: "张伟", tags: ["客户"])
+        let repository = InMemoryBusinessCardRepository(cards: [card])
+        let viewModel = CardDetailViewModel(repository: repository, cardID: card.id)
+
+        XCTAssertFalse(viewModel.removeTag("客户"))
+        XCTAssertEqual(repository.card(withID: card.id)?.tags, ["客户"])
+    }
+
+    func testTagEditsPersistOnSave() {
+        let (repository, card) = makeRepositoryWithCard()
+        let viewModel = CardDetailViewModel(repository: repository, cardID: card.id)
+
+        viewModel.beginEditing()
+        viewModel.addTag("客户")
+        viewModel.addTag("重点")
+        viewModel.removeTag("重点")
+        let result = viewModel.saveEditing()
+
+        XCTAssertTrue(result)
+        XCTAssertEqual(repository.card(withID: card.id)?.tags, ["客户"])
+    }
+
+    func testCancelEditingDiscardsTagEdits() {
+        let (repository, card) = makeRepositoryWithCard()
+        let viewModel = CardDetailViewModel(repository: repository, cardID: card.id)
+
+        viewModel.beginEditing()
+        viewModel.addTag("客户")
+        viewModel.cancelEditing()
+
+        XCTAssertEqual(repository.card(withID: card.id)?.tags, [], "取消编辑必须丢弃这次标签改动")
+        XCTAssertEqual(viewModel.editableTags, [])
     }
 
     // MARK: - T20 字段为空

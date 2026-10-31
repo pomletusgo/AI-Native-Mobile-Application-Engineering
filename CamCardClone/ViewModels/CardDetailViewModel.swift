@@ -1,7 +1,9 @@
 import Foundation
 import Combine
 
-/// 名片详情 / 编辑 ViewModel（对应 P06、P07）。
+/// 名片详情 / 编辑 ViewModel（对应 P06、P07，标签编辑对应 P09）。
+///
+/// 标签的增删都发生在草稿上，因此「取消编辑丢弃草稿」同样会丢弃这次标签改动。
 @MainActor
 final class CardDetailViewModel: ObservableObject {
 
@@ -41,6 +43,45 @@ final class CardDetailViewModel: ObservableObject {
     /// 取消编辑，丢弃草稿。
     func cancelEditing() {
         draft = nil
+    }
+
+    // MARK: - 标签编辑（P09：添加 / 删除标签，随草稿一起保存或丢弃）
+
+    /// 当前可编辑的标签：编辑态取草稿，否则取已保存名片。
+    var editableTags: [String] {
+        draft?.tags ?? card?.tags ?? []
+    }
+
+    /// 向草稿添加一个标签。
+    ///
+    /// - 空字符串与纯空白不写入（与「空字段即不存在」一致）。
+    /// - 与已有标签重复（忽略大小写）时不写入。
+    /// - 非编辑态不写入。
+    /// - 返回 `true` 表示标签已加入草稿。
+    @discardableResult
+    func addTag(_ raw: String) -> Bool {
+        guard var working = draft else { return false }
+        let tag = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !tag.isEmpty else { return false }
+        guard !working.tags.contains(where: { $0.caseInsensitiveCompare(tag) == .orderedSame }) else {
+            return false
+        }
+        working.tags.append(tag)
+        draft = working
+        return true
+    }
+
+    /// 从草稿移除一个标签（忽略大小写）。
+    ///
+    /// - 返回 `true` 表示确实移除了一个标签。
+    @discardableResult
+    func removeTag(_ tag: String) -> Bool {
+        guard var working = draft else { return false }
+        let before = working.tags.count
+        working.tags.removeAll { $0.caseInsensitiveCompare(tag) == .orderedSame }
+        guard working.tags.count != before else { return false }
+        draft = working
+        return true
     }
 
     /// 保存编辑。

@@ -2,12 +2,16 @@ import SwiftUI
 
 /// 名片详情页（P06），同时承载编辑态（P07）。
 ///
-/// 覆盖状态：D1 查看 / D2 编辑 / D3 字段可点击（电话、邮箱、网站调用系统原生组件）。
+/// 覆盖状态：D1 查看 / D2 编辑 / D3 字段可点击（电话、邮箱、网站调用系统原生组件）；
+/// 标签的增删在编辑态完成（P09），查看态展示已保存的标签。
 struct CardDetailView: View {
 
     @StateObject private var viewModel: CardDetailViewModel
     @EnvironmentObject private var router: AppRouter
     @Environment(\.openURL) private var openURL
+
+    /// 编辑态里「添加标签」输入框的内容。
+    @State private var newTagText: String = ""
 
     init(repository: BusinessCardRepository, cardID: UUID) {
         _viewModel = StateObject(wrappedValue: CardDetailViewModel(repository: repository, cardID: cardID))
@@ -30,13 +34,13 @@ struct CardDetailView: View {
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
                 if viewModel.isEditing {
-                    Button("取消") { viewModel.cancelEditing() }
+                    Button("取消") { cancelEditing() }
                         .accessibilityIdentifier("cancelEditButton")
                 }
             }
             ToolbarItem(placement: .navigationBarTrailing) {
                 if viewModel.isEditing {
-                    Button("保存") { viewModel.saveEditing() }
+                    Button("保存") { saveEditing() }
                         .accessibilityIdentifier("saveEditButton")
                 } else if !viewModel.isMissing {
                     Button("编辑") { viewModel.beginEditing() }
@@ -61,6 +65,10 @@ struct CardDetailView: View {
                     }
                 }
                 .padding(.vertical, 4)
+
+                if let department = card.department {
+                    valueRow("部门", department)
+                }
             }
 
             if !card.tags.isEmpty {
@@ -80,6 +88,7 @@ struct CardDetailView: View {
                     linkRow("网站", website, url: URL(string: normalizedURL(website)))
                 }
                 if let address = card.address { valueRow("地址", address) }
+                if let postalCode = card.postalCode { valueRow("邮编", postalCode) }
             }
 
             if let notes = card.notes, !notes.isEmpty {
@@ -107,6 +116,7 @@ struct CardDetailView: View {
                     .accessibilityIdentifier("editNameField")
                 TextField("公司", text: optionalStringBinding(\.company))
                 TextField("职位", text: optionalStringBinding(\.jobTitle))
+                TextField("部门", text: optionalStringBinding(\.department))
             }
 
             Section("联系方式") {
@@ -125,12 +135,79 @@ struct CardDetailView: View {
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
                 TextField("地址", text: optionalStringBinding(\.address))
+                TextField("邮编", text: optionalStringBinding(\.postalCode))
+                    .keyboardType(.numbersAndPunctuation)
+                    .textInputAutocapitalization(.never)
             }
+
+            tagEditor
 
             Section("备注") {
                 TextField("备注", text: optionalStringBinding(\.notes), axis: .vertical)
                     .lineLimit(2...5)
             }
+        }
+    }
+
+    // MARK: - 标签编辑（P09）
+
+    private var tagEditor: some View {
+        Section("标签") {
+            if viewModel.editableTags.isEmpty {
+                Text("暂无标签")
+                    .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("noTagsHint")
+            } else {
+                ForEach(viewModel.editableTags, id: \.self) { tag in
+                    HStack {
+                        Text(tag)
+                        Spacer()
+                        Button {
+                            viewModel.removeTag(tag)
+                        } label: {
+                            Image(systemName: "minus.circle.fill")
+                                .foregroundStyle(.red)
+                        }
+                        .buttonStyle(.borderless)
+                        .accessibilityLabel("删除标签 \(tag)")
+                        .accessibilityIdentifier("removeTagButton_\(tag)")
+                    }
+                }
+                .onDelete { offsets in
+                    let tags = viewModel.editableTags
+                    offsets.forEach { viewModel.removeTag(tags[$0]) }
+                }
+            }
+
+            HStack {
+                TextField("添加标签", text: $newTagText)
+                    .accessibilityIdentifier("newTagField")
+                    .onSubmit { addTag() }
+                Button("添加") { addTag() }
+                    .buttonStyle(.borderless)
+                    .disabled(newTagText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    .accessibilityIdentifier("addTagButton")
+            }
+        }
+    }
+
+    // MARK: - 编辑动作
+
+    private func addTag() {
+        // 仅在真正写入草稿后才清空输入框：重复标签或空输入会保留原文，便于用户看到未被接受。
+        if viewModel.addTag(newTagText) {
+            newTagText = ""
+        }
+    }
+
+    private func cancelEditing() {
+        newTagText = ""
+        viewModel.cancelEditing()
+    }
+
+    private func saveEditing() {
+        if viewModel.saveEditing() {
+            newTagText = ""
         }
     }
 
