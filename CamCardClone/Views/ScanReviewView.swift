@@ -20,6 +20,7 @@ struct ScanReviewView: View {
     init(
         imageData: Data,
         repository: BusinessCardRepository,
+        imageStore: CardImageStore? = nil,
         onRetake: @escaping () -> Void,
         onFinish: @escaping () -> Void
     ) {
@@ -31,7 +32,8 @@ struct ScanReviewView: View {
             detector: boundary,
             corrector: boundary,
             ocr: VisionOCRService(),
-            parser: BusinessCardFieldParser()
+            parser: BusinessCardFieldParser(),
+            imageStore: imageStore
         ))
         self.onRetake = onRetake
         self.onFinish = onFinish

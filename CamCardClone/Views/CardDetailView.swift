@@ -1,9 +1,10 @@
 import SwiftUI
+import UIKit
 
 /// 名片详情页（P06），同时承载编辑态（P07）。
 ///
 /// 覆盖状态：D1 查看 / D2 编辑 / D3 字段可点击（电话、邮箱、网站调用系统原生组件）；
-/// 标签的增删在编辑态完成（P09），查看态展示已保存的标签。
+/// 标签的增删在编辑态完成（P09），查看态展示原始图与已保存的标签。
 struct CardDetailView: View {
 
     @StateObject private var viewModel: CardDetailViewModel
@@ -13,8 +14,12 @@ struct CardDetailView: View {
     /// 编辑态里「添加标签」输入框的内容。
     @State private var newTagText: String = ""
 
-    init(repository: BusinessCardRepository, cardID: UUID) {
-        _viewModel = StateObject(wrappedValue: CardDetailViewModel(repository: repository, cardID: cardID))
+    init(repository: BusinessCardRepository, cardID: UUID, imageStore: CardImageStore? = nil) {
+        _viewModel = StateObject(wrappedValue: CardDetailViewModel(
+            repository: repository,
+            cardID: cardID,
+            imageStore: imageStore
+        ))
     }
 
     var body: some View {
@@ -54,6 +59,17 @@ struct CardDetailView: View {
 
     private func detailList(card: BusinessCard) -> some View {
         List {
+            if let imageData = viewModel.displayImageData, let image = UIImage(data: imageData) {
+                Section("名片图像") {
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxHeight: 200)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                        .accessibilityIdentifier("cardImage")
+                }
+            }
+
             Section {
                 VStack(alignment: .leading, spacing: 6) {
                     Text(card.name)

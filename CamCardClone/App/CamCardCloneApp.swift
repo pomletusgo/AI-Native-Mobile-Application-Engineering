@@ -15,8 +15,11 @@ struct CamCardCloneApp: App {
     /// T01 要求首次启动显示空名片夹，因此这里不注入 Mock 数据。
     private let repository: BusinessCardRepository = CamCardCloneApp.makeRepository()
 
-    /// 构建持久化仓库；取不到 Application Support 目录时退回临时目录，不崩溃。
-    private static func makeRepository() -> BusinessCardRepository {
+    /// 全局唯一的名片图像存储实例，与仓库共用同一个存储目录。
+    private let imageStore: CardImageStore = CamCardCloneApp.makeImageStore()
+
+    /// 应用存储目录；取不到 Application Support 时退回临时目录，不崩溃。
+    private static func makeStorageDirectory() -> URL {
         let fileManager = FileManager.default
         let baseDirectory = (try? fileManager.url(
             for: .applicationSupportDirectory,
@@ -24,13 +27,22 @@ struct CamCardCloneApp: App {
             appropriateFor: nil,
             create: true
         )) ?? fileManager.temporaryDirectory
-        let directory = baseDirectory.appendingPathComponent("CamCardClone", isDirectory: true)
-        return PersistentBusinessCardRepository(directory: directory)
+        return baseDirectory.appendingPathComponent("CamCardClone", isDirectory: true)
+    }
+
+    /// 构建持久化仓库。
+    private static func makeRepository() -> BusinessCardRepository {
+        PersistentBusinessCardRepository(directory: makeStorageDirectory())
+    }
+
+    /// 构建图像存储；图像放在存储目录下的 `images` 子目录。
+    private static func makeImageStore() -> CardImageStore {
+        FileCardImageStore(directory: makeStorageDirectory().appendingPathComponent("images", isDirectory: true))
     }
 
     var body: some Scene {
         WindowGroup {
-            RootView(repository: repository)
+            RootView(repository: repository, imageStore: imageStore)
                 .environmentObject(router)
         }
     }

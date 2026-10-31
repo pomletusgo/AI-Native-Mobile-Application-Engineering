@@ -45,6 +45,8 @@ final class ScanReviewViewModel: ObservableObject {
     private let corrector: CardBoundaryCorrecting
     private let ocr: OCRService
     private let parser: BusinessCardFieldParser
+    /// 图像存储；为 `nil` 时不落图像文件（详情页也就没有图可展示）。
+    private let imageStore: CardImageStore?
 
     init(
         originalImageData: Data,
@@ -52,7 +54,8 @@ final class ScanReviewViewModel: ObservableObject {
         detector: CardBoundaryDetecting,
         corrector: CardBoundaryCorrecting,
         ocr: OCRService,
-        parser: BusinessCardFieldParser
+        parser: BusinessCardFieldParser,
+        imageStore: CardImageStore? = nil
     ) {
         self.originalImageData = originalImageData
         self.repository = repository
@@ -60,6 +63,7 @@ final class ScanReviewViewModel: ObservableObject {
         self.corrector = corrector
         self.ocr = ocr
         self.parser = parser
+        self.imageStore = imageStore
     }
 
     // MARK: - 检测与识别（P03 / P04）
@@ -117,12 +121,19 @@ final class ScanReviewViewModel: ObservableObject {
     ///
     /// 姓名（去掉首尾空白后）为空时拒绝构造名片并提示，返回 false（规格 E5）；
     /// 未进入确认页时直接返回 false，保证「未确认前不写库」。
+    /// 配置了图像存储时，同时落盘原始图与校正图，并把文件名写回名片（详情页据此展示原始图）。
     @discardableResult
     func confirmSave() -> Bool {
         guard phase == .review else { return false }
-        guard let card = fields.makeCard() else {
+        guard var card = fields.makeCard() else {
             failureMessage = "姓名不能为空，请填写姓名后再保存。"
             return false
+        }
+        if let imageStore {
+            card.originalImageName = imageStore.save(originalImageData, cardID: card.id, kind: .original)
+            card.processedImageName = correctedImageData.flatMap {
+                imageStore.save($0, cardID: card.id, kind: .processed)
+            }
         }
         repository.add(card)
         failureMessage = nil

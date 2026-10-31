@@ -20,6 +20,9 @@ struct ScannerEntryView: View {
     /// 并由复核页 `ScanReviewView` 在「确认 → 保存」时落库。
     let repository: BusinessCardRepository
 
+    /// 图像存储；复核页保存时把原始图与校正图落盘，详情页据此展示原始图。
+    let imageStore: CardImageStore?
+
     @EnvironmentObject private var router: AppRouter
     @Environment(\.openURL) private var openURL
 
@@ -30,8 +33,9 @@ struct ScannerEntryView: View {
 
     private let capturer: AVCapturePhotoCapturer
 
-    init(repository: BusinessCardRepository) {
+    init(repository: BusinessCardRepository, imageStore: CardImageStore? = nil) {
         self.repository = repository
+        self.imageStore = imageStore
         let capturer = AVCapturePhotoCapturer()
         self.capturer = capturer
         _model = StateObject(wrappedValue: ScannerEntryViewModel(
@@ -147,6 +151,7 @@ struct ScannerEntryView: View {
             ScanReviewView(
                 imageData: imageData,
                 repository: repository,
+                imageStore: imageStore,
                 // 重拍：只丢弃本次照片，留在本页重新取景。
                 onRetake: { model.discardCapture() },
                 // 取消或保存完成：清空会话产物后返回名片夹。

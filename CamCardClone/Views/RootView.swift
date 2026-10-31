@@ -6,6 +6,8 @@ import SwiftUI
 struct RootView: View {
 
     let repository: BusinessCardRepository
+    /// 名片图像存储；扫描页保存时落盘，详情页据此展示原始图。
+    let imageStore: CardImageStore?
 
     @EnvironmentObject private var router: AppRouter
 
@@ -15,9 +17,9 @@ struct RootView: View {
                 .navigationDestination(for: AppRoute.self) { route in
                     switch route {
                     case .cardDetail(let cardID):
-                        CardDetailView(repository: repository, cardID: cardID)
+                        CardDetailView(repository: repository, cardID: cardID, imageStore: imageStore)
                     case .scanner:
-                        ScannerEntryView(repository: repository)
+                        ScannerEntryView(repository: repository, imageStore: imageStore)
                     }
                 }
         }
@@ -25,6 +27,9 @@ struct RootView: View {
 }
 
 #Preview {
-    RootView(repository: InMemoryBusinessCardRepository(cards: BusinessCardMockData.sampleCards))
-        .environmentObject(AppRouter())
+    RootView(
+        repository: InMemoryBusinessCardRepository(cards: BusinessCardMockData.sampleCards),
+        imageStore: nil
+    )
+    .environmentObject(AppRouter())
 }

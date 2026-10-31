@@ -85,6 +85,7 @@ final class ScanReviewViewModelTests: XCTestCase {
         let corrector: StubCorrector
         let ocr: StubOCR
         let repository: InMemoryBusinessCardRepository
+        let imageStore: CardImageStore?
     }
 
     private let photoBytes = Data([0xFF, 0xD8, 0xFF, 0xE0])
@@ -128,7 +129,8 @@ final class ScanReviewViewModelTests: XCTestCase {
         detection: Result<CardDetectionOutcome, Error>,
         correction: Result<CorrectedCardImage, Error>? = nil,
         recognition: Result<OCRTextResult, Error>,
-        existingCards: [BusinessCard] = []
+        existingCards: [BusinessCard] = [],
+        imageStore: CardImageStore? = nil
     ) -> Harness {
         let detector = StubDetector(result: detection)
         let corrector = StubCorrector(result: correction ?? .success(correctedImage()))
@@ -140,26 +142,30 @@ final class ScanReviewViewModelTests: XCTestCase {
             detector: detector,
             corrector: corrector,
             ocr: ocr,
-            parser: BusinessCardFieldParser()
+            parser: BusinessCardFieldParser(),
+            imageStore: imageStore
         )
         return Harness(
             model: model,
             detector: detector,
             corrector: corrector,
             ocr: ocr,
-            repository: repository
+            repository: repository,
+            imageStore: imageStore
         )
     }
 
     /// 走通一遍成功链路：检测可靠 → 校正成功 → 识别到 `lines`。
     private func makeReviewHarness(
         lines: [String]? = nil,
-        existingCards: [BusinessCard] = []
+        existingCards: [BusinessCard] = [],
+        imageStore: CardImageStore? = nil
     ) -> Harness {
         makeHarness(
             detection: .success(.detected(reliableQuad)),
             recognition: .success(OCRTextResult(lines: lines ?? Self.recognizedLines)),
-            existingCards: existingCards
+            existingCards: existingCards,
+            imageStore: imageStore
         )
     }
 
@@ -378,5 +384,52 @@ final class ScanReviewViewModelTests: XCTestCase {
         // 清空后保存：该字段不得落库（缺失字段不虚构，对应 T09）。
         XCTAssertTrue(harness.model.confirmSave())
         XCTAssertNil(harness.repository.fetchAll().first?.mobile)
+    }
+
+    // MARK: - 保存原始图（5.1 第二段，P06 展示所需）
+
+    private func makeImageStore() -> (store: FileCardImageStore, directory: URL) {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("ScanReviewViewModelTests-\(UUID().uuidString)", isDirectory: true)
+        return (FileCardImageStore(directory: directory), directory)
+    }
+
+    func testConfirmSaveStoresOriginalAndProcessedImagesAndNamesThem() async throws {
+        let (store, directory) = makeImageStore()
+        defer { try? FileManager.default.removeItem(at: directory) }
+
+        let harness = makeReviewHarness(imageStore: store)
+        await harness.model.analyze()
+
+        XCTAssertTrue(harness.model.confirmSave())
+
+        let card = try XCTUnwrap(harness.repository.fetchAll().first)
+        XCTAssertEqual(store.load(named: card.originalImageName), harness.photoBytes)
+        XCTAssertEqual(store.load(named: card.processedImageName), correctedBytes)
+    }
+
+    func testConfirmSaveWithoutStoreLeavesImageNamesNil() async throws {
+        let harness = makeReviewHarness()
+        await harness.model.analyze()
+
+        XCTAssertTrue(harness.model.confirmSave())
+
+        let card = try XCTUnwrap(harness.repository.fetchAll().first)
+        XCTAssertNil(card.originalImageName)
+        XCTAssertNil(card.processedImageName)
+    }
+
+    func testRejectedSaveDoesNotWriteImages() async {
+        let (store, directory) = makeImageStore()
+        defer { try? FileManager.default.removeItem(at: directory) }
+
+        let harness = makeReviewHarness(lines: Self.companyOnlyLines, imageStore: store)
+        await harness.model.analyze()
+
+        XCTAssertFalse(harness.model.confirmSave())
+        XCTAssertTrue(harness.repository.fetchAll().isEmpty)
+
+        let written = (try? FileManager.default.contentsOfDirectory(atPath: directory.path)) ?? []
+        XCTAssertTrue(written.isEmpty, "保存被拒时不应留下图像文件")
     }
 }

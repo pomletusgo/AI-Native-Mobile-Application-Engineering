@@ -4,7 +4,7 @@ import XCTest
 /// 名片详情 / 编辑 ViewModel 单元测试。
 ///
 /// 覆盖 T13 详情（含 `postalCode` / `department`）、T14 编辑保存、T16 标签增删、
-/// T17 删除，以及 T20「姓名为空不得保存」。
+/// T17 删除，以及 T20「姓名为空不得保存」；P06 详情展示原始图（5.1 第二段）另见文末一组用例。
 @MainActor
 final class CardDetailViewModelTests: XCTestCase {
 
@@ -268,5 +268,66 @@ final class CardDetailViewModelTests: XCTestCase {
 
         XCTAssertTrue(repository.fetchAll().isEmpty)
         XCTAssertTrue(viewModel.isMissing)
+    }
+
+    // MARK: - P06 详情展示原始图（5.1 第二段）
+
+    private func makeImageStore() -> (store: FileCardImageStore, directory: URL) {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("CardDetailViewModelTests-\(UUID().uuidString)", isDirectory: true)
+        return (FileCardImageStore(directory: directory), directory)
+    }
+
+    func testDisplayImageDataReturnsStoredOriginalImage() throws {
+        let (store, directory) = makeImageStore()
+        defer { try? FileManager.default.removeItem(at: directory) }
+
+        let card = BusinessCard(name: "张伟")
+        let bytes = Data([0x01, 0x02, 0x03])
+        let name = try XCTUnwrap(store.save(bytes, cardID: card.id, kind: .original))
+        var stored = card
+        stored.originalImageName = name
+        let repository = InMemoryBusinessCardRepository(cards: [stored])
+
+        let viewModel = CardDetailViewModel(repository: repository, cardID: card.id, imageStore: store)
+
+        XCTAssertEqual(viewModel.displayImageData, bytes)
+    }
+
+    func testDisplayImageDataFallsBackToProcessedImage() throws {
+        let (store, directory) = makeImageStore()
+        defer { try? FileManager.default.removeItem(at: directory) }
+
+        let card = BusinessCard(name: "张伟")
+        let bytes = Data([0x04, 0x05])
+        let name = try XCTUnwrap(store.save(bytes, cardID: card.id, kind: .processed))
+        var stored = card
+        stored.processedImageName = name
+        let repository = InMemoryBusinessCardRepository(cards: [stored])
+
+        let viewModel = CardDetailViewModel(repository: repository, cardID: card.id, imageStore: store)
+
+        XCTAssertEqual(viewModel.displayImageData, bytes, "原始图缺失时应退回校正图，而不是不显示")
+    }
+
+    func testDisplayImageDataIsNilWithoutStore() {
+        let (repository, card) = makeRepositoryWithCard()
+        let viewModel = CardDetailViewModel(repository: repository, cardID: card.id)
+
+        XCTAssertNil(viewModel.displayImageData)
+    }
+
+    func testDeleteCleansUpStoredImages() throws {
+        let (store, directory) = makeImageStore()
+        defer { try? FileManager.default.removeItem(at: directory) }
+
+        let card = BusinessCard(name: "张伟")
+        let name = try XCTUnwrap(store.save(Data([0x09]), cardID: card.id, kind: .original))
+        let repository = InMemoryBusinessCardRepository(cards: [card])
+        let viewModel = CardDetailViewModel(repository: repository, cardID: card.id, imageStore: store)
+
+        viewModel.delete()
+
+        XCTAssertNil(store.load(named: name), "删除名片后应清理图像文件")
     }
 }

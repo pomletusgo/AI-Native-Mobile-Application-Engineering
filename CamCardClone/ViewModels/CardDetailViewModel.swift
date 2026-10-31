@@ -15,10 +15,13 @@ final class CardDetailViewModel: ObservableObject {
 
     private let repository: BusinessCardRepository
     private let cardID: UUID
+    /// 图像存储；为 `nil` 时详情页不展示图像。
+    private let imageStore: CardImageStore?
 
-    init(repository: BusinessCardRepository, cardID: UUID) {
+    init(repository: BusinessCardRepository, cardID: UUID, imageStore: CardImageStore? = nil) {
         self.repository = repository
         self.cardID = cardID
+        self.imageStore = imageStore
         reload()
     }
 
@@ -27,6 +30,15 @@ final class CardDetailViewModel: ObservableObject {
     var isEditing: Bool { draft != nil }
 
     var isMissing: Bool { card == nil }
+
+    /// 详情页要展示的图像：优先原始图，缺失时退回校正图（P06）。
+    ///
+    /// 返回 `nil` 表示这张名片没有可展示的图像（手动录入，或文件已被清理），界面据此不显示图像区。
+    var displayImageData: Data? {
+        guard let card else { return nil }
+        if let data = imageStore?.load(named: card.originalImageName) { return data }
+        return imageStore?.load(named: card.processedImageName)
+    }
 
     // MARK: - 操作
 
@@ -102,9 +114,10 @@ final class CardDetailViewModel: ObservableObject {
         return true
     }
 
-    /// 删除当前名片。
+    /// 删除当前名片，并清理它的图像文件。
     func delete() {
         repository.delete(id: cardID)
+        imageStore?.deleteImages(for: cardID)
         reload()
     }
 }
