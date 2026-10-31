@@ -8,5 +8,5 @@
 6. 分层约束：Model 是不依赖 SwiftUI 的值类型；ViewModel 用 `@MainActor` + `@Published`；View 只转发用户意图，业务规则不得写进 View。
 7. 硬约束：AI 不允许补全名片上不存在的信息，无法确认的字段必须为 nil，禁止虚构网站、传真、地址等字段。
 8. 确定性功能（UI、导航、状态、保存、编辑、删除、搜索、标签、导出）必须对齐 Reference Test Suite T01–T20；概率性功能（OCR、字段抽取）用固定测试集 + Ground Truth 量化评价，不得把准确率包装成「通过」。
-9. `ScannerEntryView` 已不再是占位页：3.1 第④段已把它替换为真实取景页（取景、拍摄、相册导入、重拍/取消，权限推进与取消语义由 `ScannerEntryViewModel` 单测）。但检测、OCR、字段抽取与保存尚未接入该页面，仍不得把当前页面当作真实识别闭环交付。
+9. `ScannerEntryView` 已不再是占位页：3.1 第④段已把它替换为真实取景页（取景、拍摄、相册导入、重拍/取消，权限推进与取消语义由 `ScannerEntryViewModel` 单测）；4.3 起照片会交给复核页 `ScanReviewView`，由 `ScanReviewViewModel` 串起「检测 → 透视校正 → OCR → 字段抽取 → 人工逐字段校正 → 确认保存落库」，顺序与异常路径已由 `ScanReviewViewModelTests` 覆盖。但取景画面、快门、确认页呈现与在真实名片照片上的识别效果仍属人工验收，仍不得把当前页面当作已在真机验证过的识别闭环交付。
 10. 真实运行的测试和构建才能勾选任务；本机（Windows）无法编译的部分必须在 `docs/验证报告.md` 中标记「待执行」，受阻项不得预先勾选，也不得提前归档。
