@@ -29,6 +29,7 @@
 | 全程 | 要求按作业规定维护 AI 协作记录 | 交付物要求 |
 | Week 6 | 要求先修掉追踪表里与实现不同步的陈旧记录 | AI 未主动发现的文档与代码不一致 |
 | Week 6 | 在候选项里拍板优先修规格 4.3 的「多 Email」偏差 | 该偏差是真实功能缺口，先补齐再谈其它 |
+| Week 6 | 在候选项里拍板做 5.4 的 UI Golden Test 骨架 | 这是当时还不依赖 Mac 的功能性交付物，先把录制 / 比对工具与断言写好，截图对比留待 Mac |
 | 各轮 | 由人在候选项里拍板下一步做哪一项 | 决定权在人，AI 不自行扩张范围 |
 | 会话中 | 人工清理 AI 留下的临时提交信息文件 | 保持工作区干净 |
 
@@ -220,6 +221,18 @@
 - **修正**：无需修正；改动的接口面只用「新增带默认值的存储属性 + 新增可选参数」，未触碰既有签名。
 - **证据**：**run #53** success。
 
+### 第 17 轮 — Week 5：UI Golden Test 骨架（5.4）
+
+- **提示词要点**
+  - 限定上下文：只做 `tasks.md` 的 5.4，不新增页面、不改既有视图与模型的呈现。
+  - 目标：交付可编译、可由 CI 跑通的截图对比骨架——录制与比对工具 + 首批组件级基线断言；真实录制与比对结论留待 Mac。
+  - 不得改动：`BusinessCard` 模型、`BusinessCardRepository` 协议、既有视图的无障碍标识；不引入第三方快照库。
+  - 证据要求：新增测试并给出 CI 运行号；截图对比本体未执行就写未执行，不得用「编译通过」冒充「比对通过」。
+- **AI 输出**：`UISnapshotGolden`（用 `ImageRenderer` 把纯 SwiftUI 视图离屏渲染成位图 → 与 `testcards/ui-baselines/<名字>.png` 逐像素比对，给出差异像素占比与最大通道差；`RECORD_GOLDEN=1` 为录制模式；基线目录的仓库根复用 `FieldExtractionEvaluator.repositoryRoot` 的同一套规则）与 `UISnapshotGoldenTests`（`CardRowView` / `TagChipsView` / `EmptyCardHolderView` 三条组件级断言，缺基线时 `XCTSkip` 并注明录制方法）；`project.pbxproj` 登记两个新文件。
+- **AI 的错误**：本轮没有触发新的编译 / 测试失败。
+- **修正**：无需修正；未改动任何既有视图与协议签名。
+- **证据**：**run #54**（commit `077b3ae`）success。**边界**：三条用例因基线缺失按设计跳过，逐像素比对的**结论**待 Mac 上用 `RECORD_GOLDEN=1` 录制基线后才产生；含 `List` 的整页留待 Mac + 模拟器的页面级 UI 测试，本轮不假装已覆盖。
+
 ## 3. AI 犯过的错误汇总
 
 | # | 错误 | 触发的 CI 运行 | 修正 |
@@ -244,10 +257,10 @@
 | 命令 | 结果 |
 | --- | --- |
 | `git -c user.name="刘润东" -c user.email="760592343@qq.com" commit -F <临时信息文件>` | 退出码 0，作者为本人（如 `7726e31`、`8008a36`） |
-| `git push origin main` | 退出码 0，触发 `iOS CI`；本文件编写前最后一次为 run #50 |
+| `git push origin main` | 退出码 0，触发 `iOS CI`；本文件编写前最后一次为 run #54 |
 | `npm run spec:validate`（即 `openspec validate --all --strict`） | 退出码 0，`1 passed, 0 failed` |
 | `npx openspec@1.13.2 validate --all --strict` | 退出码 1（版本不存在），已改用上一条 |
-| 经 GitHub 公开 API 读取 `actions/runs` 与 `jobs` | run #2 / #4 / #6 / #9 / #10 / #14 / #16 / #20 / #21 / #22 / #25 / #27 / #28 / #30 / #31 / #33 / #34 / #36 / #40 / #46 / #48 / #49 / #50 的 `OpenSpec Validate` 与 `Build & Test (iOS Simulator)` 均 success |
+| 经 GitHub 公开 API 读取 `actions/runs` 与 `jobs` | run #2 / #4 / #6 / #9 / #10 / #14 / #16 / #20 / #21 / #22 / #25 / #27 / #28 / #30 / #31 / #33 / #34 / #36 / #40 / #46 / #48 / #49 / #50 / #53 / #54 的 `OpenSpec Validate` 与 `Build & Test (iOS Simulator)` 均 success |
 | `xcodebuild ... build-for-testing` / `Cmd+U` | **未执行**：本机为 Windows，无 macOS 与 Xcode，故不存在本机编译与测试记录 |
 | `openspec archive`（6.5） | **未执行**：必需验证（6.4 人工验收）未完成，按规则 10 不得提前归档 |
 
