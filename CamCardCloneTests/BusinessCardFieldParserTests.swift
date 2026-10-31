@@ -221,6 +221,30 @@ final class BusinessCardFieldParserTests: XCTestCase {
         XCTAssertEqual(fields.email, "lina@example.com")
         XCTAssertEqual(fields.mobile, "139-0000-0002")
         XCTAssertEqual(fields.name, "李娜")
+        XCTAssertEqual(fields.additionalEmails, ["lina.backup@example.com"],
+                       "主邮箱之外的其余邮箱按出现顺序保留，不丢弃（规格 4.3 多 Email）")
+    }
+
+    func testDuplicateEmailIsNotCollectedTwice() {
+        let fields = parser.parse("李娜\nlina@example.com\nlina@example.com\nlina.backup@example.com")
+
+        XCTAssertEqual(fields.email, "lina@example.com")
+        XCTAssertEqual(fields.additionalEmails, ["lina.backup@example.com"], "与主邮箱重复的候选不重复收集")
+    }
+
+    func testAdditionalEmailsAreWrittenIntoNotes() {
+        let fields = parser.parse(Self.duplicatedFieldCard)
+        let card = fields.makeCard()
+
+        XCTAssertEqual(card?.email, "lina@example.com")
+        XCTAssertEqual(card?.notes, "其它邮箱：lina.backup@example.com", "其余邮箱写入 notes 保留")
+    }
+
+    func testSingleEmailCardKeepsNotesEmpty() {
+        let fields = parser.parse(Self.chineseStandardCard)
+
+        XCTAssertTrue(fields.additionalEmails.isEmpty)
+        XCTAssertNil(fields.makeCard()?.notes, "只有一个邮箱时 notes 仍为 nil，不凭空造字段")
     }
 
     // MARK: - 归一化与标签

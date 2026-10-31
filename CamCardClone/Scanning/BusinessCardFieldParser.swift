@@ -44,6 +44,10 @@ struct ExtractedCardFields: Equatable {
     var phone: String?
     var fax: String?
     var email: String?
+    /// 主邮箱之外的其余邮箱，按出现顺序保留（规格 4.3：其余进入 `notes` 或保留列表）。
+    ///
+    /// 不属于 `CardFieldKey`，因此不参与评价脚本的逐字段统计，也不改变确认页的字段数。
+    var additionalEmails: [String]
     var website: String?
     var address: String?
     var postalCode: String?
@@ -57,6 +61,7 @@ struct ExtractedCardFields: Equatable {
         phone: String? = nil,
         fax: String? = nil,
         email: String? = nil,
+        additionalEmails: [String] = [],
         website: String? = nil,
         address: String? = nil,
         postalCode: String? = nil,
@@ -69,6 +74,7 @@ struct ExtractedCardFields: Equatable {
         self.phone = phone
         self.fax = fax
         self.email = email
+        self.additionalEmails = additionalEmails
         self.website = website
         self.address = address
         self.postalCode = postalCode
@@ -127,6 +133,11 @@ extension ExtractedCardFields {
             let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines)
             return (trimmed?.isEmpty ?? true) ? nil : trimmed
         }
+        // 主邮箱之外的其余邮箱写入 `notes` 保留（规格 4.3）；没有额外邮箱时 `notes` 仍为 nil。
+        let otherEmails = additionalEmails
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+        let notes = otherEmails.isEmpty ? nil : "其它邮箱：" + otherEmails.joined(separator: "、")
         return BusinessCard(
             originalImageName: originalImageName,
             processedImageName: processedImageName,
@@ -140,7 +151,8 @@ extension ExtractedCardFields {
             website: clean(website),
             address: clean(address),
             postalCode: clean(postalCode),
-            department: clean(department)
+            department: clean(department),
+            notes: notes
         )
     }
 }
@@ -534,14 +546,26 @@ struct BusinessCardFieldParser {
     // MARK: - 写入
 
     private func assign(_ key: CardFieldKey, value: String, into fields: inout ExtractedCardFields) {
+        // 邮箱是唯一允许累积的字段：第一个占用 `email`，其余按出现顺序进入 `additionalEmails`
+        // （规格 4.3「多 Email：主邮箱入 email，其余进入 notes 或保留列表」）。其余字段仍是先命中先占位。
+        if key == .email {
+            let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmed.isEmpty else { return }
+            guard trimmed.range(of: Self.emailPattern, options: .regularExpression) != nil else { return }
+            if fields.email == nil {
+                fields.email = trimmed
+            } else if fields.email != trimmed && !fields.additionalEmails.contains(trimmed) {
+                fields.additionalEmails.append(trimmed)
+            }
+            return
+        }
+
         guard fields[key] == nil else { return }
         let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
         switch key {
         case .mobile, .phone, .fax:
             guard phoneNumberValue(in: trimmed) != nil else { return }
-        case .email:
-            guard trimmed.range(of: Self.emailPattern, options: .regularExpression) != nil else { return }
         case .website:
             guard hasExplicitScheme(trimmed) || websiteCandidate(in: trimmed) != nil else { return }
         case .postalCode:
