@@ -3,7 +3,7 @@ import Foundation
 /// 拍摄或从相册导入。
 ///
 /// 两者在权限、提示文案与重试措辞上都不同，因此显式区分来源，而不是用布尔量传递。
-enum ScanImageSource: Equatable {
+enum ScanImageSource: Hashable {
     case camera
     case photoLibrary
 

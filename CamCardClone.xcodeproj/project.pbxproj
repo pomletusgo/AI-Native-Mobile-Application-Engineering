@@ -41,6 +41,9 @@
 		AB0000000000000000000020 /* CardBoundaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000020 /* CardBoundaryTests.swift */; };
 		AB0000000000000000000021 /* ScanAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000023 /* ScanAccess.swift */; };
 		AB0000000000000000000022 /* ScanAccessTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000024 /* ScanAccessTests.swift */; };
+		AB0000000000000000000023 /* ScanAuthorization.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000025 /* ScanAuthorization.swift */; };
+		AB0000000000000000000024 /* PhotoImport.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000026 /* PhotoImport.swift */; };
+		AB0000000000000000000025 /* ScanAuthorizationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000027 /* ScanAuthorizationTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -88,6 +91,9 @@
 		AA0000000000000000000020 /* CardBoundaryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardBoundaryTests.swift; sourceTree = "<group>"; };
 		AA0000000000000000000023 /* ScanAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanAccess.swift; sourceTree = "<group>"; };
 		AA0000000000000000000024 /* ScanAccessTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanAccessTests.swift; sourceTree = "<group>"; };
+		AA0000000000000000000025 /* ScanAuthorization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanAuthorization.swift; sourceTree = "<group>"; };
+		AA0000000000000000000026 /* PhotoImport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoImport.swift; sourceTree = "<group>"; };
+		AA0000000000000000000027 /* ScanAuthorizationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanAuthorizationTests.swift; sourceTree = "<group>"; };
 		AA0000000000000000000021 /* CamCardClone.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CamCardClone.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA0000000000000000000022 /* CamCardCloneTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CamCardCloneTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -195,6 +201,8 @@
 				AA000000000000000000001E /* CardBoundary.swift */,
 				AA000000000000000000001F /* VisionCardBoundaryDetector.swift */,
 				AA0000000000000000000023 /* ScanAccess.swift */,
+				AA0000000000000000000025 /* ScanAuthorization.swift */,
+				AA0000000000000000000026 /* PhotoImport.swift */,
 			);
 			path = Scanning;
 			sourceTree = "<group>";
@@ -236,6 +244,7 @@
 				AA000000000000000000001D /* OCRServiceTests.swift */,
 				AA0000000000000000000020 /* CardBoundaryTests.swift */,
 				AA0000000000000000000024 /* ScanAccessTests.swift */,
+				AA0000000000000000000027 /* ScanAuthorizationTests.swift */,
 			);
 			path = CamCardCloneTests;
 			sourceTree = "<group>";
@@ -352,6 +361,8 @@
 				AB000000000000000000001E /* CardBoundary.swift in Sources */,
 				AB000000000000000000001F /* VisionCardBoundaryDetector.swift in Sources */,
 				AB0000000000000000000021 /* ScanAccess.swift in Sources */,
+				AB0000000000000000000023 /* ScanAuthorization.swift in Sources */,
+				AB0000000000000000000024 /* PhotoImport.swift in Sources */,
 				AB0000000000000000000007 /* CardHolderViewModel.swift in Sources */,
 				AB0000000000000000000008 /* CardDetailViewModel.swift in Sources */,
 				AB0000000000000000000009 /* RootView.swift in Sources */,
@@ -379,6 +390,7 @@
 				AB000000000000000000001D /* OCRServiceTests.swift in Sources */,
 				AB0000000000000000000020 /* CardBoundaryTests.swift in Sources */,
 				AB0000000000000000000022 /* ScanAccessTests.swift in Sources */,
+				AB0000000000000000000025 /* ScanAuthorizationTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
