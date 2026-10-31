@@ -110,31 +110,45 @@ struct ScanReviewView: View {
 
     /// 自动检测不可靠或未找到时的手动调整态。
     ///
-    /// 拖拽、命中测试与合法性判定已由 `CardBoundaryAdjustment` 与
-    /// `ScanReviewViewModel` 落地并有单测覆盖；本页当前只接线「进入 / 确认 / 放弃」，
-    /// 四个角的拖拽手柄属手势 UI，待有 Mac 真机时补充（见 `docs/UI验收清单.md`）。
+    /// 编辑语义（起点选取、命中测试、拖拽夹紧、凸性 / 面积合法性判定）由
+    /// `CardBoundaryAdjustment` 承担并有单测覆盖；本页只负责把归一化坐标映射到屏幕、
+    /// 画出手柄，并把拖拽意图转发给 `ScanReviewViewModel`。
+    /// 「使用此区域」走的是与自动检测**同一条**校正 → 识别链路，没有第二套识别路径。
     private var adjustingBoundaryContent: some View {
-        VStack(spacing: 20) {
-            imagePreview
+        VStack(spacing: 16) {
+            if let adjustment = model.adjustment {
+                BoundaryAdjustmentCanvas(
+                    imageData: model.originalImageData,
+                    adjustment: adjustment,
+                    onMove: { corner, point in
+                        model.moveBoundaryCorner(corner, to: point)
+                    }
+                )
+                .frame(maxHeight: 360)
+            } else {
+                imagePreview
+            }
 
-            Text("请框出名片所在的区域。")
+            Text("拖动四个角上的圆点，把框对齐到名片边缘。")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .accessibilityIdentifier("scanReviewAdjustHint")
 
-            Button {
-                Task { await model.applyBoundaryAdjustment() }
-            } label: {
-                Label("使用此区域", systemImage: "checkmark.circle")
+            HStack(spacing: 16) {
+                Button {
+                    Task { await model.applyBoundaryAdjustment() }
+                } label: {
+                    Label("使用此区域", systemImage: "checkmark.circle")
+                }
+                .accessibilityIdentifier("scanReviewApplyAdjustmentButton")
+
+                Button("重置区域") { model.resetBoundaryAdjustment() }
+                    .accessibilityIdentifier("scanReviewResetAdjustmentButton")
+
+                Button("取消调整") { model.cancelBoundaryAdjustment() }
+                    .accessibilityIdentifier("scanReviewCancelAdjustmentButton")
             }
-            .accessibilityIdentifier("scanReviewApplyAdjustmentButton")
-
-            Button("重置区域") { model.resetBoundaryAdjustment() }
-                .accessibilityIdentifier("scanReviewResetAdjustmentButton")
-
-            Button("取消调整") { model.cancelBoundaryAdjustment() }
-                .accessibilityIdentifier("scanReviewCancelAdjustmentButton")
 
             retakeButton
         }
@@ -243,5 +257,141 @@ struct ScanReviewView: View {
                 model.dismissFailure()
             }
         )
+    }
+}
+
+// MARK: - P03：手动调整边界的画布
+
+/// 手动调整边界的画布：底图 + 四边形描边 + 四个可拖拽的角手柄。
+///
+/// `CardQuad` 用的是**相对整张原始图**的归一化坐标，且 y 轴向上；SwiftUI 的 y 轴向下，
+/// 因此这里统一换算。画布自身的宽高比锁定为图片宽高比，使「画布矩形 == 图片矩形」，
+/// 叠框才不会随留白漂移。
+///
+/// 已知假设：归一化坐标相对**原始像素**，而 `UIImage` 渲染时会应用 EXIF 方向标记；
+/// 带方向标记的照片上叠框可能与画面有偏差，需在真机上用真实照片确认（见 `docs/UI验收清单.md`）。
+private struct BoundaryAdjustmentCanvas: View {
+
+    let imageData: Data
+    let adjustment: CardBoundaryAdjustment
+    /// 拖拽把手柄移到归一化坐标（裁剪与合法性判定由 `CardBoundaryAdjustment` 负责）。
+    let onMove: (CardQuadCorner, CGPoint) -> Void
+
+    /// 选中的角与它在拖拽开始时的位置：命中某个角时才建立，手势结束清空。
+    @State private var activeCorner: CardQuadCorner?
+    @State private var dragAnchor: CGPoint?
+
+    private static let cornerOrder: [CardQuadCorner] = [.topLeft, .topRight, .bottomRight, .bottomLeft]
+
+    var body: some View {
+        GeometryReader { proxy in
+            let size = proxy.size
+            ZStack {
+                baseImage(in: size)
+                quadOverlay(in: size)
+                handles(in: size)
+            }
+            .contentShape(Rectangle())
+            // 手势挂在画布自身，默认的 local 坐标系即画布坐标（原点左上）。
+            .gesture(dragGesture(in: size))
+        }
+        .aspectRatio(displayAspectRatio, contentMode: .fit)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .accessibilityIdentifier("scanReviewAdjustCanvas")
+    }
+
+    // MARK: - 片段
+
+    @ViewBuilder
+    private func baseImage(in size: CGSize) -> some View {
+        if let uiImage = UIImage(data: imageData) {
+            Image(uiImage: uiImage)
+                .resizable()
+                .scaledToFill()
+                .frame(width: size.width, height: size.height)
+                .clipped()
+        } else {
+            Rectangle()
+                .fill(Color.secondary.opacity(0.15))
+        }
+    }
+
+    /// 四边形的半透明填充与描边。
+    @ViewBuilder
+    private func quadOverlay(in size: CGSize) -> some View {
+        let points = Self.cornerOrder.map { screenPoint(adjustment.position(of: $0), in: size) }
+
+        Path { path in
+            path.addLines(points)
+            path.closeSubpath()
+        }
+        .fill(Color.accentColor.opacity(0.12))
+
+        Path { path in
+            path.addLines(points)
+            path.closeSubpath()
+        }
+        .stroke(Color.accentColor, lineWidth: 2)
+    }
+
+    /// 四个角手柄。手势挂在整块画布上，这里只负责画出来并给出可访问标识。
+    private func handles(in size: CGSize) -> some View {
+        ForEach(Self.cornerOrder, id: \.self) { corner in
+            Circle()
+                .fill(Color.white)
+                .overlay(Circle().stroke(Color.accentColor, lineWidth: 3))
+                .frame(width: 26, height: 26)
+                .shadow(radius: 2)
+                .position(screenPoint(adjustment.position(of: corner), in: size))
+                .accessibilityIdentifier("scanReviewHandle-\(corner.rawValue)")
+        }
+    }
+
+    // MARK: - 手势
+
+    private func dragGesture(in size: CGSize) -> some Gesture {
+        DragGesture(minimumDistance: 0)
+            .onChanged { value in
+                guard size.width > 0, size.height > 0 else { return }
+
+                if activeCorner == nil {
+                    // 只有从某个角附近起拖才开始编辑；点在四边形中间或画布别处不做任何改动。
+                    let start = normalized(from: value.startLocation, in: size)
+                    guard let corner = adjustment.hitTest(start) else { return }
+                    activeCorner = corner
+                    // 基准取该角的当前位置而非手指落点：轻点一下不会让角跳到手指下。
+                    dragAnchor = adjustment.position(of: corner)
+                }
+
+                guard let corner = activeCorner, let anchor = dragAnchor else { return }
+                // 以起点为基准叠加位移，手指按下点与角心不重合时手柄不会先跳一下。
+                let target = CGPoint(
+                    x: anchor.x + value.translation.width / size.width,
+                    y: anchor.y - value.translation.height / size.height
+                )
+                onMove(corner, target)
+            }
+            .onEnded { _ in
+                activeCorner = nil
+                dragAnchor = nil
+            }
+    }
+
+    // MARK: - 坐标换算
+
+    /// 归一化（原点左下、y 轴向上）→ 屏幕点（原点左上、y 轴向下）。
+    private func screenPoint(_ point: CGPoint, in size: CGSize) -> CGPoint {
+        CGPoint(x: point.x * size.width, y: (1 - point.y) * size.height)
+    }
+
+    /// 屏幕点 → 归一化（原点左下、y 轴向上）。
+    private func normalized(from point: CGPoint, in size: CGSize) -> CGPoint {
+        CGPoint(x: point.x / size.width, y: 1 - point.y / size.height)
+    }
+
+    /// 画布宽高比锁定为图片宽高比；图片无法解码时退化为常见名片的横向比例。
+    private var displayAspectRatio: CGFloat {
+        guard let image = UIImage(data: imageData), image.size.height > 0 else { return 9.0 / 5.0 }
+        return image.size.width / image.size.height
     }
 }
