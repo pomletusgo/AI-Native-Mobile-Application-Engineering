@@ -1,5 +1,6 @@
 import Foundation
 import PhotosUI
+import SwiftUI
 
 /// 扫描入口页（P02 拍摄取景）的状态机。
 ///

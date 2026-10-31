@@ -1,4 +1,5 @@
 import PhotosUI
+import SwiftUI
 import XCTest
 @testable import CamCardClone
 
