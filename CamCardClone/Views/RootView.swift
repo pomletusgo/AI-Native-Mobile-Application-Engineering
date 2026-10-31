@@ -8,6 +8,8 @@ struct RootView: View {
     let repository: BusinessCardRepository
     /// 名片图像存储；扫描页保存时落盘，详情页据此展示原始图。
     let imageStore: CardImageStore?
+    /// 系统联系人导出器；详情页据此提供「存入系统联系人」。
+    let contactExporter: ContactExporting?
 
     @EnvironmentObject private var router: AppRouter
 
@@ -17,7 +19,12 @@ struct RootView: View {
                 .navigationDestination(for: AppRoute.self) { route in
                     switch route {
                     case .cardDetail(let cardID):
-                        CardDetailView(repository: repository, cardID: cardID, imageStore: imageStore)
+                        CardDetailView(
+                            repository: repository,
+                            cardID: cardID,
+                            imageStore: imageStore,
+                            contactExporter: contactExporter
+                        )
                     case .scanner:
                         ScannerEntryView(repository: repository, imageStore: imageStore)
                     case .tagManagement:
@@ -31,7 +38,8 @@ struct RootView: View {
 #Preview {
     RootView(
         repository: InMemoryBusinessCardRepository(cards: BusinessCardMockData.sampleCards),
-        imageStore: nil
+        imageStore: nil,
+        contactExporter: nil
     )
     .environmentObject(AppRouter())
 }

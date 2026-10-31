@@ -330,4 +330,104 @@ final class CardDetailViewModelTests: XCTestCase {
 
         XCTAssertNil(store.load(named: name), "删除名片后应清理图像文件")
     }
+
+    // MARK: - P10 导出
+
+    func testExportToContactsReportsSavedAndWritesCard() async {
+        let (repository, card) = makeRepositoryWithCard()
+        let exporter = FakeContactExporter(status: .authorized)
+        let viewModel = CardDetailViewModel(
+            repository: repository,
+            cardID: card.id,
+            contactExporter: exporter
+        )
+
+        await viewModel.exportToContacts()
+
+        XCTAssertEqual(viewModel.exportNotice, .saved)
+        XCTAssertEqual(exporter.savedCards.map(\.id), [card.id])
+    }
+
+    func testExportToContactsReportsPermissionDeniedWithoutWriting() async {
+        let (repository, card) = makeRepositoryWithCard()
+        let exporter = FakeContactExporter(status: .denied)
+        let viewModel = CardDetailViewModel(
+            repository: repository,
+            cardID: card.id,
+            contactExporter: exporter
+        )
+
+        await viewModel.exportToContacts()
+
+        XCTAssertEqual(viewModel.exportNotice, .permissionDenied)
+        XCTAssertTrue(exporter.savedCards.isEmpty)
+    }
+
+    func testExportToContactsReportsFailureWhenWritingFails() async {
+        let (repository, card) = makeRepositoryWithCard()
+        let exporter = FakeContactExporter(status: .authorized, saveError: ExportStubFailure())
+        let viewModel = CardDetailViewModel(
+            repository: repository,
+            cardID: card.id,
+            contactExporter: exporter
+        )
+
+        await viewModel.exportToContacts()
+
+        XCTAssertEqual(viewModel.exportNotice, .failed)
+    }
+
+    func testExportToContactsWithoutExporterKeepsNoticeEmpty() async {
+        let (repository, card) = makeRepositoryWithCard()
+        let viewModel = CardDetailViewModel(repository: repository, cardID: card.id)
+
+        await viewModel.exportToContacts()
+
+        XCTAssertFalse(viewModel.canExportToContacts, "没有导出器时界面不应提供入口")
+        XCTAssertNil(viewModel.exportNotice)
+    }
+
+    func testClearExportNoticeResetsNotice() async {
+        let (repository, card) = makeRepositoryWithCard()
+        let viewModel = CardDetailViewModel(
+            repository: repository,
+            cardID: card.id,
+            contactExporter: FakeContactExporter(status: .authorized)
+        )
+        await viewModel.exportToContacts()
+
+        viewModel.clearExportNotice()
+
+        XCTAssertNil(viewModel.exportNotice)
+    }
+
+    func testVCardTextMatchesExporterOutput() {
+        let card = BusinessCard(name: "张伟", company: "远景科技", mobile: "138-0000-0001")
+        let repository = InMemoryBusinessCardRepository(cards: [card])
+        let viewModel = CardDetailViewModel(repository: repository, cardID: card.id)
+
+        XCTAssertEqual(viewModel.vCardText, VCardExporter.vCard(for: card))
+    }
+
+    func testVCardTextIsNilForMissingCard() {
+        let viewModel = CardDetailViewModel(repository: InMemoryBusinessCardRepository(), cardID: UUID())
+
+        XCTAssertNil(viewModel.vCardText)
+        XCTAssertNil(viewModel.makeVCardFileURL())
+    }
+
+    func testMakeVCardFileURLWritesShareableFile() throws {
+        let card = BusinessCard(name: "张伟", company: "远景科技")
+        let repository = InMemoryBusinessCardRepository(cards: [card])
+        let viewModel = CardDetailViewModel(repository: repository, cardID: card.id)
+
+        let url = try XCTUnwrap(viewModel.makeVCardFileURL())
+        defer { try? FileManager.default.removeItem(at: url) }
+
+        XCTAssertEqual(url.pathExtension, "vcf")
+        XCTAssertEqual(try String(contentsOf: url, encoding: .utf8), VCardExporter.vCard(for: card))
+    }
 }
+
+/// 导出失败用例用的错误类型。
+private struct ExportStubFailure: Error {}

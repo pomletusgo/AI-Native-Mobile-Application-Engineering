@@ -18,6 +18,9 @@ struct CamCardCloneApp: App {
     /// 全局唯一的名片图像存储实例，与仓库共用同一个存储目录。
     private let imageStore: CardImageStore = CamCardCloneApp.makeImageStore()
 
+    /// 系统联系人导出器（P10）；详情页的「存入系统联系人」用它写入通讯录。
+    private let contactExporter: ContactExporting = SystemContactExporter()
+
     /// 应用存储目录；取不到 Application Support 时退回临时目录，不崩溃。
     private static func makeStorageDirectory() -> URL {
         let fileManager = FileManager.default
@@ -42,7 +45,7 @@ struct CamCardCloneApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RootView(repository: repository, imageStore: imageStore)
+            RootView(repository: repository, imageStore: imageStore, contactExporter: contactExporter)
                 .environmentObject(router)
         }
     }

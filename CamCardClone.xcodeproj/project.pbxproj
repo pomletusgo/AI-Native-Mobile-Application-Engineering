@@ -57,6 +57,8 @@
 		AB0000000000000000000030 /* TagManagementViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000032 /* TagManagementViewModel.swift */; };
 		AB0000000000000000000031 /* TagManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000033 /* TagManagementView.swift */; };
 		AB0000000000000000000032 /* TagManagementViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000034 /* TagManagementViewModelTests.swift */; };
+		AB0000000000000000000033 /* ContactExport.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000035 /* ContactExport.swift */; };
+		AB0000000000000000000034 /* ContactExportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000036 /* ContactExportTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -120,6 +122,8 @@
 		AA0000000000000000000032 /* TagManagementViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagManagementViewModel.swift; sourceTree = "<group>"; };
 		AA0000000000000000000033 /* TagManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagManagementView.swift; sourceTree = "<group>"; };
 		AA0000000000000000000034 /* TagManagementViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagManagementViewModelTests.swift; sourceTree = "<group>"; };
+		AA0000000000000000000035 /* ContactExport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactExport.swift; sourceTree = "<group>"; };
+		AA0000000000000000000036 /* ContactExportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactExportTests.swift; sourceTree = "<group>"; };
 		AA0000000000000000000021 /* CamCardClone.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CamCardClone.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA0000000000000000000022 /* CamCardCloneTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CamCardCloneTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -215,6 +219,7 @@
 			isa = PBXGroup;
 			children = (
 				AA0000000000000000000010 /* VCardExporter.swift */,
+				AA0000000000000000000035 /* ContactExport.swift */,
 			);
 			path = Export;
 			sourceTree = "<group>";
@@ -284,6 +289,7 @@
 				AA000000000000000000002F /* ScanReviewViewModelTests.swift */,
 				AA0000000000000000000031 /* CardImageStoreTests.swift */,
 				AA0000000000000000000034 /* TagManagementViewModelTests.swift */,
+				AA0000000000000000000036 /* ContactExportTests.swift */,
 			);
 			path = CamCardCloneTests;
 			sourceTree = "<group>";
@@ -395,6 +401,7 @@
 				AB000000000000000000000F /* PersistentBusinessCardRepository.swift in Sources */,
 				AB000000000000000000002E /* CardImageStore.swift in Sources */,
 				AB0000000000000000000010 /* VCardExporter.swift in Sources */,
+				AB0000000000000000000033 /* ContactExport.swift in Sources */,
 				AB0000000000000000000017 /* BusinessCardFieldParser.swift in Sources */,
 				AB000000000000000000001B /* OCRService.swift in Sources */,
 				AB000000000000000000001C /* VisionOCRService.swift in Sources */,
@@ -443,6 +450,7 @@
 				AB000000000000000000002D /* ScanReviewViewModelTests.swift in Sources */,
 				AB000000000000000000002F /* CardImageStoreTests.swift in Sources */,
 				AB0000000000000000000032 /* TagManagementViewModelTests.swift in Sources */,
+				AB0000000000000000000034 /* ContactExportTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

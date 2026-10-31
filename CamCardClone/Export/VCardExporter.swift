@@ -90,6 +90,37 @@ enum VCardExporter {
         cards.map(vCard(for:)).joined()
     }
 
+    // MARK: - 分享文件
+
+    /// 把名片写成临时 `.vcf` 文件，返回文件 URL，供系统分享面板使用（P10 的「导出 VCF」）。
+    ///
+    /// - 文件名取名片姓名（路径分隔符等非法字符替换为 `-`），姓名不可用时退回 `contact.vcf`。
+    /// - 同名文件会被覆盖：分享的是这张名片此刻的内容，不做历史留档。
+    /// - 目录不存在时按需创建；写入失败会抛错，由调用方决定如何提示。
+    static func temporaryFileURL(
+        for card: BusinessCard,
+        directory: URL = FileManager.default.temporaryDirectory,
+        fileManager: FileManager = .default
+    ) throws -> URL {
+        try fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
+        let url = directory.appendingPathComponent(fileName(for: card), isDirectory: false)
+        // Swift 字符串转 UTF-8 不会失败，因此这里不需要处理编码错误。
+        try Data(vCard(for: card).utf8).write(to: url, options: .atomic)
+        return url
+    }
+
+    /// 分享用的文件名。
+    static func fileName(for card: BusinessCard) -> String {
+        let illegal = CharacterSet(charactersIn: "/\\:*?\"<>|")
+            .union(.controlCharacters)
+            .union(.newlines)
+        let cleaned = card.name
+            .components(separatedBy: illegal)
+            .joined(separator: "-")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        return (cleaned.isEmpty ? "contact" : cleaned) + ".vcf"
+    }
+
     // MARK: - 辅助
 
     /// 把可选字符串归一化为「有值」或 `nil`；`nil` 与空字符串都视为缺失。

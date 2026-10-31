@@ -1,7 +1,7 @@
 import SwiftUI
 import UIKit
 
-/// 名片详情页（P06），同时承载编辑态（P07）。
+/// 名片详情页（P06），同时承载编辑态（P07）与导出（P10）。
 ///
 /// 覆盖状态：D1 查看 / D2 编辑 / D3 字段可点击（电话、邮箱、网站调用系统原生组件）；
 /// 标签的增删在编辑态完成（P09），查看态展示原始图与已保存的标签。
@@ -14,11 +14,23 @@ struct CardDetailView: View {
     /// 编辑态里「添加标签」输入框的内容。
     @State private var newTagText: String = ""
 
-    init(repository: BusinessCardRepository, cardID: UUID, imageStore: CardImageStore? = nil) {
+    /// 是否展示导出方式确认框（导出是把字段发到 App 之外，因此先让用户确认）。
+    @State private var isConfirmingExport = false
+
+    /// 待分享的 `.vcf` 文件；非 `nil` 时弹出系统分享面板。
+    @State private var shareURL: URL?
+
+    init(
+        repository: BusinessCardRepository,
+        cardID: UUID,
+        imageStore: CardImageStore? = nil,
+        contactExporter: ContactExporting? = nil
+    ) {
         _viewModel = StateObject(wrappedValue: CardDetailViewModel(
             repository: repository,
             cardID: cardID,
-            imageStore: imageStore
+            imageStore: imageStore,
+            contactExporter: contactExporter
         ))
     }
 
@@ -48,9 +60,56 @@ struct CardDetailView: View {
                     Button("保存") { saveEditing() }
                         .accessibilityIdentifier("saveEditButton")
                 } else if !viewModel.isMissing {
-                    Button("编辑") { viewModel.beginEditing() }
-                        .accessibilityIdentifier("editButton")
+                    HStack {
+                        Button {
+                            isConfirmingExport = true
+                        } label: {
+                            Image(systemName: "square.and.arrow.up")
+                        }
+                        .accessibilityLabel("导出")
+                        .accessibilityIdentifier("exportButton")
+
+                        Button("编辑") { viewModel.beginEditing() }
+                            .accessibilityIdentifier("editButton")
+                    }
                 }
+            }
+        }
+        .confirmationDialog("导出名片", isPresented: $isConfirmingExport, titleVisibility: .visible) {
+            if viewModel.canExportToContacts {
+                Button("存入系统联系人") {
+                    Task { await viewModel.exportToContacts() }
+                }
+                .accessibilityIdentifier("exportToContactsButton")
+            }
+            Button("分享 VCF 文件") { shareVCard() }
+                .accessibilityIdentifier("exportVCardButton")
+        } message: {
+            Text("导出会把这张名片的字段发送给系统联系人，或通过分享面板发给其它 App。")
+        }
+        .alert(
+            "导出",
+            isPresented: Binding(
+                get: { viewModel.exportNotice != nil },
+                set: { if !$0 { viewModel.clearExportNotice() } }
+            )
+        ) {
+            if viewModel.exportNotice?.needsSettings == true {
+                Button("去设置") { openSettings() }
+                    .accessibilityIdentifier("exportOpenSettingsButton")
+            }
+            Button("好") { viewModel.clearExportNotice() }
+        } message: {
+            Text(viewModel.exportNotice?.message ?? "")
+        }
+        .sheet(
+            isPresented: Binding(
+                get: { shareURL != nil },
+                set: { if !$0 { shareURL = nil } }
+            )
+        ) {
+            if let shareURL {
+                ShareSheet(items: [shareURL])
             }
         }
     }
@@ -227,6 +286,19 @@ struct CardDetailView: View {
         }
     }
 
+    // MARK: - 导出动作（P10）
+
+    /// 生成 `.vcf` 文件并弹出系统分享面板；写盘失败时不弹面板。
+    private func shareVCard() {
+        shareURL = viewModel.makeVCardFileURL()
+    }
+
+    /// 跳转系统设置（通讯录权限被拒时引导用户开启）。
+    private func openSettings() {
+        guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
+        openURL(url)
+    }
+
     // MARK: - 行组件
 
     private func valueRow(_ label: String, _ value: String) -> some View {
@@ -304,6 +376,18 @@ struct CardDetailView: View {
             }
         )
     }
+}
+
+/// 系统分享面板（`UIActivityViewController`）的 SwiftUI 包装，用于把 `.vcf` 文件分享出去。
+struct ShareSheet: UIViewControllerRepresentable {
+
+    let items: [Any]
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: items, applicationActivities: nil)
+    }
+
+    func updateUIViewController(_ controller: UIActivityViewController, context: Context) {}
 }
 
 #Preview {

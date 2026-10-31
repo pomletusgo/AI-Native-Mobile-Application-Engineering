@@ -141,4 +141,24 @@ final class VCardExporterTests: XCTestCase {
         XCTAssertFalse(withoutCRLF.contains("\n"), "不应出现裸的 LF 行分隔符")
         XCTAssertFalse(withoutCRLF.contains("\r"), "不应出现裸的 CR 行分隔符")
     }
+
+    // MARK: - 分享用的临时文件（P10）
+
+    func testTemporaryFileURLWritesVCardContent() throws {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("VCardExporterTests-\(UUID().uuidString)", isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let card = BusinessCard(name: "张伟", company: "远景科技")
+
+        let url = try VCardExporter.temporaryFileURL(for: card, directory: directory)
+
+        XCTAssertTrue(url.pathExtension == "vcf")
+        XCTAssertEqual(try String(contentsOf: url, encoding: .utf8), VCardExporter.vCard(for: card))
+    }
+
+    func testFileNameFallsBackWhenNameIsUnusable() {
+        XCTAssertEqual(VCardExporter.fileName(for: BusinessCard(name: "张伟")), "张伟.vcf")
+        XCTAssertEqual(VCardExporter.fileName(for: BusinessCard(name: "  ")), "contact.vcf")
+        XCTAssertEqual(VCardExporter.fileName(for: BusinessCard(name: "a/b:c")), "a-b-c.vcf")
+    }
 }

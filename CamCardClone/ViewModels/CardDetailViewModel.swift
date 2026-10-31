@@ -1,7 +1,7 @@
 import Foundation
 import Combine
 
-/// 名片详情 / 编辑 ViewModel（对应 P06、P07，标签编辑对应 P09）。
+/// 名片详情 / 编辑 ViewModel（对应 P06、P07，标签编辑对应 P09，导出对应 P10）。
 ///
 /// 标签的增删都发生在草稿上，因此「取消编辑丢弃草稿」同样会丢弃这次标签改动。
 @MainActor
@@ -13,15 +13,26 @@ final class CardDetailViewModel: ObservableObject {
     /// 编辑中的草稿。非 `nil` 表示处于编辑态（状态 D2）。
     @Published var draft: BusinessCard?
 
+    /// 最近一次导出的结果；`nil` 表示没有待展示的提示（P10）。
+    @Published private(set) var exportNotice: ContactExportNotice?
+
     private let repository: BusinessCardRepository
     private let cardID: UUID
     /// 图像存储；为 `nil` 时详情页不展示图像。
     private let imageStore: CardImageStore?
+    /// 系统联系人导出器；为 `nil` 时详情页不提供「存入系统联系人」。
+    private let contactExporter: ContactExporting?
 
-    init(repository: BusinessCardRepository, cardID: UUID, imageStore: CardImageStore? = nil) {
+    init(
+        repository: BusinessCardRepository,
+        cardID: UUID,
+        imageStore: CardImageStore? = nil,
+        contactExporter: ContactExporting? = nil
+    ) {
         self.repository = repository
         self.cardID = cardID
         self.imageStore = imageStore
+        self.contactExporter = contactExporter
         reload()
     }
 
@@ -38,6 +49,16 @@ final class CardDetailViewModel: ObservableObject {
         guard let card else { return nil }
         if let data = imageStore?.load(named: card.originalImageName) { return data }
         return imageStore?.load(named: card.processedImageName)
+    }
+
+    /// 当前名片对应的 vCard 文本；名片不存在时为 `nil`（P10 / T19）。
+    var vCardText: String? {
+        card.map(VCardExporter.vCard(for:))
+    }
+
+    /// 是否能导出到系统联系人：名片存在且已注入导出器。
+    var canExportToContacts: Bool {
+        card != nil && contactExporter != nil
     }
 
     // MARK: - 操作
@@ -119,5 +140,27 @@ final class CardDetailViewModel: ObservableObject {
         repository.delete(id: cardID)
         imageStore?.deleteImages(for: cardID)
         reload()
+    }
+
+    // MARK: - 导出（P10：存入系统联系人 / 分享 VCF 文件）
+
+    /// 把当前名片写入系统联系人。
+    ///
+    /// 未注入导出器或名片不存在时不做任何事，也不产生提示。
+    /// 结果统一落到 `exportNotice`，由界面弹出提示（成功与失败都要让用户知道）。
+    func exportToContacts() async {
+        guard let card, let contactExporter else { return }
+        exportNotice = await ContactExportCoordinator.export(card, using: contactExporter)
+    }
+
+    /// 生成用于分享的临时 `.vcf` 文件；名片不存在或写盘失败时返回 `nil`。
+    func makeVCardFileURL() -> URL? {
+        guard let card else { return nil }
+        return try? VCardExporter.temporaryFileURL(for: card)
+    }
+
+    /// 关闭导出提示。
+    func clearExportNotice() {
+        exportNotice = nil
     }
 }
