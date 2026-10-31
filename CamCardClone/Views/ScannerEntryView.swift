@@ -7,14 +7,17 @@ import UIKit
 ///
 /// Week3 起本页不再是占位：相机权限由 `ScanAuthorization` 推进，取景与快门用
 /// `CameraPreviewView` + `AVCapturePhotoCapturer`，相册导入用 `PhotosPicker`；
-/// 拍摄或导入得到的图片收进 `ScanSession`，交给后续的检测与识别段落（P03–P05）。
+/// 拍摄或导入得到的图片收进 `ScanSession`。
+///
+/// Week4 起拿到图片后交给 `ScanReviewView`，由它完成检测校正、识别、人工逐字段
+/// 校正与「确认 → 保存」落库（P03–P05）。
 ///
 /// 页面只做展示与转发意图，状态与异常处理都在 `ScannerEntryViewModel` 里，
 /// 因此「权限被拒不触碰相机」「取消不留脏数据」等行为可以脱离真机单测。
 struct ScannerEntryView: View {
 
-    /// 保留 `repository` 以维持 `AppRoute.scanner` 的既有契约（design.md D6），
-    /// 待「确认 → 保存」接线时在此落库。
+    /// 名片仓库。维持 `AppRoute.scanner` 的既有契约（design.md D6），
+    /// 并由复核页 `ScanReviewView` 在「确认 → 保存」时落库。
     let repository: BusinessCardRepository
 
     @EnvironmentObject private var router: AppRouter
@@ -136,41 +139,20 @@ struct ScannerEntryView: View {
         .padding(32)
     }
 
-    // MARK: - 已取得照片
+    // MARK: - 已取得照片：交给复核页（P03–P05）
 
+    @ViewBuilder
     private var capturedContent: some View {
-        VStack(spacing: 20) {
-            if let image = capturedImage {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(maxHeight: 360)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .accessibilityIdentifier("scannerCapturedImage")
-            }
-
-            Text("已获取名片照片，接下来进入检测与识别。")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-
-            Button {
-                model.discardCapture()
-            } label: {
-                Label("重拍", systemImage: "arrow.counterclockwise")
-            }
-            .accessibilityIdentifier("scannerRetakeButton")
-
-            Button("取消") {
-                leaveToCardHolder()
-            }
-            .accessibilityIdentifier("scannerCancelButton")
+        if let imageData = model.session.capturedImageData {
+            ScanReviewView(
+                imageData: imageData,
+                repository: repository,
+                // 重拍：只丢弃本次照片，留在本页重新取景。
+                onRetake: { model.discardCapture() },
+                // 取消或保存完成：清空会话产物后返回名片夹。
+                onFinish: { leaveToCardHolder() }
+            )
         }
-        .padding(24)
-    }
-
-    private var capturedImage: UIImage? {
-        model.session.capturedImageData.flatMap(UIImage.init(data:))
     }
 
     // MARK: - 权限与异常提示
