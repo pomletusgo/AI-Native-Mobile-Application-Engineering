@@ -44,6 +44,9 @@
 		AB0000000000000000000023 /* ScanAuthorization.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000025 /* ScanAuthorization.swift */; };
 		AB0000000000000000000024 /* PhotoImport.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000026 /* PhotoImport.swift */; };
 		AB0000000000000000000025 /* ScanAuthorizationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000027 /* ScanAuthorizationTests.swift */; };
+		AB0000000000000000000026 /* CameraCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000028 /* CameraCapture.swift */; };
+		AB0000000000000000000027 /* CameraPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000029 /* CameraPreview.swift */; };
+		AB0000000000000000000028 /* CameraCaptureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000002A /* CameraCaptureTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -94,6 +97,9 @@
 		AA0000000000000000000025 /* ScanAuthorization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanAuthorization.swift; sourceTree = "<group>"; };
 		AA0000000000000000000026 /* PhotoImport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoImport.swift; sourceTree = "<group>"; };
 		AA0000000000000000000027 /* ScanAuthorizationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanAuthorizationTests.swift; sourceTree = "<group>"; };
+		AA0000000000000000000028 /* CameraCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraCapture.swift; sourceTree = "<group>"; };
+		AA0000000000000000000029 /* CameraPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPreview.swift; sourceTree = "<group>"; };
+		AA000000000000000000002A /* CameraCaptureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraCaptureTests.swift; sourceTree = "<group>"; };
 		AA0000000000000000000021 /* CamCardClone.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CamCardClone.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA0000000000000000000022 /* CamCardCloneTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CamCardCloneTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -203,6 +209,8 @@
 				AA0000000000000000000023 /* ScanAccess.swift */,
 				AA0000000000000000000025 /* ScanAuthorization.swift */,
 				AA0000000000000000000026 /* PhotoImport.swift */,
+				AA0000000000000000000028 /* CameraCapture.swift */,
+				AA0000000000000000000029 /* CameraPreview.swift */,
 			);
 			path = Scanning;
 			sourceTree = "<group>";
@@ -245,6 +253,7 @@
 				AA0000000000000000000020 /* CardBoundaryTests.swift */,
 				AA0000000000000000000024 /* ScanAccessTests.swift */,
 				AA0000000000000000000027 /* ScanAuthorizationTests.swift */,
+				AA000000000000000000002A /* CameraCaptureTests.swift */,
 			);
 			path = CamCardCloneTests;
 			sourceTree = "<group>";
@@ -363,6 +372,8 @@
 				AB0000000000000000000021 /* ScanAccess.swift in Sources */,
 				AB0000000000000000000023 /* ScanAuthorization.swift in Sources */,
 				AB0000000000000000000024 /* PhotoImport.swift in Sources */,
+				AB0000000000000000000026 /* CameraCapture.swift in Sources */,
+				AB0000000000000000000027 /* CameraPreview.swift in Sources */,
 				AB0000000000000000000007 /* CardHolderViewModel.swift in Sources */,
 				AB0000000000000000000008 /* CardDetailViewModel.swift in Sources */,
 				AB0000000000000000000009 /* RootView.swift in Sources */,
@@ -391,6 +402,7 @@
 				AB0000000000000000000020 /* CardBoundaryTests.swift in Sources */,
 				AB0000000000000000000022 /* ScanAccessTests.swift in Sources */,
 				AB0000000000000000000025 /* ScanAuthorizationTests.swift in Sources */,
+				AB0000000000000000000028 /* CameraCaptureTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
