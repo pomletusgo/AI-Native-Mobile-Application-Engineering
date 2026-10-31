@@ -192,7 +192,7 @@ M17（保存后完全退出并重启）用 `xcrun simctl terminate` + `launch`�
 - 文字内容逐字取自 `groundTruth`，`additionalEmails`（TC06 / TC23）按出现顺序各占一行；**不做翻译**，`bilingual` 只通过排版体现
 - 六种降质（`tilted` / `complexBg` / `darkBg` / `lightBg` / `shadow` / `occluded`）由脚本确定性生成，只覆盖数据集已声明的类别，不代表真实拍照的退化分布
 
-**② 30 个 OCR 原文**
+**② 30 个 OCR 原文 —— 代码已就位，待本机执行**
 
 约定位置在源码里已定死（`FieldExtractionEvaluator.ocrTextURL(cardID:repositoryRoot:)`）：
 
@@ -200,7 +200,23 @@ M17（保存后完全退出并重启）用 `xcrun simctl terminate` + `launch`�
 testcards/ocr/TC01.txt … TC30.txt
 ```
 
-目前 `testcards/ocr/` 目录还不存在。生成方式是**新增一小块代码**：一个测试用例，用 `OCRService` 对每张图片跑识别并把文本写成 txt。这块代码尚未编写，需要在动工前单独确认。
+生成代码是 `CamCardCloneTests/OCRTextCorpusExporterTests.swift`，用 `VisionOCRService` 对每张图片跑识别并把原文写成 txt。它**默认跳过**（与 UI 基线的 `RECORD_GOLDEN` 同一思路，避免 CI 悄悄改写数据集），需要在 Mac 上显式打开开关执行一次：
+
+```bash
+# 在仓库根目录执行；-only-testing 限定只跑这一个用例
+EXPORT_OCR_TEXT=1 xcodebuild test \
+  -project CamCardClone.xcodeproj -scheme CamCardClone \
+  -destination 'platform=iOS Simulator,name=iPhone 15' \
+  -only-testing:CamCardCloneTests/OCRTextCorpusExporterTests \
+  | xcpretty || true
+```
+
+（用 Xcode 图形界面跑时，在 Scheme 的 Test → Arguments → Environment Variables 里加 `EXPORT_OCR_TEXT = 1`，`Cmd+U` 亦可。）
+
+用例会逐张打印「行数」并汇总「已导出 N/30」，完成后把 `testcards/ocr/` 整个目录连同 30 个 txt 一并提交。注意两点：
+
+- 判定是**逐张**做的：某张图行数少于 2 行会被当成问题记进失败信息，说明该图 OCR 效果需要人工看一眼
+- 该用例对**整张图片**识别，不经过「检测 → 透视校正」；4.4 衡量的是字段抽取器在 OCR 原文上的准确率，检测与校正属 T06 / T07，不计入该指标
 
 > **必须写进报告的局限**：由「渲染图片 → 跑 OCR」得到的准确率，会比真实拍摄的照片**偏乐观**——渲染文字比拍照干净，没有反光、没有透视畸变、没有污损。结论须注明这一限制，不能当成真实场景的准确率。
 
@@ -253,7 +269,7 @@ openspec archive replicate-camcard-core-slice
 | 4 | M01–M36 回填（36 行全部有实际记录） | `docs/UI验收清单.md` | 3 |
 | 5 | 截图与录屏 | `docs/evidence/` | 3 |
 | 6 | 30 张名片图片 | `testcards/images/` | 4 **（已完成，本机可做）** |
-| 7 | 30 个 OCR 原文 | `testcards/ocr/TC01–TC30.txt`（需新建） | 4 |
+| 7 | 30 个 OCR 原文 | `testcards/ocr/TC01–TC30.txt`（导出用例已就位，待本机执行） | 4 |
 | 8 | 字段级准确率报告（含精度局限说明） | 贴进 `docs/` | 4 |
 | 9 | `isReliable()` 标定结论 | `docs/验证报告.md`、`docs/能力边界分析.md` | 4 |
 | 10 | 归档后的主规格 | `openspec/specs/` | 5 |
