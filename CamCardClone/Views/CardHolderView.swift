@@ -25,6 +25,15 @@ struct CardHolderView: View {
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
+                    router.push(.tagManagement)
+                } label: {
+                    Image(systemName: "tag")
+                }
+                .accessibilityLabel("标签管理")
+                .accessibilityIdentifier("tagManagementEntry")
+            }
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button {
                     router.push(.scanner)
                 } label: {
                     Image(systemName: "plus.viewfinder")

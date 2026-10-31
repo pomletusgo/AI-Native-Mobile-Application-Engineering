@@ -8,6 +8,8 @@ enum AppRoute: Hashable {
     case cardDetail(cardID: UUID)
     /// 扫描名片入口（Week2 为占位页，Week3 接入相机）
     case scanner
+    /// 标签管理（P09）
+    case tagManagement
 }
 
 /// 全局导航状态。

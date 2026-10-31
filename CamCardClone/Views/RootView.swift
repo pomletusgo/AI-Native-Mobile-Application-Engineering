@@ -20,6 +20,8 @@ struct RootView: View {
                         CardDetailView(repository: repository, cardID: cardID, imageStore: imageStore)
                     case .scanner:
                         ScannerEntryView(repository: repository, imageStore: imageStore)
+                    case .tagManagement:
+                        TagManagementView(repository: repository)
                     }
                 }
         }
