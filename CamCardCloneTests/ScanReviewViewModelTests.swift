@@ -404,7 +404,7 @@ final class ScanReviewViewModelTests: XCTestCase {
         XCTAssertTrue(harness.model.confirmSave())
 
         let card = try XCTUnwrap(harness.repository.fetchAll().first)
-        XCTAssertEqual(store.load(named: card.originalImageName), harness.photoBytes)
+        XCTAssertEqual(store.load(named: card.originalImageName), photoBytes)
         XCTAssertEqual(store.load(named: card.processedImageName), correctedBytes)
     }
 
