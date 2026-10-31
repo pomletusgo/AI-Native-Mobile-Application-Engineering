@@ -1,5 +1,6 @@
 import Foundation
 import PhotosUI
+import SwiftUI
 
 /// 相册导入过程中可预期的失败。
 enum PhotoImportError: LocalizedError, Equatable {
