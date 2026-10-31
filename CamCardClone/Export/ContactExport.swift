@@ -51,7 +51,7 @@ enum ContactExportMapping {
             entries.append(CNLabeledValue(label: CNLabelPhoneNumberMain, value: CNPhoneNumber(stringValue: phone)))
         }
         if let fax = nonEmpty(card.fax) {
-            entries.append(CNLabeledValue(label: CNLabelFax, value: CNPhoneNumber(stringValue: fax)))
+            entries.append(CNLabeledValue(label: CNLabelPhoneNumberWorkFax, value: CNPhoneNumber(stringValue: fax)))
         }
         return entries
     }

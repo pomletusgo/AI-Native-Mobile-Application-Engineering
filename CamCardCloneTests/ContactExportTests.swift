@@ -100,7 +100,7 @@ final class ContactExportTests: XCTestCase {
         let contact = ContactExportMapping.contact(from: card)
 
         let labels = contact.phoneNumbers.map(\.label)
-        XCTAssertEqual(labels, [CNLabelPhoneNumberMobile, CNLabelPhoneNumberMain, CNLabelFax])
+        XCTAssertEqual(labels, [CNLabelPhoneNumberMobile, CNLabelPhoneNumberMain, CNLabelPhoneNumberWorkFax])
         XCTAssertEqual(contact.phoneNumbers[0].value.stringValue, "138-0000-0001")
         XCTAssertEqual(contact.phoneNumbers[2].value.stringValue, "021-8888-0002")
     }
@@ -111,7 +111,7 @@ final class ContactExportTests: XCTestCase {
         let contact = ContactExportMapping.contact(from: card)
 
         XCTAssertEqual(contact.phoneNumbers.map(\.label), [CNLabelPhoneNumberMobile, CNLabelPhoneNumberMain])
-        XCTAssertFalse(contact.phoneNumbers.contains { $0.label == CNLabelFax })
+        XCTAssertFalse(contact.phoneNumbers.contains { $0.label == CNLabelPhoneNumberWorkFax })
     }
 
     func testEmailMapsToWorkLabel() {
