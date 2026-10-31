@@ -168,7 +168,7 @@ final class ContactExportTests: XCTestCase {
     // MARK: - 字段映射：不得伪造
 
     func testEmptyOptionalFieldsBecomeEmptyNotPlaceholder() {
-        let card = BusinessCard(name: "张伟", company: "", department: "", jobTitle: "", notes: "")
+        let card = BusinessCard(name: "张伟", company: "", jobTitle: "", department: "", notes: "")
 
         let contact = ContactExportMapping.contact(from: card)
 
