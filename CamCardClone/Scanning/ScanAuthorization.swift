@@ -26,16 +26,14 @@ enum ScanAuthorizationMapping {
 
     /// `PHAuthorizationStatus` → `ScanAuthorizationStatus`。
     ///
-    /// - `.limited`（仅选中项）算已授权：选择器可用，本次导入的行为与全量授权一致。
-    /// - `.addOnly` 只能写入、不能读取，对「从相册读取图片」这个用途而言等同于不可用，
-    ///   因此归入 `.denied`。本应用申请的是 `.readWrite`，正常不会拿到该状态。
+    /// `.limited`（仅选中项）算已授权：选择器可用，本次导入的行为与全量授权一致。
     static func map(photoLibrary status: PHAuthorizationStatus) -> ScanAuthorizationStatus {
         switch status {
         case .authorized, .limited:
             return .authorized
         case .notDetermined:
             return .notDetermined
-        case .denied, .addOnly:
+        case .denied:
             return .denied
         case .restricted:
             return .restricted

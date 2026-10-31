@@ -72,10 +72,10 @@ final class ScanAuthorizationTests: XCTestCase {
         XCTAssertEqual(ScanAuthorizationMapping.map(photoLibrary: .limited).decision, .proceed)
     }
 
-    /// 「仅可添加」读不到图片，对导入而言不可用（E2）。
-    func testAddOnlyLibraryAccessIsDeniedForReading() {
-        XCTAssertEqual(ScanAuthorizationMapping.map(photoLibrary: .addOnly), .denied)
-        XCTAssertEqual(ScanAuthorizationMapping.map(photoLibrary: .addOnly).decision, .promptForSettings)
+    /// 相册被拒时必须落到「提示并跳设置」而不是静默失败（E2）。
+    func testDeniedLibraryAccessLeadsToSettingsPrompt() {
+        XCTAssertEqual(ScanAuthorizationMapping.map(photoLibrary: .denied), .denied)
+        XCTAssertEqual(ScanAuthorizationMapping.map(photoLibrary: .denied).decision, .promptForSettings)
     }
 
     // MARK: - 推进顺序
