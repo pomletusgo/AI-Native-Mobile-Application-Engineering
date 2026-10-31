@@ -59,6 +59,8 @@
 		AB0000000000000000000032 /* TagManagementViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000034 /* TagManagementViewModelTests.swift */; };
 		AB0000000000000000000033 /* ContactExport.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000035 /* ContactExport.swift */; };
 		AB0000000000000000000034 /* ContactExportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000036 /* ContactExportTests.swift */; };
+		AB0000000000000000000035 /* CardBoundaryAdjustment.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000037 /* CardBoundaryAdjustment.swift */; };
+		AB0000000000000000000036 /* CardBoundaryAdjustmentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000038 /* CardBoundaryAdjustmentTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -124,6 +126,8 @@
 		AA0000000000000000000034 /* TagManagementViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagManagementViewModelTests.swift; sourceTree = "<group>"; };
 		AA0000000000000000000035 /* ContactExport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactExport.swift; sourceTree = "<group>"; };
 		AA0000000000000000000036 /* ContactExportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactExportTests.swift; sourceTree = "<group>"; };
+		AA0000000000000000000037 /* CardBoundaryAdjustment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardBoundaryAdjustment.swift; sourceTree = "<group>"; };
+		AA0000000000000000000038 /* CardBoundaryAdjustmentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardBoundaryAdjustmentTests.swift; sourceTree = "<group>"; };
 		AA0000000000000000000021 /* CamCardClone.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CamCardClone.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA0000000000000000000022 /* CamCardCloneTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CamCardCloneTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -232,6 +236,7 @@
 				AA000000000000000000001C /* VisionOCRService.swift */,
 				AA000000000000000000001E /* CardBoundary.swift */,
 				AA000000000000000000001F /* VisionCardBoundaryDetector.swift */,
+				AA0000000000000000000037 /* CardBoundaryAdjustment.swift */,
 				AA0000000000000000000023 /* ScanAccess.swift */,
 				AA0000000000000000000025 /* ScanAuthorization.swift */,
 				AA0000000000000000000026 /* PhotoImport.swift */,
@@ -290,6 +295,7 @@
 				AA0000000000000000000031 /* CardImageStoreTests.swift */,
 				AA0000000000000000000034 /* TagManagementViewModelTests.swift */,
 				AA0000000000000000000036 /* ContactExportTests.swift */,
+				AA0000000000000000000038 /* CardBoundaryAdjustmentTests.swift */,
 			);
 			path = CamCardCloneTests;
 			sourceTree = "<group>";
@@ -407,6 +413,7 @@
 				AB000000000000000000001C /* VisionOCRService.swift in Sources */,
 				AB000000000000000000001E /* CardBoundary.swift in Sources */,
 				AB000000000000000000001F /* VisionCardBoundaryDetector.swift in Sources */,
+				AB0000000000000000000035 /* CardBoundaryAdjustment.swift in Sources */,
 				AB0000000000000000000021 /* ScanAccess.swift in Sources */,
 				AB0000000000000000000023 /* ScanAuthorization.swift in Sources */,
 				AB0000000000000000000024 /* PhotoImport.swift in Sources */,
@@ -451,6 +458,7 @@
 				AB000000000000000000002F /* CardImageStoreTests.swift in Sources */,
 				AB0000000000000000000032 /* TagManagementViewModelTests.swift in Sources */,
 				AB0000000000000000000034 /* ContactExportTests.swift in Sources */,
+				AB0000000000000000000036 /* CardBoundaryAdjustmentTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

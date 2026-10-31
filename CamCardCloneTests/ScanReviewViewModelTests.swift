@@ -306,6 +306,238 @@ final class ScanReviewViewModelTests: XCTestCase {
         XCTAssertNil(harness.model.failureMessage)
     }
 
+    // MARK: - 手动调整边界（P03，规格 `Card boundary detection`）
+
+    func testDetectedOutcomeDoesNotOfferManualAdjustment() async {
+        let harness = makeReviewHarness()
+        await harness.model.analyze()
+
+        XCTAssertFalse(harness.model.canAdjustBoundary, "检测可靠时不需要手动调整")
+        XCTAssertNil(harness.model.adjustment)
+    }
+
+    func testUnreliableDetectionOffersManualAdjustment() async {
+        let harness = makeHarness(
+            detection: .success(.unreliable(tinyQuad)),
+            recognition: .success(OCRTextResult(lines: Self.recognizedLines))
+        )
+        await harness.model.analyze()
+
+        XCTAssertTrue(harness.model.canAdjustBoundary)
+        XCTAssertNil(harness.model.adjustment, "未进入调整态前不应有编辑状态")
+    }
+
+    func testNotFoundDetectionOffersManualAdjustment() async {
+        let harness = makeHarness(
+            detection: .success(.notFound),
+            recognition: .success(OCRTextResult(lines: Self.recognizedLines))
+        )
+        await harness.model.analyze()
+
+        XCTAssertTrue(harness.model.canAdjustBoundary)
+    }
+
+    func testDetectionErrorDoesNotOfferManualAdjustment() async {
+        let harness = makeHarness(
+            detection: .failure(CardBoundaryError.invalidImageData),
+            recognition: .success(OCRTextResult(lines: Self.recognizedLines))
+        )
+        await harness.model.analyze()
+
+        XCTAssertFalse(harness.model.canAdjustBoundary, "图片无法解码时给调整入口没有意义")
+    }
+
+    func testBeginManualAdjustmentUsesUnreliableCandidateAsStart() async {
+        let harness = makeHarness(
+            detection: .success(.unreliable(tinyQuad)),
+            recognition: .success(OCRTextResult(lines: Self.recognizedLines))
+        )
+        await harness.model.analyze()
+
+        harness.model.beginManualAdjustment()
+
+        XCTAssertTrue(harness.model.isAdjustingBoundary)
+        XCTAssertEqual(harness.model.adjustment?.initialQuad, tinyQuad)
+        XCTAssertNil(harness.model.failureMessage, "进入调整态后先收起失败提示")
+    }
+
+    func testBeginManualAdjustmentUsesDefaultQuadWhenNotFound() async {
+        let harness = makeHarness(
+            detection: .success(.notFound),
+            recognition: .success(OCRTextResult(lines: Self.recognizedLines))
+        )
+        await harness.model.analyze()
+
+        harness.model.beginManualAdjustment()
+
+        XCTAssertEqual(harness.model.adjustment?.quad, CardBoundaryAdjustment.defaultQuad)
+    }
+
+    func testBeginManualAdjustmentIsIgnoredWhenNotOffered() async {
+        let harness = makeReviewHarness()
+        await harness.model.analyze()
+
+        harness.model.beginManualAdjustment()
+
+        XCTAssertFalse(harness.model.isAdjustingBoundary)
+        XCTAssertNil(harness.model.adjustment)
+    }
+
+    func testMovingCornerOutsideAdjustingPhaseIsIgnored() async {
+        let harness = makeHarness(
+            detection: .success(.notFound),
+            recognition: .success(OCRTextResult(lines: Self.recognizedLines))
+        )
+        await harness.model.analyze()
+
+        harness.model.moveBoundaryCorner(.topLeft, to: CGPoint(x: 0.5, y: 0.5))
+
+        XCTAssertNil(harness.model.adjustment)
+    }
+
+    func testMovingCornerUpdatesTheEditedQuad() async {
+        let harness = makeHarness(
+            detection: .success(.notFound),
+            recognition: .success(OCRTextResult(lines: Self.recognizedLines))
+        )
+        await harness.model.analyze()
+        harness.model.beginManualAdjustment()
+
+        harness.model.moveBoundaryCorner(.topLeft, to: CGPoint(x: 0.20, y: 0.80))
+
+        XCTAssertEqual(harness.model.adjustment?.quad.topLeft, CGPoint(x: 0.20, y: 0.80))
+        XCTAssertTrue(harness.model.adjustment?.isModified == true)
+    }
+
+    func testResetBoundaryAdjustmentRestoresStart() async {
+        let harness = makeHarness(
+            detection: .success(.notFound),
+            recognition: .success(OCRTextResult(lines: Self.recognizedLines))
+        )
+        await harness.model.analyze()
+        harness.model.beginManualAdjustment()
+        harness.model.moveBoundaryCorner(.bottomLeft, to: CGPoint(x: 0.30, y: 0.10))
+
+        harness.model.resetBoundaryAdjustment()
+
+        XCTAssertEqual(harness.model.adjustment?.quad, CardBoundaryAdjustment.defaultQuad)
+    }
+
+    func testCancelBoundaryAdjustmentRestoresDetectionMessage() async {
+        let harness = makeHarness(
+            detection: .success(.unreliable(tinyQuad)),
+            recognition: .success(OCRTextResult(lines: Self.recognizedLines))
+        )
+        await harness.model.analyze()
+        harness.model.beginManualAdjustment()
+        harness.model.moveBoundaryCorner(.topLeft, to: CGPoint(x: 0.4, y: 0.5))
+
+        harness.model.cancelBoundaryAdjustment()
+
+        XCTAssertEqual(harness.model.phase, .analyzing)
+        XCTAssertNil(harness.model.adjustment)
+        XCTAssertEqual(harness.model.failureMessage, "未能可靠识别名片边界，请把名片放正并占满取景框后重试，或改用手动录入。")
+        XCTAssertEqual(harness.corrector.correctCount, 0, "放弃调整等于放弃本次识别")
+        XCTAssertEqual(harness.ocr.recognizeCount, 0)
+        XCTAssertTrue(harness.repository.fetchAll().isEmpty)
+    }
+
+    func testApplyBoundaryAdjustmentUsesTheAdjustedQuad() async {
+        let harness = makeHarness(
+            detection: .success(.unreliable(tinyQuad)),
+            recognition: .success(OCRTextResult(lines: Self.recognizedLines))
+        )
+        await harness.model.analyze()
+        harness.model.beginManualAdjustment()
+        // 用户把四个角拖成一张横版名片（0.8 × 0.48，面积 0.384）。
+        harness.model.moveBoundaryCorner(.topLeft, to: CGPoint(x: 0.10, y: 0.74))
+        harness.model.moveBoundaryCorner(.topRight, to: CGPoint(x: 0.90, y: 0.74))
+        harness.model.moveBoundaryCorner(.bottomRight, to: CGPoint(x: 0.90, y: 0.26))
+        harness.model.moveBoundaryCorner(.bottomLeft, to: CGPoint(x: 0.10, y: 0.26))
+
+        await harness.model.applyBoundaryAdjustment()
+
+        XCTAssertEqual(harness.corrector.receivedQuad, reliableQuad, "送去校正的应是用户调整后的框")
+        XCTAssertEqual(harness.corrector.correctCount, 1)
+        XCTAssertEqual(harness.ocr.recognizeCount, 1)
+        XCTAssertEqual(harness.model.phase, .review)
+        XCTAssertEqual(harness.model.field(.name), "李娜")
+        XCTAssertNil(harness.model.adjustment)
+        XCTAssertFalse(harness.model.canAdjustBoundary)
+    }
+
+    func testApplyBoundaryAdjustmentRejectsUnusableQuadWithoutRecognizing() async {
+        let harness = makeHarness(
+            detection: .success(.unreliable(tinyQuad)),
+            recognition: .success(OCRTextResult(lines: Self.recognizedLines))
+        )
+        await harness.model.analyze()
+        harness.model.beginManualAdjustment()
+        // 把四个角拖满整张图：规格禁止把整张图片当作名片。
+        harness.model.moveBoundaryCorner(.topLeft, to: CGPoint(x: 0, y: 1))
+        harness.model.moveBoundaryCorner(.topRight, to: CGPoint(x: 1, y: 1))
+        harness.model.moveBoundaryCorner(.bottomRight, to: CGPoint(x: 1, y: 0))
+        harness.model.moveBoundaryCorner(.bottomLeft, to: CGPoint(x: 0, y: 0))
+
+        await harness.model.applyBoundaryAdjustment()
+
+        XCTAssertEqual(harness.corrector.correctCount, 0)
+        XCTAssertEqual(harness.ocr.recognizeCount, 0)
+        XCTAssertTrue(harness.model.isAdjustingBoundary, "仍留在调整态，用户可以继续改")
+        XCTAssertNotNil(harness.model.failureMessage)
+        XCTAssertTrue(harness.repository.fetchAll().isEmpty)
+    }
+
+    func testApplyBoundaryAdjustmentKeepsEditingStateWhenCorrectionFails() async {
+        let harness = makeHarness(
+            detection: .success(.notFound),
+            correction: .failure(CardBoundaryError.correctionFailed(reason: "透视校正未产出图像。")),
+            recognition: .success(OCRTextResult(lines: Self.recognizedLines))
+        )
+        await harness.model.analyze()
+        harness.model.beginManualAdjustment()
+
+        await harness.model.applyBoundaryAdjustment()
+
+        XCTAssertEqual(harness.model.phase, .analyzing)
+        XCTAssertEqual(harness.model.failureMessage, "名片校正失败：透视校正未产出图像。")
+        XCTAssertNotNil(harness.model.adjustment, "保留用户的调整结果，便于接着微调")
+        XCTAssertTrue(harness.model.canAdjustBoundary)
+        XCTAssertEqual(harness.ocr.recognizeCount, 0)
+    }
+
+    func testReenteringAdjustmentAfterFailureKeepsPreviousEdits() async {
+        let harness = makeHarness(
+            detection: .success(.notFound),
+            correction: .failure(CardBoundaryError.correctionFailed(reason: "透视校正未产出图像。")),
+            recognition: .success(OCRTextResult(lines: Self.recognizedLines))
+        )
+        await harness.model.analyze()
+        harness.model.beginManualAdjustment()
+        harness.model.moveBoundaryCorner(.topLeft, to: CGPoint(x: 0.25, y: 0.85))
+        await harness.model.applyBoundaryAdjustment()
+
+        harness.model.beginManualAdjustment()
+
+        XCTAssertEqual(harness.model.adjustment?.quad.topLeft, CGPoint(x: 0.25, y: 0.85))
+    }
+
+    func testAnalyzeResetsManualAdjustmentState() async {
+        let harness = makeHarness(
+            detection: .success(.unreliable(tinyQuad)),
+            recognition: .success(OCRTextResult(lines: Self.recognizedLines))
+        )
+        await harness.model.analyze()
+        harness.model.beginManualAdjustment()
+
+        harness.detector.result = .success(.detected(reliableQuad))
+        await harness.model.analyze()
+
+        XCTAssertNil(harness.model.adjustment)
+        XCTAssertFalse(harness.model.canAdjustBoundary)
+        XCTAssertEqual(harness.model.phase, .review)
+    }
+
     // MARK: - 人工校正与保存（T11 / T12 / E5）
 
     func testConfirmSavePersistsEditedFields() async {
