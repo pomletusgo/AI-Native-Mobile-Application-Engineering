@@ -44,6 +44,8 @@ struct ScanReviewView: View {
             switch model.phase {
             case .analyzing:
                 analyzingContent
+            case .adjustingBoundary:
+                adjustingBoundaryContent
             case .review:
                 reviewContent
             case .saved:
@@ -80,6 +82,15 @@ struct ScanReviewView: View {
                 }
                 .accessibilityIdentifier("scanReviewRetryButton")
 
+                if model.canAdjustBoundary {
+                    Button {
+                        model.beginManualAdjustment()
+                    } label: {
+                        Label("手动调整边界", systemImage: "crop")
+                    }
+                    .accessibilityIdentifier("scanReviewManualAdjustButton")
+                }
+
                 retakeButton
                 cancelButton
             } else {
@@ -91,6 +102,41 @@ struct ScanReviewView: View {
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
             }
+        }
+        .padding(24)
+    }
+
+    // MARK: - P03：手动调整边界
+
+    /// 自动检测不可靠或未找到时的手动调整态。
+    ///
+    /// 拖拽、命中测试与合法性判定已由 `CardBoundaryAdjustment` 与
+    /// `ScanReviewViewModel` 落地并有单测覆盖；本页当前只接线「进入 / 确认 / 放弃」，
+    /// 四个角的拖拽手柄属手势 UI，待有 Mac 真机时补充（见 `docs/UI验收清单.md`）。
+    private var adjustingBoundaryContent: some View {
+        VStack(spacing: 20) {
+            imagePreview
+
+            Text("请框出名片所在的区域。")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .accessibilityIdentifier("scanReviewAdjustHint")
+
+            Button {
+                Task { await model.applyBoundaryAdjustment() }
+            } label: {
+                Label("使用此区域", systemImage: "checkmark.circle")
+            }
+            .accessibilityIdentifier("scanReviewApplyAdjustmentButton")
+
+            Button("重置区域") { model.resetBoundaryAdjustment() }
+                .accessibilityIdentifier("scanReviewResetAdjustmentButton")
+
+            Button("取消调整") { model.cancelBoundaryAdjustment() }
+                .accessibilityIdentifier("scanReviewCancelAdjustmentButton")
+
+            retakeButton
         }
         .padding(24)
     }
