@@ -4,17 +4,19 @@ import UIKit
 /// 视图层 Golden Test（截图对比）的录制与比对工具（任务 5.4）。
 ///
 /// 做法：用 `ImageRenderer` 把 SwiftUI 视图按固定尺寸与缩放**离屏渲染**成位图，再与
-/// `testcards/ui-baselines/<名字>.png` 里的基线逐像素比对，产出两个数字：**差异像素占比**
-/// 与**最大通道差**。
+/// `testcards/ui-baselines/<名字>-<环境标识>.png` 里的基线逐像素比对，产出两个数字：
+/// **差异像素占比** 与**最大通道差**。
 ///
 /// 两种模式：
 /// - **比对模式（默认）**：读基线比对，差异像素占比超过 `defaultTolerance` 即判「不一致」，
-///   并把实际截图写到 `<名字>-actual.png` 便于对照；
+///   并把实际截图写到 `<名字>-<环境标识>-actual.png` 便于对照；
 /// - **录制模式**：环境变量 `RECORD_GOLDEN=1` 时把当前渲染结果写成基线（首次记录，或界面
 ///   改版后重录）。
 ///
 /// 边界（如实声明）：
-/// - 基线**绑定运行环境**——iOS 版本 / 机型 / 渲染缩放不同会产生细微差异，跨环境需重录；
+/// - 基线**绑定运行环境**——iOS 版本 / 机型 / 渲染缩放不同会产生细微差异，跨环境需重录。
+///   为此基线文件名带上 iOS 主版本号（见 `environmentKey`）：同版本才真比对，异版本落到
+///   `baselineMissing` 跳过，避免把跨环境渲染漂移误报成「界面回归」；
 /// - 首批只覆盖能离屏稳定渲染的纯 SwiftUI 视图。含 `List`（UIKit 集合视图支撑）的整页在
 ///   `ImageRenderer` 下可能渲染为空，故整页页面级截图（P01 列表态 / P02 详情 / P03 / P05 /
 ///   P09）留待 Mac + 模拟器的页面级 UI 测试，此处不假装已覆盖。
@@ -67,6 +69,30 @@ enum UISnapshotGolden {
         return renderer.uiImage
     }
 
+    // MARK: - 环境标识
+
+    /// 基线文件名里的环境标识，只取 iOS 主版本号（如 `ios27`）。
+    ///
+    /// 基线绑定的是**该系统的字体栅格化与抗锯齿行为**，换 iOS 主版本必然产生肉眼不可见、
+    /// 但逐像素可测的漂移。把主版本写进文件名后：录制环境自己命中基线照常真比对，其它
+    /// iOS 版本（例如 CI 的 `macos-15` runner）找不到同名基线，自然落到 `baselineMissing`
+    /// 并跳过——而不是把一个跨环境差异误报成「界面回归」。
+    ///
+    /// 实测依据：`iOS CI` run #61（commit `b765baa`）在 `macos-15` 上用 iOS 27.0 录的基线
+    /// 比对，三条全部 `mismatched`（差异像素占比 2.41% / 2.76% / 7.11%，阈值 1%）。
+    @MainActor
+    static var environmentKey: String {
+        let version = UIDevice.current.systemVersion
+        let major = version.split(separator: ".").first.map(String.init) ?? version
+        return "ios\(major)"
+    }
+
+    /// 基线文件主名：`<名字>-<环境标识>`，如 `card-row-ios27`。
+    @MainActor
+    static func baselineName(_ name: String) -> String {
+        "\(name)-\(environmentKey)"
+    }
+
     // MARK: - 路径
 
     /// 基线目录：`<仓库根>/testcards/ui-baselines`。仓库根由测试源文件路径推出，
@@ -77,15 +103,17 @@ enum UISnapshotGolden {
             .appendingPathComponent("ui-baselines", isDirectory: true)
     }
 
+    @MainActor
     static func baselineURL(named name: String, sourceFilePath: String) -> URL {
         baselineDirectory(sourceFilePath: sourceFilePath)
-            .appendingPathComponent("\(name).png")
+            .appendingPathComponent("\(baselineName(name)).png")
     }
 
     /// 比对不一致时落地的实际截图，便于人工定位差异。
+    @MainActor
     static func failureDumpURL(named name: String, sourceFilePath: String) -> URL {
         baselineDirectory(sourceFilePath: sourceFilePath)
-            .appendingPathComponent("\(name)-actual.png")
+            .appendingPathComponent("\(baselineName(name))-actual.png")
     }
 
     // MARK: - 录制与比对

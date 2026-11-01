@@ -4,12 +4,13 @@ import SwiftUI
 
 /// 视图层 Golden Test（任务 5.4）。
 ///
-/// 用 `UISnapshotGolden` 把纯 SwiftUI 视图离屏渲染后与 `testcards/ui-baselines/<名字>.png`
+/// 用 `UISnapshotGolden` 把纯 SwiftUI 视图离屏渲染后与 `testcards/ui-baselines/<名字>-<环境标识>.png`
 /// 逐像素比对。首批只覆盖能离屏稳定渲染的**组件级**视图；含 `List` 的整页留待 Mac + 模拟器
 /// 的页面级 UI 测试（见 `UISnapshotGolden` 文件头的边界声明）。
 ///
-/// 基线**绑定运行环境**（iOS 版本 / 渲染缩放），首次运行或在 Mac 上重录时用
-/// `RECORD_GOLDEN=1` 生成基线；基线缺失时本组用例 `XCTSkip`，如实标注「待录制」而不是假装通过。
+/// 基线**绑定运行环境**（iOS 主版本 / 渲染缩放），文件名带 iOS 主版本号（如 `card-row-ios27`）：
+/// 首次运行或在 Mac 上重录时用 `RECORD_GOLDEN=1` 生成基线；本机 iOS 主版本与录制环境不一致时
+/// 基线必然缺失，本组用例 `XCTSkip`，如实标注「本环境未录制」而不是把跨环境渲染漂移判成回归。
 @MainActor
 final class UISnapshotGoldenTests: XCTestCase {
 
@@ -72,12 +73,14 @@ final class UISnapshotGoldenTests: XCTestCase {
 
         switch outcome {
         case .recorded:
-            XCTFail("已录制基线 \(name).png，重跑一次以执行比对（录制模式不应作为最终结论）", file: file, line: line)
+            XCTFail("已录制基线 \(UISnapshotGolden.baselineName(name)).png，重跑一次以执行比对（录制模式不应作为最终结论）",
+                    file: file, line: line)
 
         case .baselineMissing:
             throw XCTSkip("""
-                缺少基线 testcards/ui-baselines/\(name).png：\
-                需在 Mac 模拟器上执行 RECORD_GOLDEN=1 先录制，截图对比本体待执行
+                缺少基线 testcards/ui-baselines/\(UISnapshotGolden.baselineName(name)).png：\
+                本机 iOS 主版本与录制环境不一致时属预期跳过；要在本环境建立基线，\
+                需执行 RECORD_GOLDEN=1 先录制，截图对比本体待执行
                 """)
 
         case let .mismatched(diff):
@@ -85,7 +88,7 @@ final class UISnapshotGoldenTests: XCTestCase {
                 截图与基线不一致（\(name)）：差异像素占比 \
                 \(String(format: "%.4f", diff.differingPixelRatio)) > \
                 \(UISnapshotGolden.defaultTolerance)，最大通道差 \(diff.maxChannelDelta)；\
-                实际截图已写到 \(name)-actual.png
+                实际截图已写到 \(UISnapshotGolden.baselineName(name))-actual.png
                 """, file: file, line: line)
 
         case let .sizeMismatch(expected, actual):
