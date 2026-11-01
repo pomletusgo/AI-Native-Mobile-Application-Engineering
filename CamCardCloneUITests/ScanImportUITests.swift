@@ -89,12 +89,32 @@ final class ScanImportUITests: CamCardCloneUITestCase {
         XCTAssertTrue(importButton.waitForExistence(timeout: 10), "找不到相册导入按钮")
         importButton.tap()
 
-        XCTAssertTrue(app.navigationBars["照片"].waitForExistence(timeout: 20), "相册选择器未打开")
+        // 选择器的导航栏标题跟随系统语言：本地 Mac 是 zh_CN（「照片」），CI runner 是 en_US（"Photos"）。
+        // 2026-11-01 run #66 / #67 两次 UI 作业都在写死「照片」的断言上失败，根因就是这个语言差。
+        // 与语言无关的定位在下面的网格单元标识符上，标题只用来确认选择器确实打开了。
+        let pickerNavBar = app.navigationBars.matching(
+            NSPredicate(format: "identifier IN %@", ["照片", "Photos"])
+        ).firstMatch
+        if !pickerNavBar.waitForExistence(timeout: 20) {
+            dumpHierarchy(of: app)
+        }
+        XCTAssertTrue(pickerNavBar.exists, "相册选择器未打开：既没有「照片」也没有 \"Photos\" 导航栏")
 
         let firstCell = app.images.matching(identifier: "PXGGridLayout-Info").firstMatch
         XCTAssertTrue(firstCell.waitForExistence(timeout: 20),
                       "相册网格里没有可选取的照片：跑之前需先 xcrun simctl addmedia <UDID> testcards/images/*.png")
         return firstCell
+    }
+
+    /// 选择器没打开时，把 App 进程内的元素树按行打上 `UIPROBE` 前缀输出。
+    ///
+    /// 日志与产物的下载端点实测需要仓库授权（返回 403），而 CI 的注解端点免登录可读，
+    /// 因此 `ui` 作业会用 `grep "^UIPROBE"` 把这段提成注解，便于直接判读失败现场。
+    private func dumpHierarchy(of app: XCUIApplication) {
+        print("UIPROBE 相册选择器未出现，以下为 App 进程内的元素树")
+        for line in app.debugDescription.split(separator: "\n", omittingEmptySubsequences: false) {
+            print("UIPROBE \(line)")
+        }
     }
 
     /// 等复核页出现。三种形态都算「已离开取景页、进入 P03/P04」：

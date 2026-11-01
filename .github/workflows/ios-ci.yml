@@ -229,6 +229,18 @@ jobs:
             done < ui-errs.txt
           done
 
+          # 选择器没打开时，测试会把 App 进程内的元素树按行加上 UIPROBE 前缀打印；
+          # 日志端点需要仓库授权（实测 403），改走免登录的注解端点。单条约 4000 字符即被截断，
+          # 因此按 8 行一条分块发。
+          grep "^UIPROBE" ui-tests.log > ui-probe-lines.txt || true
+          if [ -s ui-probe-lines.txt ]; then
+            split -l 8 ui-probe-lines.txt ui-probe-part-
+            for part in ui-probe-part-*; do
+              escaped=$(sed -e 's/%/%25/g' "$part" | awk '{ printf "%s%%0A", $0 }')
+              echo "::notice::$(basename "$part") $escaped"
+            done
+          fi
+
       - name: Upload UI test log
         if: always()
         uses: actions/upload-artifact@v4
