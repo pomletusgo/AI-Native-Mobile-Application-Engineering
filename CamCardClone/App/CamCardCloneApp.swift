@@ -33,9 +33,33 @@ struct CamCardCloneApp: App {
         return baseDirectory.appendingPathComponent("CamCardClone", isDirectory: true)
     }
 
+    /// UI 测试（`CamCardCloneUITests`）用的启动参数名。
+    ///
+    /// UI 测试进程不链接 App 模块，因此这两个字面量在 `CamCardCloneUITests` 里另有一份；
+    /// 改动其一时必须同步另一处。
+    static let resetStoreArgument = "-uiTestResetStore"
+    static let seedStoreArgument = "-uiTestSeedStore"
+
     /// 构建持久化仓库。
+    ///
+    /// 为让 UI 测试拿到可复现的初始状态，这里支持两个启动参数：
+    /// - `-uiTestResetStore`：启动前清空存储目录，回到「首次启动」的空名片夹（M01）；
+    /// - `-uiTestSeedStore`：空库时写入 `BusinessCardMockData.sampleCards`，供列表 / 搜索 / 标签类验收使用。
+    ///
+    /// 正常运行不会带这两个参数，生产路径与既有行为不受影响。
     private static func makeRepository() -> BusinessCardRepository {
-        PersistentBusinessCardRepository(directory: makeStorageDirectory())
+        let directory = makeStorageDirectory()
+        let arguments = ProcessInfo.processInfo.arguments
+        if arguments.contains(Self.resetStoreArgument) {
+            try? FileManager.default.removeItem(at: directory)
+        }
+        let repository = PersistentBusinessCardRepository(directory: directory)
+        if arguments.contains(Self.seedStoreArgument), repository.fetchAll().isEmpty {
+            for card in BusinessCardMockData.sampleCards {
+                repository.add(card)
+            }
+        }
+        return repository
     }
 
     /// 构建图像存储；图像放在存储目录下的 `images` 子目录。

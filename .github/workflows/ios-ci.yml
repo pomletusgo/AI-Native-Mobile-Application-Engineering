@@ -103,6 +103,7 @@ jobs:
             -scheme "$SCHEME" \
             -destination "id=$SIM_UDID" \
             -derivedDataPath .build-xcode \
+            -only-testing:CamCardCloneTests \
             -resultBundlePath TestResults-test.xcresult \
             2>&1 | tee unit-tests.log
 
@@ -131,4 +132,78 @@ jobs:
             unit-tests.log
             TestResults-build.xcresult
             TestResults-test.xcresult
+          if-no-files-found: warn
+
+  # ------------------------------------------------------------------
+  # 作业 3：无头运行 UI 测试（XCUITest）
+  #
+  # `xcodebuild test` 通过 CoreSimulator 驱动设备，不依赖 `Simulator.app` 窗口，
+  # 因此在没有模拟器 GUI 的环境也能跑；对应 docs/UI验收清单.md 里 M01–M03 /
+  # M05–M09 / M11–M14 / M17 / M23–M25 / M27–M29 的自动化部分。
+  #
+  # 与作业 2 分开的原因：UI 测试走的是真实 App 进程与手势，耗时与稳定性都和单元
+  # 测试不同；分开后单测作业的「Executed N tests」仍能作为干净证据引用。
+  # ------------------------------------------------------------------
+  ui:
+    name: UI Tests (XCUITest, headless)
+    runs-on: macos-15
+    env:
+      PROJECT: CamCardClone.xcodeproj
+      SCHEME: CamCardClone
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show toolchain versions
+        run: |
+          xcodebuild -version
+          xcrun simctl list runtimes
+
+      - name: Pick an available iPhone simulator
+        run: |
+          xcrun simctl list devices available
+          SIM_UDID=$(xcrun simctl list devices available \
+            | grep -m1 -E '^[[:space:]]+iPhone ' \
+            | sed -E 's/^[^(]*\(([0-9A-Fa-f-]{36})\).*/\1/' || true)
+          if [ -z "$SIM_UDID" ]; then
+            echo "::error::No available iPhone simulator found on this runner"
+            exit 1
+          fi
+          echo "SIM_UDID=$SIM_UDID" >> "$GITHUB_ENV"
+          echo "Using simulator UDID: $SIM_UDID"
+
+      - name: Run UI tests
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -project "$PROJECT" \
+            -scheme "$SCHEME" \
+            -destination "id=$SIM_UDID" \
+            -derivedDataPath .build-xcode-ui \
+            -only-testing:CamCardCloneUITests \
+            -parallel-testing-enabled NO \
+            -resultBundlePath TestResults-ui.xcresult \
+            2>&1 | tee ui-tests.log
+
+      - name: Surface errors as annotations
+        if: failure()
+        run: |
+          for f in ui-tests.log; do
+            [ -f "$f" ] || continue
+            echo "===== $f ====="
+            grep -E "error:|xcodebuild: error|Unable to find|Testing failed|XCTAssert|failed -" "$f" | head -n 20 > ui-errs.txt || true
+            cat ui-errs.txt
+            while IFS= read -r line; do
+              echo "::error::$line"
+            done < ui-errs.txt
+          done
+
+      - name: Upload UI test log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-ui-test-logs
+          path: |
+            ui-tests.log
+            TestResults-ui.xcresult
           if-no-files-found: warn

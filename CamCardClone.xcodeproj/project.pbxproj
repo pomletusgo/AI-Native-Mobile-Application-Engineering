@@ -64,10 +64,20 @@
 		AB0000000000000000000037 /* UISnapshotGolden.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000039 /* UISnapshotGolden.swift */; };
 		AB0000000000000000000038 /* UISnapshotGoldenTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000003A /* UISnapshotGoldenTests.swift */; };
 		AB0000000000000000000039 /* OCRTextCorpusExporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000003B /* OCRTextCorpusExporterTests.swift */; };
+		AB000000000000000000003A /* UITestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000003D /* UITestSupport.swift */; };
+		AB000000000000000000003B /* CardHolderUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000003E /* CardHolderUITests.swift */; };
+		AB000000000000000000003C /* TagManagementUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000003F /* TagManagementUITests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
 		B30000000000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AD0000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AE0000000000000000000001;
+			remoteInfo = CamCardClone;
+		};
+		B30000000000000000000002 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = AD0000000000000000000001 /* Project object */;
 			proxyType = 1;
@@ -134,8 +144,12 @@
 		AA0000000000000000000039 /* UISnapshotGolden.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UISnapshotGolden.swift; sourceTree = "<group>"; };
 		AA000000000000000000003A /* UISnapshotGoldenTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UISnapshotGoldenTests.swift; sourceTree = "<group>"; };
 		AA000000000000000000003B /* OCRTextCorpusExporterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OCRTextCorpusExporterTests.swift; sourceTree = "<group>"; };
+		AA000000000000000000003D /* UITestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UITestSupport.swift; sourceTree = "<group>"; };
+		AA000000000000000000003E /* CardHolderUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardHolderUITests.swift; sourceTree = "<group>"; };
+		AA000000000000000000003F /* TagManagementUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagManagementUITests.swift; sourceTree = "<group>"; };
 		AA0000000000000000000021 /* CamCardClone.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CamCardClone.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA0000000000000000000022 /* CamCardCloneTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CamCardCloneTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA000000000000000000003C /* CamCardCloneUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CamCardCloneUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -153,6 +167,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AF0000000000000000000008 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -161,6 +182,7 @@
 			children = (
 				AC0000000000000000000003 /* CamCardClone */,
 				AC000000000000000000000A /* CamCardCloneTests */,
+				AC000000000000000000000D /* CamCardCloneUITests */,
 				AC0000000000000000000002 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -170,6 +192,7 @@
 			children = (
 				AA0000000000000000000021 /* CamCardClone.app */,
 				AA0000000000000000000022 /* CamCardCloneTests.xctest */,
+				AA000000000000000000003C /* CamCardCloneUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -309,6 +332,16 @@
 			path = CamCardCloneTests;
 			sourceTree = "<group>";
 		};
+		AC000000000000000000000D /* CamCardCloneUITests */ = {
+			isa = PBXGroup;
+			children = (
+				AA000000000000000000003D /* UITestSupport.swift */,
+				AA000000000000000000003E /* CardHolderUITests.swift */,
+				AA000000000000000000003F /* TagManagementUITests.swift */,
+			);
+			path = CamCardCloneUITests;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -347,6 +380,24 @@
 			productReference = AA0000000000000000000022 /* CamCardCloneTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		AE0000000000000000000003 /* CamCardCloneUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B00000000000000000000004 /* Build configuration list for PBXNativeTarget "CamCardCloneUITests" */;
+			buildPhases = (
+				AF0000000000000000000007 /* Sources */,
+				AF0000000000000000000008 /* Frameworks */,
+				AF0000000000000000000009 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B20000000000000000000002 /* PBXTargetDependency */,
+			);
+			name = CamCardCloneUITests;
+			productName = CamCardCloneUITests;
+			productReference = AA000000000000000000003C /* CamCardCloneUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -361,6 +412,10 @@
 						CreatedOnToolsVersion = 16.0;
 					};
 					AE0000000000000000000002 = {
+						CreatedOnToolsVersion = 16.0;
+						TestTargetID = AE0000000000000000000001;
+					};
+					AE0000000000000000000003 = {
 						CreatedOnToolsVersion = 16.0;
 						TestTargetID = AE0000000000000000000001;
 					};
@@ -381,6 +436,7 @@
 			targets = (
 				AE0000000000000000000001 /* CamCardClone */,
 				AE0000000000000000000002 /* CamCardCloneTests */,
+				AE0000000000000000000003 /* CamCardCloneUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -394,6 +450,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		AF0000000000000000000006 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AF0000000000000000000009 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -474,6 +537,16 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AF0000000000000000000007 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AB000000000000000000003A /* UITestSupport.swift in Sources */,
+				AB000000000000000000003B /* CardHolderUITests.swift in Sources */,
+				AB000000000000000000003C /* TagManagementUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -481,6 +554,11 @@
 			isa = PBXTargetDependency;
 			target = AE0000000000000000000001 /* CamCardClone */;
 			targetProxy = B30000000000000000000001 /* PBXContainerItemProxy */;
+		};
+		B20000000000000000000002 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = AE0000000000000000000001 /* CamCardClone */;
+			targetProxy = B30000000000000000000002 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -649,6 +727,40 @@
 			};
 			name = Release;
 		};
+		B10000000000000000000007 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.camcardclone.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_TARGET_NAME = CamCardClone;
+			};
+			name = Debug;
+		};
+		B10000000000000000000008 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.camcardclone.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_TARGET_NAME = CamCardClone;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -675,6 +787,15 @@
 			buildConfigurations = (
 				B10000000000000000000005 /* Debug */,
 				B10000000000000000000006 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B00000000000000000000004 /* Build configuration list for PBXNativeTarget "CamCardCloneUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B10000000000000000000007 /* Debug */,
+				B10000000000000000000008 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -34,6 +34,20 @@
                ReferencedContainer = "container:CamCardClone.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "AE0000000000000000000003"
+               BuildableName = "CamCardCloneUITests.xctest"
+               BlueprintName = "CamCardCloneUITests"
+               ReferencedContainer = "container:CamCardClone.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
@@ -49,6 +63,16 @@
                BlueprintIdentifier = "AE0000000000000000000002"
                BuildableName = "CamCardCloneTests.xctest"
                BlueprintName = "CamCardCloneTests"
+               ReferencedContainer = "container:CamCardClone.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "AE0000000000000000000003"
+               BuildableName = "CamCardCloneUITests.xctest"
+               BlueprintName = "CamCardCloneUITests"
                ReferencedContainer = "container:CamCardClone.xcodeproj">
             </BuildableReference>
          </TestableReference>

@@ -41,6 +41,38 @@
 | M35 | 把相册权限设为「不允许」后，在扫描页点「从相册导入」 | 提示「请在「设置 → 隐私与安全性 → 照片」中允许本应用访问相册，然后返回重试。」；不打开系统选择器，不产生任何名片（T03 / E2） | 待执行 |
 | M36 | 在 M22 的调整态里拖动四边形四个角的圆点 | 角随手势跟随且不越出画面（拖出边界自动夹回）；叠层与底图上的名片边缘对齐（含带方向标记的照片）；只点一下不拖动时角不跳位；在四个角之外起拖不做任何改动；把某个角拖到与对角落交叉或把框压得很小时，「使用此区域」应提示区域不可用并留在调整态；「重置区域」回到初始框（T06 / E3） | 待执行 |
 
-本表全部为人工验收项，无 UI 自动化测试。相机拍摄与相册导入已在 3.1 接线（M02–M04），权限被拒的两条路径（E1 / E2）对应 M34–M35；检测校正、OCR、字段抽取与确认保存已在 4.3 接线（M18–M22）；详情编辑态增删标签与部门/邮编字段已在 5.1 第一段接线（M23–M25）；详情页展示名片原始图已在 5.1 第二段接线（M26）；独立标签管理页（P09 创建 / 删除标签 / 按标签查看）已在 5.1 第三段接线（M27–M29）；导出到系统联系人与分享 VCF 已在 5.3 接线（M30–M33，`ContactExport` / `VCardExporter.temporaryFileURL` + 详情页确认框与提示）；检测不可靠时的手动调整边界已在 P03 接线（M36，`CardBoundaryAdjustment` + `ScanReviewView` 的 `BoundaryAdjustmentCanvas` 四角手柄）。界面层现已无「尚未接线」的页面，本表的全部条目都只差在真机 / 模拟器上人工执行。
+本表分两类执行。
 
-所有运行状态须依实际记录更新；不能把编译成功或 `build-for-testing` 成功写成模拟器测试通过。
+**A 类：已有无头 XCUITest 覆盖**（`CamCardCloneUITests`，由 `iOS CI` 的 `UI Tests (XCUITest, headless)` 作业运行；`xcodebuild test` 经 `CoreSimulator` 驱动设备，不需要 `Simulator.app` 窗口）：
+
+| ID | 对应测试方法 |
+|---|---|
+| M01 | `CardHolderUITests.testM01_首次启动进入空名片夹且无弹窗` |
+| M02 | `CardHolderUITests.testM02_空状态点击扫描入口进入取景页` |
+| M03 | `CardHolderUITests.testM03_扫描页取消返回名片夹且不留脏数据` |
+| M05 | `CardHolderUITests.testM05_搜索片段只剩匹配的名片` |
+| M06 | `CardHolderUITests.testM06_搜索无结果显示提示而非空状态` |
+| M07 | `CardHolderUITests.testM07_清空搜索恢复全部名片` |
+| M08 | `CardHolderUITests.testM08_点击标签筛选再次点击恢复` |
+| M09 | `CardHolderUITests.testM09_详情页显示已保存字段且不出现空字段行` |
+| M11 | `CardHolderUITests.testM11_编辑姓名保存后详情页与列表都更新` |
+| M12 | `CardHolderUITests.testM12_编辑后取消恢复修改前内容` |
+| M13 | `CardHolderUITests.testM13_姓名清空后保存被拒并停留在编辑态` |
+| M14 | `CardHolderUITests.testM14_逐张删除名片直到回到空状态` |
+| M17 | `CardHolderUITests.testM17_保存后完全退出重启名片与修改仍在` |
+| M23 | `TagManagementUITests.testM23_详情编辑态添加标签并保存后可按该标签筛出` |
+| M24 | `TagManagementUITests.testM24_删除已无使用者标签后筛选栏也移除` |
+| M25 | `TagManagementUITests.testM25_添加标签后取消不写入` |
+| M27 | `TagManagementUITests.testM27_标签管理页列出标签与张数且无标签时显示空态` |
+| M28 | `TagManagementUITests.testM28_标签管理页左滑删除标签后筛选项同步消失` |
+| M29 | `TagManagementUITests.testM29_新建标签的三步校验与成功保存` |
+
+A 类用例把存储置为确定状态后再驱动界面：`-uiTestResetStore` 清空存储（对应 M01 的首次启动），`-uiTestSeedStore` 空库时写入三张种子名片（M05–M09 / M11–M14 / M17 / M23–M29）。这两个启动参数只在带参启动时生效，正常运行路径与既有行为不受影响。
+
+**A 类目前仍是「已编写、尚未运行」**：用例已入库，但还没有任何一次真实的 `xcodebuild test` 结果，因此上表各行的「实际记录」列一律保持「待执行」；只有在 CI 跑出结果后才可据实填写。此外 A 类有两点口径要写清：M02 只断言「进入了取景页且三个入口（相册导入 / 拍摄 / 取消）齐备」，取景画面与「当前没有可用的相机…」文案谁出现属环境差异，不据此推断；M09 的部门 / 邮编由测试先经编辑态写入再断言展示，种子数据本身不含这两项。
+
+**B 类：仍是人工验收项**——M04（拍摄 / 相册导入真实取到照片）、M10（拨号 / 邮件 / 浏览器跳转）、M15（小屏与大机型的外观是否遮挡 / 截断）、M16（VoiceOver 需人耳）、M18–M22（检测、OCR 与确认保存的界面呈现，需真实照片）、M26（详情页展示拍摄 / 导入的原始图，需先有真实图像数据）、M30–M36（系统联系人权限、分享面板、相机 / 相册权限被拒、四角拖拽手柄）。
+
+接线状态（供对照，不改变上表结论）：相机拍摄与相册导入已在 3.1 接线（M02–M04），权限被拒的两条路径（E1 / E2）对应 M34–M35；检测校正、OCR、字段抽取与确认保存已在 4.3 接线（M18–M22）；详情编辑态增删标签与部门/邮编字段已在 5.1 第一段接线（M23–M25）；详情页展示名片原始图已在 5.1 第二段接线（M26）；独立标签管理页（P09 创建 / 删除标签 / 按标签查看）已在 5.1 第三段接线（M27–M29）；导出到系统联系人与分享 VCF 已在 5.3 接线（M30–M33，`ContactExport` / `VCardExporter.temporaryFileURL` + 详情页确认框与提示）；检测不可靠时的手动调整边界已在 P03 接线（M36，`CardBoundaryAdjustment` + `ScanReviewView` 的 `BoundaryAdjustmentCanvas` 四角手柄）。界面层现已无「尚未接线」的页面。
+
+所有运行状态须依实际记录更新；不能把编译成功或 `build-for-testing` 成功写成模拟器测试通过，也不能把「已编写 XCUITest」写成「已通过」。
