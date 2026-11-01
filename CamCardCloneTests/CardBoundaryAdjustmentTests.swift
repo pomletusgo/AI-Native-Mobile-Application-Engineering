@@ -9,6 +9,10 @@ import XCTest
 /// （见 `docs/UI验收清单.md` M18 / M22）。
 final class CardBoundaryAdjustmentTests: XCTestCase {
 
+    /// 这里的框都构造在归一化坐标里、不涉及真实照片，取正方形图片尺寸即可让像素长宽比等于
+    /// 几何长宽比；本组用例只关心「自动检测的启发式会不会排除它」。
+    private let squareImageSize = CGSize(width: 1000, height: 1000)
+
     /// 常见名片比例（0.8 × 0.48，长宽比约 1.67），可被自动检测判为可靠。
     private var reliableQuad: CardQuad {
         CardQuad(
@@ -155,7 +159,7 @@ final class CardBoundaryAdjustmentTests: XCTestCase {
     }
 
     func testQuadSmallerThanAutoThresholdIsStillUsable() {
-        XCTAssertFalse(smallThinQuad.isReliable(), "面积与长宽比都被自动判定排除")
+        XCTAssertFalse(smallThinQuad.isReliable(in: squareImageSize), "面积与长宽比都被自动判定排除")
         XCTAssertTrue(CardBoundaryAdjustment(quad: smallThinQuad).isUsable, "人手动圈出的框不再受自动启发式约束")
     }
 
@@ -167,7 +171,7 @@ final class CardBoundaryAdjustmentTests: XCTestCase {
             bottomLeft: CGPoint(x: 0.25, y: 0.25)
         )
 
-        XCTAssertFalse(square.isReliable(), "长宽比 1.0 不像名片，自动检测不应采信")
+        XCTAssertFalse(square.isReliable(in: squareImageSize), "长宽比 1.0 不像名片，自动检测不应采信")
         XCTAssertTrue(CardBoundaryAdjustment(quad: square).isUsable)
     }
 
@@ -179,7 +183,7 @@ final class CardBoundaryAdjustmentTests: XCTestCase {
         adjustment.move(.bottomLeft, to: CGPoint(x: 0, y: 0))
 
         XCTAssertFalse(adjustment.isUsable, "规格禁止把整张图片当作名片")
-        XCTAssertFalse(adjustment.quad.isReliable())
+        XCTAssertFalse(adjustment.quad.isReliable(in: squareImageSize))
     }
 
     func testConcaveQuadIsRejected() {

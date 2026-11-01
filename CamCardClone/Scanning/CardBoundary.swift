@@ -34,23 +34,24 @@ struct CardQuad: Equatable {
         abs(signedArea)
     }
 
-    /// 上边长度（归一化）。
-    var topEdgeLength: CGFloat { Self.distance(topLeft, topRight) }
-
-    /// 下边长度（归一化）。
-    var bottomEdgeLength: CGFloat { Self.distance(bottomLeft, bottomRight) }
-
-    /// 左边长度（归一化）。
-    var leftEdgeLength: CGFloat { Self.distance(topLeft, bottomLeft) }
-
-    /// 右边长度（归一化）。
-    var rightEdgeLength: CGFloat { Self.distance(topRight, bottomRight) }
-
-    /// 长边 ÷ 短边；退化四边形返回 0。
-    var aspectRatio: CGFloat {
-        let longEdge = Swift.max(Swift.max(topEdgeLength, bottomEdgeLength), Swift.max(leftEdgeLength, rightEdgeLength))
-        let shortEdge = Swift.min(Swift.min(topEdgeLength, bottomEdgeLength), Swift.min(leftEdgeLength, rightEdgeLength))
-        guard shortEdge > 0 else { return 0 }
+    /// 长边 ÷ 短边，在**像素空间**计算；退化四边形返回 0。
+    ///
+    /// 必须换算到像素再算：归一化坐标的 x、y 尺度不同（分别除以图宽、图高），直接拿归一化
+    /// 角点算比例会被图片宽高比压扁——1400×900 的横版照片里，真实比例 1.667 的名片只剩
+    /// 1.072，会被下面的长宽比判据整批判成「不像名片」（2026-11-01 由 `testDiagnoseCorpusDetection`
+    /// 在 CI 上实测：30 张合成语料的像素长宽比 1.59…1.69，归一化口径下却只有 1.03…1.08）。
+    /// 归一化面积 `area` 不受此影响——它本来就是「占整幅图的比例」，与图片形状无关。
+    func aspectRatio(in imageSize: CGSize) -> CGFloat {
+        let corners = pixelCorners(in: imageSize)
+        let edges = [
+            Self.distance(corners.topLeft, corners.topRight),
+            Self.distance(corners.bottomLeft, corners.bottomRight),
+            Self.distance(corners.topLeft, corners.bottomLeft),
+            Self.distance(corners.topRight, corners.bottomRight)
+        ]
+        guard let longEdge = edges.max(), let shortEdge = edges.min(), shortEdge > 0 else {
+            return 0
+        }
         return longEdge / shortEdge
     }
 
@@ -59,15 +60,17 @@ struct CardQuad: Equatable {
     /// 规格要求「检测结果不可靠时允许用户手动调整或重拍，不得把整张图片当作名片」，
     /// 因此这里排除三类候选：面积过小（多半是误检的局部纹理）、几乎覆盖整张图
     /// （多半把背景或整幅画的边界当成了名片）、长宽比不像名片（多半是桌面或屏幕边框）。
+    /// `imageSize` 传原图的像素尺寸，长宽比判据要靠它换算到像素空间（见 `aspectRatio(in:)`）。
     /// 阈值为常见名片比例给出的初值，需在真实照片样本上复核。
     func isReliable(
+        in imageSize: CGSize,
         minArea: CGFloat = 0.12,
         maxArea: CGFloat = 0.98,
         aspectRange: ClosedRange<CGFloat> = 1.15...3.6
     ) -> Bool {
         let covered = area
         guard covered >= minArea, covered <= maxArea else { return false }
-        return aspectRange.contains(aspectRatio)
+        return aspectRange.contains(aspectRatio(in: imageSize))
     }
 
     /// 映射到图片像素坐标（原点仍在左下角，供 Core Image 使用）。

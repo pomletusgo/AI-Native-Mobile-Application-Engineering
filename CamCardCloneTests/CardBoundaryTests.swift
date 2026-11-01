@@ -17,6 +17,11 @@ final class CardBoundaryTests: XCTestCase {
 
     // MARK: - Fixtures
 
+    /// 单测里的四边形都构造在归一化坐标里、不涉及真实照片，取正方形图片尺寸即可让像素长宽比
+    /// 等于几何长宽比，从而只考察几何本身；「横版照片把比例压扁」的场景见
+    /// `testReliableForCardInLandscapePhoto` 与 `testDiagnoseCorpusDetection`。
+    private let squareImageSize = CGSize(width: 1000, height: 1000)
+
     /// 构造轴对齐矩形的四边形，`x`/`y` 为左下角（Vision 坐标原点在左下角）。
     private func rectQuad(
         x: CGFloat,
@@ -141,8 +146,8 @@ final class CardBoundaryTests: XCTestCase {
             bottomLeft: point
         )
 
-        XCTAssertEqual(degenerate.aspectRatio, 0)
-        XCTAssertFalse(degenerate.isReliable())
+        XCTAssertEqual(degenerate.aspectRatio(in: squareImageSize), 0)
+        XCTAssertFalse(degenerate.isReliable(in: squareImageSize))
     }
 
     // MARK: - 几何：长宽比
@@ -150,7 +155,7 @@ final class CardBoundaryTests: XCTestCase {
     func testAspectRatioUsesLongestEdgeOverShortestEdge() {
         let landscape = rectQuad(x: 0.1, y: 0.2, width: 0.8, height: 0.5)
 
-        XCTAssertEqual(landscape.aspectRatio, 1.6, accuracy: 1e-9)
+        XCTAssertEqual(landscape.aspectRatio(in: squareImageSize), 1.6, accuracy: 1e-9)
     }
 
     // MARK: - 可靠性判定
@@ -158,28 +163,41 @@ final class CardBoundaryTests: XCTestCase {
     func testReliableForCardSizedLandscapeQuad() {
         let quad = rectQuad(x: 0.1, y: 0.1, width: 0.8, height: 0.5)
 
-        XCTAssertTrue(quad.isReliable())
+        XCTAssertTrue(quad.isReliable(in: squareImageSize))
+    }
+
+    func testReliableForCardInLandscapePhoto() {
+        // 回归：1400×900 的横版照片里，真实比例 1.66 的名片在归一化长宽比口径下只剩约 1.07，
+        // 被 1.15 的下限整批判成「不像名片」，于是相册导入的正常名片全部退到手动调整提示页
+        // （M18/M19 失败的根因，数字见 testDiagnoseCorpusDetection 的语料报告）。此处用 TC01 的
+        // 实际检测角点，锁住「长宽比必须在像素空间量」这条约束。
+        let quad = rectQuad(x: 0.089, y: 0.113, width: 0.823, height: 0.771)
+        let imageSize = CGSize(width: 1400, height: 900)
+
+        XCTAssertEqual(quad.aspectRatio(in: imageSize), 1.660, accuracy: 0.01)
+        XCTAssertTrue(quad.isReliable(in: imageSize))
+        XCTAssertEqual(VisionCardBoundaryDetector.outcome(for: quad, in: imageSize), .detected(quad))
     }
 
     func testUnreliableWhenRegionIsTooSmall() {
         // 面积 0.02，远低于 0.12，多半是误检的局部纹理。
         let quad = rectQuad(x: 0.1, y: 0.1, width: 0.2, height: 0.1)
 
-        XCTAssertFalse(quad.isReliable())
+        XCTAssertFalse(quad.isReliable(in: squareImageSize))
     }
 
     func testUnreliableWhenRegionCoversWholeImage() {
         // 几乎铺满整幅图，多半把背景边界当成了名片，规格要求不得整图当名片。
         let quad = rectQuad(x: 0, y: 0, width: 1, height: 1)
 
-        XCTAssertFalse(quad.isReliable())
+        XCTAssertFalse(quad.isReliable(in: squareImageSize))
     }
 
     func testUnreliableWhenAspectRatioIsNotCardLike() {
         // 正方形轮廓不在名片比例范围内，多半是屏幕或标签边框。
         let square = rectQuad(x: 0.1, y: 0.1, width: 0.5, height: 0.5)
 
-        XCTAssertFalse(square.isReliable())
+        XCTAssertFalse(square.isReliable(in: squareImageSize))
     }
 
     // MARK: - 像素映射
@@ -199,13 +217,13 @@ final class CardBoundaryTests: XCTestCase {
     func testOutcomeIsDetectedForReliableQuad() {
         let quad = rectQuad(x: 0.1, y: 0.1, width: 0.8, height: 0.5)
 
-        XCTAssertEqual(VisionCardBoundaryDetector.outcome(for: quad), .detected(quad))
+        XCTAssertEqual(VisionCardBoundaryDetector.outcome(for: quad, in: squareImageSize), .detected(quad))
     }
 
     func testOutcomeIsUnreliableForImplausibleQuad() {
         let quad = rectQuad(x: 0, y: 0, width: 1, height: 1)
 
-        XCTAssertEqual(VisionCardBoundaryDetector.outcome(for: quad), .unreliable(quad))
+        XCTAssertEqual(VisionCardBoundaryDetector.outcome(for: quad, in: squareImageSize), .unreliable(quad))
     }
 
     func testOutcomesAreDistinct() {
@@ -336,18 +354,20 @@ final class CardBoundaryTests: XCTestCase {
 
     // MARK: - 诊断：合成语料上的矩形检测表现
 
-    /// 逐张打印 `testcards/images/TC01…TC30.png` 的矩形检测结果，用来回答
-    /// 「为什么相册导入的合成名片图会被判成不可靠」。
+    /// 逐张打印 `testcards/images/TC01…TC30.png` 的矩形检测结果，作为「检测判据有没有把正常
+    /// 名片挡在门外」的常设体检。
     ///
-    /// 每行给出图片像素尺寸、三态结果、候选四边形的归一化面积与归一化长宽比，
-    /// 以及把角点换算到像素后再算的**真实长宽比**。`isReliable()` 目前用的是归一化
-    /// 长宽比，而归一化坐标在非正方形图片上会把比例压扁（1400×900 场景里的 5:3 卡面
-    /// 只读到约 1.07），两者并列才看得出是不是这条判据把正常名片挡在了门外。
+    /// 每行给出图片像素尺寸、三态结果、候选四边形的归一化面积、像素空间长宽比与四个角点。
+    /// 2026-11-01 就是靠这份报告定位到问题的：30 张语料的像素长宽比是 1.59…1.69（正常名片比例），
+    /// 而按归一化坐标算出来只有 1.03…1.08，被 `isReliable()` 的 1.15 下限整批判成不可靠，
+    /// 相册导入的正常名片因此全部退到手动调整提示页。长宽比改在像素空间量之后，这份报告
+    /// 应显示 30 张全部 `detected`。
     ///
-    /// 只读语料、不写回数据集，故随常规单测一起跑（CI 日志里也就留下了这份报告）；
-    /// 仓库里没有 `testcards/images` 时跳过。单独跑：
+    /// 只读语料、不写回数据集，故随常规单测一起跑；仓库里没有 `testcards/images` 时跳过。
+    /// 单独跑：
     /// `xcodebuild test … -only-testing:CamCardCloneTests/CardBoundaryTests/testDiagnoseCorpusDetection`
-    /// 报告同时打印到测试日志并写到仓库根的 `detect-corpus.txt`。
+    /// 报告同时打印到测试日志并写到仓库根的 `detect-corpus.txt`；CI 的单测作业会把带
+    /// `DETECTCORPUS` 前缀的行提升为 notice 注解，便于在没有仓库授权令牌时读回。
     func testDiagnoseCorpusDetection() throws {
         let repositoryRoot = FieldExtractionEvaluator.repositoryRoot(sourceFilePath: #filePath)
         let imagesDirectory = repositoryRoot.appendingPathComponent("testcards/images")
@@ -418,36 +438,16 @@ final class CardBoundaryTests: XCTestCase {
         }
     }
 
-    /// 面积、归一化长宽比、像素长宽比与四个角点，并标出三条判据各自的通过情况。
+    /// 面积、像素空间长宽比与四个角点，并标出两条判据各自的通过情况。
     private func describe(_ quad: CardQuad, in imageSize: CGSize) -> String {
         let areaOK = (0.12...0.98).contains(quad.area)
-        let aspectOK = (1.15...3.6).contains(quad.aspectRatio)
+        let aspectRatio = quad.aspectRatio(in: imageSize)
+        let aspectOK = (1.15...3.6).contains(aspectRatio)
         let corners = quad.corners
             .map { String(format: "(%.3f,%.3f)", Double($0.x), Double($0.y)) }
             .joined(separator: " ")
         return "面积=\(String(format: "%.3f", Double(quad.area)))[合格:\(areaOK)]"
-            + " 归一化长宽比=\(String(format: "%.3f", Double(quad.aspectRatio)))[合格:\(aspectOK)]"
-            + " 像素长宽比=\(String(format: "%.3f", Double(pixelAspectRatio(of: quad, in: imageSize))))"
+            + " 长宽比=\(String(format: "%.3f", Double(aspectRatio)))[合格:\(aspectOK)]"
             + " 角点=\(corners)"
-    }
-
-    /// 把归一化角点换算到像素后再算长边÷短边，即真实的物理长宽比。
-    private func pixelAspectRatio(of quad: CardQuad, in imageSize: CGSize) -> CGFloat {
-        let corners = quad.pixelCorners(in: imageSize)
-        func length(_ lhs: CGPoint, _ rhs: CGPoint) -> CGFloat {
-            let deltaX = lhs.x - rhs.x
-            let deltaY = lhs.y - rhs.y
-            return (deltaX * deltaX + deltaY * deltaY).squareRoot()
-        }
-        let edges = [
-            length(corners.topLeft, corners.topRight),
-            length(corners.bottomLeft, corners.bottomRight),
-            length(corners.topLeft, corners.bottomLeft),
-            length(corners.topRight, corners.bottomRight)
-        ]
-        guard let longest = edges.max(), let shortest = edges.min(), shortest > 0 else {
-            return 0
-        }
-        return longest / shortest
     }
 }

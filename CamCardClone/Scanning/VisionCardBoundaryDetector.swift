@@ -21,9 +21,9 @@ protocol CardBoundaryCorrecting: AnyObject {
 ///
 /// 检测使用 `VNDetectRectanglesRequest`（矩形检测，对干净背景上的名片最稳），
 /// 校正使用 `CIPerspectiveCorrection` 把任意四边形拉成矩形，再按几何长宽比做 90° 摆正。
-/// 检测结果先经 `CardQuad.isReliable()` 判定：不可靠的候选不丢弃，而是以
-/// `.unreliable` 返回，交给上层提示「重拍或手动调整」，对应规格里
-/// 「不得直接把整张图片当作名片」。
+/// 检测结果先经 `CardQuad.isReliable(in:)` 判定（长宽比与原图尺寸一起传，换算到像素空间
+/// 再比）：不可靠的候选不丢弃，而是以 `.unreliable` 返回，交给上层提示「重拍或手动调整」，
+/// 对应规格里「不得直接把整张图片当作名片」。
 final class VisionCardBoundaryDetector: CardBoundaryDetecting, CardBoundaryCorrecting {
 
     private let minimumAspectRatio: Float
@@ -97,12 +97,14 @@ final class VisionCardBoundaryDetector: CardBoundaryDetecting, CardBoundaryCorre
         guard let best = quads.max(by: { $0.area < $1.area }) else {
             return .notFound
         }
-        return outcome(for: best)
+        return outcome(for: best, in: CGSize(width: cgImage.width, height: cgImage.height))
     }
 
     /// 依据可靠性把候选四边形分成「可用」与「需人工处理」；纯函数，便于单测。
-    static func outcome(for quad: CardQuad) -> CardDetectionOutcome {
-        quad.isReliable() ? .detected(quad) : .unreliable(quad)
+    /// `imageSize` 传原图像素尺寸——长宽比判据要换算到像素空间才反映名片的真实形状
+    /// （见 `CardQuad.isReliable(in:)`）。
+    static func outcome(for quad: CardQuad, in imageSize: CGSize) -> CardDetectionOutcome {
+        quad.isReliable(in: imageSize) ? .detected(quad) : .unreliable(quad)
     }
 
     /// 透视校正，输出 PNG 数据。
