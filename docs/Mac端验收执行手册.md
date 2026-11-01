@@ -14,7 +14,7 @@
 | Xcode | 15 及以上（含 iOS 17 SDK 或更高） | 工程 `IPHONEOS_DEPLOYMENT_TARGET = 17.0` |
 | iOS 模拟器 runtime | 至少一个 iPhone 机型 | 首次使用需下载，数 GB |
 | 真 iPhone（可选但部分项必需） | + Apple ID 配 Personal Team 签名 | 免费个人团队可行，证书 7 天过期需重装 |
-| 网络 | 能 `git push` 到 `pomletusgo/AI-Native-Mobile-Application-Engineering` | 证据随仓库走，不靠远程桌面传文件 |
+| 网络 | 只需国内网络，**无外网 / 梯子** | 代码与产物经网盘或 QQ / 微信传输助手往返；**不在 Mac 上访问 GitHub**。编译、单测、模拟器都不依赖外网 |
 
 ### 远程连接的硬边界
 
@@ -103,16 +103,17 @@ xcodebuild test -project CamCardClone.xcodeproj -scheme CamCardClone \
 
 **任务 5.4 只有到这一步才能勾选**：`tasks.md` 的 5.4 目前保持未勾选，理由是「骨架已就绪，截图对比本体未执行」——这一步做完即可改为勾选。
 
-### 3.3 提交基线并观察 CI
+### 3.3 回传基线并观察 CI
 
-先本地 green，再提交推送（别录完直接推）：
+先本地 green，再把三个 PNG 拷贝到待回传目录。**Mac 上不执行任何 `git` 命令**——上传过去的是 `git archive` 生成的包，不含 `.git`，敲 `git` 会直接报「不是 git 仓库」：
 
 ```bash
-git add testcards/ui-baselines
-git status --short          # 确认只有三个 PNG
-git commit -F <临时信息文件>
-git push origin main
+mkdir -p ~/camcard-back
+cp testcards/ui-baselines/*.png ~/camcard-back/
+ls ~/camcard-back          # 确认只有三个 PNG
 ```
+
+把 `~/camcard-back/` 打包，经网盘或 QQ / 微信传输助手传回 Windows，由**本机**提交推送后再看 CI。
 
 **然后看 CI 结果**，有两种可能：
 
@@ -280,7 +281,7 @@ openspec archive replicate-camcard-core-slice
 ## 8. 注意事项
 
 1. **先本地验证再推送**：阶段 2 的基线录完先在自己机器上跑通比对，再 push。否则一旦 CI 报红，分不清是跨环境渲染差异还是真实改动。
-2. **证据随 git 走**：那台 Mac 能上网就 `git push`，仓库里留下痕迹比远程桌面传文件、存本地文件夹都可靠。
+2. **Mac 只生产、不回传 git**：上传过去的包由 `git archive` 生成、不含 `.git`，Mac 上不要执行 `git` 命令；产物统一拷贝到待回传目录，经网盘或 QQ / 微信传输助手传回 Windows，由本机入库。台账里如实注明「产物经中转回传，非 Mac 直推」。
 3. **不把预期当结论**：本手册里的方法数、CI run 号都是本机 CI 的历史结论；Mac 上的实际输出若与预期不同，以实际为准并如实记录差异。
 4. **勾选状态只按实际证据更新**：截图、录屏、日志齐了才勾，缺证据的项保持未勾选。
 5. **保持 CI 常绿**：每次推送后确认 `iOS CI` 的 `OpenSpec Validate` 与 `Build & Test (iOS Simulator)` 两个作业均 success；失败时用 `repos/pomletusgo/AI-Native-Mobile-Application-Engineering/check-runs/<job_id>/annotations` 免登录取失败原因。
