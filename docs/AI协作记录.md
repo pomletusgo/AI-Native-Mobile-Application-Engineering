@@ -330,10 +330,10 @@
 | 命令 | 结果 |
 | --- | --- |
 | `git -c user.name="刘润东" -c user.email="760592343@qq.com" commit -F <临时信息文件>` | 退出码 0，作者为本人（如 `7726e31`、`8008a36`） |
-| `git push origin main` | 退出码 0，触发 `iOS CI`；本文件编写前最近两次为 run #61（commit `b765baa`，因三条 UI 基线跨环境 `mismatched` 转红）与 run #62（commit `7cdcc34`，success） |
+| `git push origin main` | 退出码 0，触发 `iOS CI`；本文件编写前最近三次为 run #61（commit `b765baa`，因三条 UI 基线跨环境 `mismatched` 转红）、run #62（commit `7cdcc34`，success）与 run #63（commit `d1f4b08`，台账回填的文档提交，success） |
 | `npm run spec:validate`（即 `openspec validate --all --strict`） | 退出码 0，`1 passed, 0 failed` |
 | `npx openspec@1.13.2 validate --all --strict` | 退出码 1（版本不存在），已改用上一条 |
-| 经 GitHub 公开 API 读取 `actions/runs` 与 `jobs` | run #2 / #4 / #6 / #9 / #10 / #14 / #16 / #20 / #21 / #22 / #25 / #27 / #28 / #30 / #31 / #33 / #34 / #36 / #40 / #46 / #48 / #49 / #50 / #53 / #54 / #55 / #56 / #57 / #58 / #62 的 `OpenSpec Validate` 与 `Build & Test (iOS Simulator)` 均 success；run #61 的 `Build & Test` 为 failure（只算失败，不计入成功清单） |
+| 经 GitHub 公开 API 读取 `actions/runs` 与 `jobs` | run #2 / #4 / #6 / #9 / #10 / #14 / #16 / #20 / #21 / #22 / #25 / #27 / #28 / #30 / #31 / #33 / #34 / #36 / #40 / #46 / #48 / #49 / #50 / #53 / #54 / #55 / #56 / #57 / #58 / #62 / #63 的 `OpenSpec Validate` 与 `Build & Test (iOS Simulator)` 均 success；run #61 的 `Build & Test` 为 failure（只算失败，不计入成功清单） |
 | 经 GitHub 公开 API 读取 `check-runs/<check_run_id>/annotations` | 退出码 0（无需登录）：读到 run #61 的三条 `error: ... UISnapshotGoldenTests.swift:25/34/43 : failed - 截图与基线不一致 ...` 与 `Process completed with exit code 65.`，据此定位失败步骤与逐条差异数值 |
 | `git mv testcards/ui-baselines/{card-row,tag-chips,empty-card-holder}.png` → 各加 `-ios27` 后缀 | 退出码 0，`git status` 显示 `R`（rename，`similarity 100%`），证明基线**内容未变、仅改名** |
 | `xcodebuild ... build-for-testing` / `Cmd+U`（Windows 本机） | **未执行**：本机为 Windows，无 macOS 与 Xcode，故不存在 Windows 本机的编译与测试记录 |
