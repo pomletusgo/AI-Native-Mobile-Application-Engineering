@@ -4,7 +4,7 @@
 
 本手册覆盖拿到 Mac 之后从环境就绪到归档（6.5）的全部步骤，以及每一步要产出的证据。
 
-**执行状态（最近更新 2026-11-01）**：已在租用的物理 Mac 上执行完 §1 环境就绪、§2 本机编译与全量单测、§3 UI 基线录制与真实比对、§5.1 的 OCR 原文导出与字段级准确率量化。**实际环境**：macOS 27.0.1（Build 26A434）/ arm64 / Xcode 27.0（Build 27A266a）/ iOS 27.0 模拟器 runtime 24A434，**选定机型 `iPhone 17`**（即各命令里的 `<你的机型>` = `iPhone 17`）。结果：`Executed 344 tests, with 5 tests skipped and 0 failures`、`** TEST SUCCEEDED **`；UI 基线 3 个、字段级准确率整体「正确」51.9% / 误报率 3.8%。推 CI 后发现基线跨环境误报（`iOS CI` run #61 三条 `mismatched`），已按 §3.3 预案改为带 iOS 主版本的基线文件名，`iOS CI` run #62 双作业全绿。日志存于 `docs/evidence/mac-2026-11-01/`。租机**只有国内网络、不提供外网 / 梯子**，代码与产物经网盘 / QQ 往返，**Mac 端不执行 `git push`**；机器按需租用、用完即停，故 §4 的 M01–M36 人工验收与 §5.2 的 T06 `isReliable()` 阈值标定**仍未执行**——这两节的「预期」仍属待验证。
+**执行状态（最近更新 2026-11-01）**：已在租用的物理 Mac 上执行完 §1 环境就绪、§2 本机编译与全量单测、§3 UI 基线录制与真实比对、§5.1 的 OCR 原文导出与字段级准确率量化。**实际环境**：macOS 27.0.1（Build 26A434）/ arm64 / Xcode 27.0（Build 27A266a）/ iOS 27.0 模拟器 runtime 24A434，**选定机型 `iPhone 17`**（即各命令里的 `<你的机型>` = `iPhone 17`）。结果：`Executed 344 tests, with 5 tests skipped and 0 failures`、`** TEST SUCCEEDED **`；UI 基线 3 个、字段级准确率整体「正确」51.9% / 误报率 3.8%。推 CI 后发现基线跨环境误报（`iOS CI` run #61 三条 `mismatched`），已按 §3.3 预案改为带 iOS 主版本的基线文件名，`iOS CI` run #62 双作业全绿。日志存于 `docs/evidence/mac-2026-11-01/`。租机**只有国内网络、不提供外网 / 梯子**，代码与产物经网盘 / QQ 往返，**Mac 端不执行 `git push`**；机器按需租用、用完即停，故 §4 的 M01–M36 人工验收与 §5.2 的 T06 `isReliable()` 阈值标定**仍未执行**——这两节的「预期」仍属待验证。**2026-11-01 追加**：租机上能装到的 Xcode 27.2（Build 27B52）缺 `Simulator.app`，模拟器窗口打不开、点击式人工验收无法进行，故改走**无头 XCUITest**（见 §4.4）——`CamCardCloneUITests` 已接进 `iOS CI` 的 `ui` 作业，`iOS CI` run #68（commit `5295a66`）三作业全绿，其中相册导入的两条端到端用例通过。这只是 M01–M36 里**适合自动化**的那部分；视觉呈现、拖拽手感与真实权限弹窗仍须人工，相机取景仍须真机。
 
 ---
 
@@ -13,7 +13,7 @@
 | 项 | 要求 | 说明 |
 | --- | --- | --- |
 | Mac 或可远程控制的 Mac | ToDesk 等远程桌面可行 | 见下方「远程连接的硬边界」 |
-| Xcode | 15 及以上（含 iOS 17 SDK 或更高） | 工程 `IPHONEOS_DEPLOYMENT_TARGET = 17.0` |
+| Xcode | 15 及以上，且必须是**完整版**（含 `Simulator.app` 这个 GUI 前端） | 工程 `IPHONEOS_DEPLOYMENT_TARGET = 17.0`。自检：`test -d "$(xcode-select -p)/Applications/Simulator.app" && echo SIMULATOR-OK`。**2026-11-01 实测踩过坑**：租机上装到的 Xcode 27.2（Build 27B52）只有 3.7GB、`Applications/` 下没有 `Simulator.app`，模拟器窗口打不开，M01–M36 的**点击式人工验收做不了**——此时按 §4.4 改走无头 XCUITest |
 | iOS 模拟器 runtime | 至少一个 iPhone 机型 | 首次使用需下载，数 GB |
 | 真 iPhone（可选但部分项必需） | + Apple ID 配 Personal Team 签名 | 免费个人团队可行，证书 7 天过期需重装 |
 | 网络 | 只需国内网络，**无外网 / 梯子** | 代码与产物经网盘或 QQ / 微信传输助手往返；**不在 Mac 上访问 GitHub**。编译、单测、模拟器都不依赖外网 |
@@ -180,12 +180,41 @@ xcrun simctl launch booted com.example.camcardclone            # 直接拉起 Ap
 
 M15（小屏 + 较大机型各一次）与 M16（VoiceOver）需要额外准备，建议单独安排。
 
+**无头方式跑时先喂语料**：若走 §4.4 的 XCUITest（而不是手点），必须**先把 `testcards/images/*.png` 用 `xcrun simctl addmedia` 预热进模拟器相册，再跑列表与相册导入相关条目**——PHPicker 里没有照片，M18–M20 与相册导入的端到端用例都无从执行。相册预热命令见 §4.4。
+
 M17（保存后完全退出并重启）用 `xcrun simctl terminate` + `launch`，或直接杀掉模拟器里的 App 再重开，确认数据仍在。
 
 ### 4.3 必须真机的条目
 
 - **M04 的「拍摄」分支**、**M34 相机权限被拒**、**T02 / T04 / T05 的端到端**——模拟器没有摄像头。
 - 真机需 Apple ID 配 Personal Team：Xcode → Signing & Capabilities → Team 选个人团队，Bundle ID 可改为 `com.example.camcardclone.dev` 避免冲突。证书 7 天过期，过期后需重新连接设备构建。
+
+### 4.4 无头 XCUITest：本机缺 `Simulator.app` 时的替代路径
+
+2026-11-01 实测：租机上的 Xcode 27.2（Build 27B52）没有 `Simulator.app`，模拟器窗口打不开，**点击式的 M01–M36 人工验收做不了**。此时先把「能自动化的行为」用 `CamCardCloneUITests` 跑通并留证——`xcodebuild test` 由 CoreSimulator 驱动，**不需要 GUI 窗口**：
+
+```bash
+# 1. 把语料预热进模拟器相册（PHPicker 相关用例的前提）
+xcrun simctl boot <UDID>
+xcrun simctl bootstatus <UDID> -b
+xcrun simctl addmedia <UDID> testcards/images/*.png
+
+# 2. 跑 UI 测试（-parallel-testing-enabled NO 避免多份模拟器同时抢相册）
+xcodebuild test -project CamCardClone.xcodeproj -scheme CamCardClone \
+  -destination 'platform=iOS Simulator,id=<UDID>' \
+  -only-testing:CamCardCloneUITests \
+  -parallel-testing-enabled NO
+```
+
+要点：
+
+- **确定性靠启动参数**：`-uiTestResetStore`（清空本地存储）与 `-uiTestSeedStore`（写入固定种子名片），由 `CamCardCloneUITests/UITestSupport.swift` 组织，不依赖预置数据与执行顺序。
+- **语言环境**：系统控件的可访问性文本随系统语言变——PHPicker 的导航栏标题在 `zh_CN` 下是「照片」、在 `en_US` 下是 `"Photos"`。用例里应优先用**与语言无关的标识符**（如相册网格单元 `PXGGridLayout-Info`），文字只作辅助判据。
+- **补一个语料预热**：`simctl erase` 清不掉模拟器自带样张，所以 `addmedia` 之后相册总数会多于 30，这在断言里不能写死数量。
+- **环境变量要带前缀**：与 §3.1 同一条规则，给测试进程传开关必须用 `TEST_RUNNER_` 前缀（`DETECT_CORPUS=1 xcodebuild test` 这种前缀形式对**宿主单测**无效，实测退出码 0 但用例照旧 `XCTSkip`）。
+- **同一套用例已接进 CI**：`iOS CI` 的 `ui` 作业（`.github/workflows/ios-ci.yml`）在任意推送时执行，含 `Seed the simulator photo library` 预热步骤；失败原因用 `repos/<owner>/<repo>/check-runs/<check_run_id>/annotations` 免登录读回，workflow 的 `Surface errors as annotations` 步骤会把 `error:` 行与用例打印的 `UIPROBE` 元素树提升为注解（单条约 4000 字符即被截断，长报告按 8 行分块发）。
+- **边界**：无头 XCUITest **不能**替代 M01–M36 的人工验收——它证明的是「行为走不走得通」，不是「看起来对不对」；相机取景（M04 的拍摄分支、M34）与真实权限弹窗也覆盖不了。台账里要把这两类分开写，不要用「UI 测试通过」盖住人工项。
+- **证据回填**：无头这一路的结论记进 `docs/验证报告.md` 的「无头 UI 测试（XCUITest）」行与 `tasks.md` 的 6.4；6.4 保持**未勾选**，因为人工部分没做。
 
 ---
 
@@ -271,6 +300,8 @@ xcodebuild test -project CamCardClone.xcodeproj -scheme CamCardClone \
 ---
 
 ## 6. 阶段 5：归档（6.5）
+
+> **本节在 Windows 上执行**，不要在 Mac 上做。Mac 上收到的包是 `git archive` 产物、不含 `.git`，敲 `git` 会直接报「不是 git 仓库」（见 §3.3 与 §8 第 2 条）。
 
 只有前面全部绿了才做。
 
