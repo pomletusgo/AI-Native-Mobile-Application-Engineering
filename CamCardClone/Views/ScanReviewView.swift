@@ -53,7 +53,8 @@ struct ScanReviewView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .accessibilityIdentifier("scanReview")
+        // 不加容器级标识符：它会覆盖复核态所有 scanReview* 控件标识。
+        // 页面锚点用各阶段自己的标识（如 scanReviewSaveButton、scanReviewField-*）。
         .task { await model.analyze() }
         .alert("无法保存", isPresented: isSaveFailurePresented) {
             Button("好", role: .cancel) { model.dismissFailure() }
@@ -297,23 +298,27 @@ private struct BoundaryAdjustmentCanvas: View {
         }
         .aspectRatio(displayAspectRatio, contentMode: .fit)
         .clipShape(RoundedRectangle(cornerRadius: 12))
-        .accessibilityIdentifier("scanReviewAdjustCanvas")
     }
 
     // MARK: - 片段
 
     @ViewBuilder
     private func baseImage(in size: CGSize) -> some View {
-        if let uiImage = UIImage(data: imageData) {
-            Image(uiImage: uiImage)
-                .resizable()
-                .scaledToFill()
-                .frame(width: size.width, height: size.height)
-                .clipped()
-        } else {
-            Rectangle()
-                .fill(Color.secondary.opacity(0.15))
+        Group {
+            if let uiImage = UIImage(data: imageData) {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: size.width, height: size.height)
+                    .clipped()
+            } else {
+                Rectangle()
+                    .fill(Color.secondary.opacity(0.15))
+            }
         }
+        // 画布锚点挂在底图上（元素级），不能挂到外层 GeometryReader：容器级标识符会把
+        // 四个角手柄的 scanReviewHandle-* 一并覆盖掉。底图铺满画布，帧一致，可据此换算坐标。
+        .accessibilityIdentifier("scanReviewAdjustCanvas")
     }
 
     /// 四边形的半透明填充与描边。

@@ -32,7 +32,8 @@ struct EmptyCardHolderView: View {
         }
         .padding(32)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .accessibilityIdentifier("emptyCardHolder")
+        // 同理不加容器级标识符：它会覆盖「扫描第一张名片」按钮的 emptyStateScanButton。
+        // 空状态本身的锚点用文案「还没有名片」。
     }
 }
 

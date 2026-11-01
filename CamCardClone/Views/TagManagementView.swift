@@ -26,7 +26,8 @@ struct TagManagementView: View {
             }
         }
         .navigationTitle("标签管理")
-        .accessibilityIdentifier("tagManagement")
+        // 不加容器级标识符：它会覆盖列表内 tagRow_* / deleteTag_* / newTag* 等元素标识。
+        // 页面锚点用导航栏标题「标签管理」，入口按钮用 tagManagementEntry。
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
                 if viewModel.isCreating {

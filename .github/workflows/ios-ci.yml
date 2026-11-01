@@ -107,6 +107,24 @@ jobs:
             -resultBundlePath TestResults-test.xcresult \
             2>&1 | tee unit-tests.log
 
+      # 语料检测诊断（CardBoundaryTests.testDiagnoseCorpusDetection）的报告只出现在日志里，
+      # 而日志与产物的下载端点都需要仓库授权（实测 actions/jobs/<id>/logs 返回 403）。
+      # 这里把报告拼成一条 notice 注解（换行以 %0A 转义），即可通过公开的
+      # check-runs/<id>/annotations 端点读到，无需登录。
+      - name: Surface corpus detection report as an annotation
+        if: always()
+        run: |
+          [ -f unit-tests.log ] || exit 0
+          grep "DETECTCORPUS" unit-tests.log > detect-corpus-lines.txt || true
+          echo "语料检测报告行数：$(wc -l < detect-corpus-lines.txt)"
+          awk '/DETECTCORPUS/ { gsub(/%/, "%25"); printf "%s%%0A", $0 }' unit-tests.log \
+            > detect-corpus-notice.txt
+          if [ -s detect-corpus-notice.txt ]; then
+            echo "::notice::$(cat detect-corpus-notice.txt)"
+          else
+            echo "::warning::单测日志里没有 DETECTCORPUS 行"
+          fi
+
       # 日志归档需要仓库权限才能下载；这里把关键错误行提升为注解（annotation），
       # 使失败原因可以通过公开 API 读到，无需登录即可排查。
       - name: Surface errors as annotations
@@ -171,6 +189,15 @@ jobs:
           fi
           echo "SIM_UDID=$SIM_UDID" >> "$GITHUB_ENV"
           echo "Using simulator UDID: $SIM_UDID"
+
+      # 「相册导入」类用例要真的从系统相册选照片，所以先把合成名片喂进模拟器相册。
+      # addmedia 写入的照片时间戳最新，图库按时间倒序排列后它们排在最前，
+      # 与 ScanImportUITests 里「取网格第一张」的约定一致。
+      - name: Seed the simulator photo library
+        run: |
+          xcrun simctl boot "$SIM_UDID" || true
+          xcrun simctl bootstatus "$SIM_UDID" -b
+          xcrun simctl addmedia "$SIM_UDID" testcards/images/*.png
 
       - name: Run UI tests
         run: |

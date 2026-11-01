@@ -58,7 +58,10 @@ struct ScannerEntryView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .navigationTitle("扫描名片")
         .navigationBarTitleDisplayMode(.inline)
-        .accessibilityIdentifier("scannerEntry")
+        // 刻意不给本页容器加 accessibilityIdentifier：SwiftUI 会把容器的标识符下发并
+        // 覆盖子元素自己的标识符，三个动作按钮的 scannerImportButton / scannerCaptureButton /
+        // scannerCancelButton 会被一并吃成容器标识符（2026-11-01 由 XCUITest 实测的元素树确认）。
+        // 页面锚点请用导航栏标题「扫描名片」。
         .task { await startCameraIfPossible() }
         .onChange(of: model.phase) { _, newPhase in
             switch newPhase {

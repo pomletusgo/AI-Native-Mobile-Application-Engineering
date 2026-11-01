@@ -67,6 +67,7 @@
 		AB000000000000000000003A /* UITestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000003D /* UITestSupport.swift */; };
 		AB000000000000000000003B /* CardHolderUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000003E /* CardHolderUITests.swift */; };
 		AB000000000000000000003C /* TagManagementUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000003F /* TagManagementUITests.swift */; };
+		AB000000000000000000003D /* ScanImportUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000040 /* ScanImportUITests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -147,6 +148,7 @@
 		AA000000000000000000003D /* UITestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UITestSupport.swift; sourceTree = "<group>"; };
 		AA000000000000000000003E /* CardHolderUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardHolderUITests.swift; sourceTree = "<group>"; };
 		AA000000000000000000003F /* TagManagementUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagManagementUITests.swift; sourceTree = "<group>"; };
+		AA0000000000000000000040 /* ScanImportUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanImportUITests.swift; sourceTree = "<group>"; };
 		AA0000000000000000000021 /* CamCardClone.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CamCardClone.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA0000000000000000000022 /* CamCardCloneTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CamCardCloneTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA000000000000000000003C /* CamCardCloneUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CamCardCloneUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -338,6 +340,7 @@
 				AA000000000000000000003D /* UITestSupport.swift */,
 				AA000000000000000000003E /* CardHolderUITests.swift */,
 				AA000000000000000000003F /* TagManagementUITests.swift */,
+				AA0000000000000000000040 /* ScanImportUITests.swift */,
 			);
 			path = CamCardCloneUITests;
 			sourceTree = "<group>";
@@ -544,6 +547,7 @@
 				AB000000000000000000003A /* UITestSupport.swift in Sources */,
 				AB000000000000000000003B /* CardHolderUITests.swift in Sources */,
 				AB000000000000000000003C /* TagManagementUITests.swift in Sources */,
+				AB000000000000000000003D /* ScanImportUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

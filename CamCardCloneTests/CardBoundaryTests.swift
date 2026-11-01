@@ -333,4 +333,121 @@ final class CardBoundaryTests: XCTestCase {
         XCTAssertEqual(result.pixelSize.width, 160, accuracy: 2)
         XCTAssertEqual(result.pixelSize.height, 200, accuracy: 2)
     }
+
+    // MARK: - 诊断：合成语料上的矩形检测表现
+
+    /// 逐张打印 `testcards/images/TC01…TC30.png` 的矩形检测结果，用来回答
+    /// 「为什么相册导入的合成名片图会被判成不可靠」。
+    ///
+    /// 每行给出图片像素尺寸、三态结果、候选四边形的归一化面积与归一化长宽比，
+    /// 以及把角点换算到像素后再算的**真实长宽比**。`isReliable()` 目前用的是归一化
+    /// 长宽比，而归一化坐标在非正方形图片上会把比例压扁（1400×900 场景里的 5:3 卡面
+    /// 只读到约 1.07），两者并列才看得出是不是这条判据把正常名片挡在了门外。
+    ///
+    /// 只读语料、不写回数据集，故随常规单测一起跑（CI 日志里也就留下了这份报告）；
+    /// 仓库里没有 `testcards/images` 时跳过。单独跑：
+    /// `xcodebuild test … -only-testing:CamCardCloneTests/CardBoundaryTests/testDiagnoseCorpusDetection`
+    /// 报告同时打印到测试日志并写到仓库根的 `detect-corpus.txt`。
+    func testDiagnoseCorpusDetection() throws {
+        let repositoryRoot = FieldExtractionEvaluator.repositoryRoot(sourceFilePath: #filePath)
+        let imagesDirectory = repositoryRoot.appendingPathComponent("testcards/images")
+        try XCTSkipUnless(
+            FileManager.default.fileExists(atPath: imagesDirectory.path),
+            "语料目录不存在，跳过：\(imagesDirectory.path)"
+        )
+
+        let names = try FileManager.default
+            .contentsOfDirectory(atPath: imagesDirectory.path)
+            .filter { $0.hasPrefix("TC") && $0.hasSuffix(".png") }
+            .sorted()
+        XCTAssertFalse(names.isEmpty, "语料目录里没有 TCxx.png：\(imagesDirectory.path)")
+
+        var lines: [String] = []
+        var detectedCount = 0
+        var unreliableCount = 0
+        var notFoundCount = 0
+
+        for name in names {
+            let data = try Data(contentsOf: imagesDirectory.appendingPathComponent(name))
+            let size = decodedSize(of: data) ?? .zero
+            let outcome = try VisionCardBoundaryDetector.detect(
+                imageData: data,
+                minimumAspectRatio: 0.3,
+                minimumSize: 0.18,
+                quadratureTolerance: 30,
+                maximumObservations: 4
+            )
+
+            let geometry: String
+            switch outcome {
+            case .detected(let quad):
+                detectedCount += 1
+                geometry = describe(quad, in: size)
+            case .unreliable(let quad):
+                unreliableCount += 1
+                geometry = describe(quad, in: size)
+            case .notFound:
+                notFoundCount += 1
+                geometry = "无矩形候选"
+            }
+            lines.append(
+                "DETECTCORPUS \(String(name.dropLast(4))) \(Int(size.width))x\(Int(size.height)) "
+                    + "\(outcomeLabel(outcome)) \(geometry)"
+            )
+        }
+
+        lines.append(
+            "DETECTCORPUS 合计 共\(names.count)张 detected=\(detectedCount) "
+                + "unreliable=\(unreliableCount) notFound=\(notFoundCount)"
+        )
+
+        let report = lines.joined(separator: "\n")
+        print(report)
+        try? report.write(
+            to: repositoryRoot.appendingPathComponent("detect-corpus.txt"),
+            atomically: true,
+            encoding: .utf8
+        )
+    }
+
+    private func outcomeLabel(_ outcome: CardDetectionOutcome) -> String {
+        switch outcome {
+        case .detected: return "detected"
+        case .unreliable: return "unreliable"
+        case .notFound: return "notFound"
+        }
+    }
+
+    /// 面积、归一化长宽比、像素长宽比与四个角点，并标出三条判据各自的通过情况。
+    private func describe(_ quad: CardQuad, in imageSize: CGSize) -> String {
+        let areaOK = (0.12...0.98).contains(quad.area)
+        let aspectOK = (1.15...3.6).contains(quad.aspectRatio)
+        let corners = quad.corners
+            .map { String(format: "(%.3f,%.3f)", Double($0.x), Double($0.y)) }
+            .joined(separator: " ")
+        return "面积=\(String(format: "%.3f", Double(quad.area)))[合格:\(areaOK)]"
+            + " 归一化长宽比=\(String(format: "%.3f", Double(quad.aspectRatio)))[合格:\(aspectOK)]"
+            + " 像素长宽比=\(String(format: "%.3f", Double(pixelAspectRatio(of: quad, in: imageSize))))"
+            + " 角点=\(corners)"
+    }
+
+    /// 把归一化角点换算到像素后再算长边÷短边，即真实的物理长宽比。
+    private func pixelAspectRatio(of quad: CardQuad, in imageSize: CGSize) -> CGFloat {
+        let corners = quad.pixelCorners(in: imageSize)
+        func length(_ lhs: CGPoint, _ rhs: CGPoint) -> CGFloat {
+            let deltaX = lhs.x - rhs.x
+            let deltaY = lhs.y - rhs.y
+            return (deltaX * deltaX + deltaY * deltaY).squareRoot()
+        }
+        let edges = [
+            length(corners.topLeft, corners.topRight),
+            length(corners.bottomLeft, corners.bottomRight),
+            length(corners.topLeft, corners.bottomLeft),
+            length(corners.topRight, corners.bottomRight)
+        ]
+        guard let longest = edges.max(), let shortest = edges.min(), shortest > 0 else {
+            return 0
+        }
+        return longest / shortest
+    }
 }
