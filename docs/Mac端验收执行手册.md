@@ -4,7 +4,7 @@
 
 本手册覆盖拿到 Mac 之后从环境就绪到归档（6.5）的全部步骤，以及每一步要产出的证据。
 
-**执行状态（最近更新 2026-11-01）**：已在租用的物理 Mac 上执行完 §1 环境就绪、§2 本机编译与全量单测、§3 UI 基线录制与真实比对、§5.1 的 OCR 原文导出与字段级准确率量化。**实际环境**：macOS 27.0.1（Build 26A434）/ arm64 / Xcode 27.0（Build 27A266a）/ iOS 27.0 模拟器 runtime 24A434，**选定机型 `iPhone 17`**（即各命令里的 `<你的机型>` = `iPhone 17`）。结果：`Executed 344 tests, with 5 tests skipped and 0 failures`、`** TEST SUCCEEDED **`；UI 基线 3 个、字段级准确率整体「正确」51.9% / 误报率 3.8%。日志存于 `docs/evidence/mac-2026-11-01/`。租机**只有国内网络、不提供外网 / 梯子**，代码与产物经网盘 / QQ 往返，**Mac 端不执行 `git push`**；机器按需租用、用完即停，故 §4 的 M01–M36 人工验收与 §5.2 的 T06 `isReliable()` 阈值标定**仍未执行**——这两节的「预期」仍属待验证。
+**执行状态（最近更新 2026-11-01）**：已在租用的物理 Mac 上执行完 §1 环境就绪、§2 本机编译与全量单测、§3 UI 基线录制与真实比对、§5.1 的 OCR 原文导出与字段级准确率量化。**实际环境**：macOS 27.0.1（Build 26A434）/ arm64 / Xcode 27.0（Build 27A266a）/ iOS 27.0 模拟器 runtime 24A434，**选定机型 `iPhone 17`**（即各命令里的 `<你的机型>` = `iPhone 17`）。结果：`Executed 344 tests, with 5 tests skipped and 0 failures`、`** TEST SUCCEEDED **`；UI 基线 3 个、字段级准确率整体「正确」51.9% / 误报率 3.8%。推 CI 后发现基线跨环境误报（`iOS CI` run #61 三条 `mismatched`），已按 §3.3 预案改为带 iOS 主版本的基线文件名，`iOS CI` run #62 双作业全绿。日志存于 `docs/evidence/mac-2026-11-01/`。租机**只有国内网络、不提供外网 / 梯子**，代码与产物经网盘 / QQ 往返，**Mac 端不执行 `git push`**；机器按需租用、用完即停，故 §4 的 M01–M36 人工验收与 §5.2 的 T06 `isReliable()` 阈值标定**仍未执行**——这两节的「预期」仍属待验证。
 
 ---
 
@@ -100,19 +100,19 @@ TEST_RUNNER_RECORD_GOLDEN=1 xcodebuild test -project CamCardClone.xcodeproj -sch
 
 > 直接写 `RECORD_GOLDEN=1 xcodebuild test ...` 只会把变量设给 `xcodebuild` 本身、不会传进测试进程；必须加 `TEST_RUNNER_` 前缀（Xcode 会剥掉该前缀再透传）。
 
-跑完 `testcards/ui-baselines/` 下会生成三个 PNG：`card-row.png` / `tag-chips.png` / `empty-card-holder.png`。
+跑完 `testcards/ui-baselines/` 下会生成三个 PNG。**注意文件名带 iOS 主版本号**（`UISnapshotGolden.environmentKey` 取 `UIDevice.current.systemVersion` 的主版本），在 iOS 27.0 上是 `card-row-ios27.png` / `tag-chips-ios27.png` / `empty-card-holder-ios27.png`。
 
 > 本轮 3 条用例会**故意报红**（录制模式下走 `XCTFail`，提示「已录制基线，重跑一次以执行比对」）。这是设计如此，不是失败（`Executed 3 tests, with 3 failures` 是最终结论行，不是「卡住」）。也可以直接在 Xcode 里 `Cmd+U` 后看这三个文件是否生成。
 
 录制模式跑完后，再用**普通模式**重跑一次同一组（不加环境变量）做真实逐像素比对，应得 `Executed 3 tests, with 0 failures (0 unexpected)` 与 `** TEST SUCCEEDED **`。
 
-> **2026-11-01 实际产出（`iPhone 17` / iOS 27.0）**：`card-row.png` 19080 字节 / 640×192 / SHA256 `468df770…`、`empty-card-holder.png` 31430 字节 / 640×640 / SHA256 `23bce89f…`、`tag-chips.png` 4542 字节 / 480×80 / SHA256 `ecbfb6b8…`；比对为 `Executed 3 tests, with 0 failures`。日志见 `docs/evidence/mac-2026-11-01/mac-record-golden.log` 与 `mac-compare-golden.log`。**注意**：基线绑定机型与 iOS 版本，CI runner（`macos-15`）的 iOS 版本更早，推 CI 后逐像素比对可能报 `mismatched`；若转红，按 §3.3 预案把基线改成带环境名（如 `card-row-ios17.png`）。
+> **2026-11-01 实际产出（`iPhone 17` / iOS 27.0）**：`card-row-ios27.png` 19080 字节 / 640×192 / SHA256 `468df770…`、`empty-card-holder-ios27.png` 31430 字节 / 640×640 / SHA256 `23bce89f…`、`tag-chips-ios27.png` 4542 字节 / 480×80 / SHA256 `ecbfb6b8…`；比对为 `Executed 3 tests, with 0 failures`。日志见 `docs/evidence/mac-2026-11-01/mac-record-golden.log` 与 `mac-compare-golden.log`。**跨环境问题已实测并收口**（原「已知风险」已兑现）：推 CI 后 `iOS CI` run #61（commit `b765baa`）在 `macos-15` 上三条全部 `mismatched`（差异像素占比 2.41% / 2.76% / 7.11%，阈值 0.01），按 §3.3 预案落地为「基线文件名带 iOS 主版本」——文件名里的 `-ios27` 就是这么来的；`iOS CI` run #62（commit `7cdcc34`）双作业全绿。
 
 ### 3.2 执行真实比对
 
 把 `RECORD_GOLDEN` 那条环境变量**删掉**，再跑一次同样的命令。这次才是真正的逐像素比对，3 条必须 green。
 
-**任务 5.4 只有到这一步才能勾选**：`tasks.md` 的 5.4 目前保持未勾选，理由是「骨架已就绪，截图对比本体未执行」——这一步做完即可改为勾选。
+**任务 5.4 只有到这一步才能勾选**。2026-11-01 已在 Mac 上做完这一步，`tasks.md` 的 5.4 已勾选（详见 5.4 条目）；跨环境比对问题另见 §3.3 的实测记录。
 
 ### 3.3 回传基线并观察 CI
 
@@ -130,6 +130,8 @@ ls ~/camcard-back          # 确认只有三个 PNG
 
 - **green** → `macos-15` runner 的 iOS 版本与你那台一致（或渲染差异在 1% 容差内），什么都不用改。
 - **`mismatched`** → 这就是跨环境渲染差异（系统字体栅格化随 iOS 版本变化）。把失败 run 号交给 AI，把 `UISnapshotGolden` 改成「基线文件名带环境」（如 `card-row-ios17.png`），环境不匹配时自然落到 `baselineMissing` 而跳过，CI 即恢复稳定。
+
+> **2026-11-01 实测结果：走的是 `mismatched` 分支，预案已落地。** `iOS CI` run #61（commit `b765baa`）在 `macos-15` 上三条全部 `mismatched`（`card-row` 2.41% / `tag-chips` 2.76% / `empty-card-holder` 7.11%，最大通道差 40 / 65 / 255，阈值 0.01），失败步骤是 `Run unit tests`；失败原因由 workflow 的 `Surface errors as annotations` 步骤提升为注解，用 `repos/<owner>/<repo>/check-runs/<check_run_id>/annotations` 读到三条 `error: ... UISnapshotGoldenTests.swift:25/34/43` 与 `Process completed with exit code 65.`（无需登录仓库）。随后按上述预案实现 `UISnapshotGolden.environmentKey`（取 iOS 主版本，如 `ios27`），基线改名为 `card-row-ios27.png` / `tag-chips-ios27.png` / `empty-card-holder-ios27.png`（**内容未变，仅改名**），`iOS CI` run #62（commit `7cdcc34`）双作业全绿。此后**同一 iOS 主版本内仍真比对，跨主版本按设计跳过**——这是取舍，不是把测试关掉：在本机 Mac 上（iOS 27）它依然是真截图比对。
 
 ### 3.4 环境变量传参备选
 
@@ -287,7 +289,7 @@ openspec archive replicate-camcard-core-slice
 | # | 产物 | 位置 | 阶段 |
 | --- | --- | --- | --- |
 | 1 | Mac 本机编译 + 全量单测通过记录 | `docs/验证报告.md` 新增行 | 1 |
-| 2 | UI 基线 3 个 PNG | `testcards/ui-baselines/` | 2 |
+| 2 | UI 基线 3 个 PNG（`card-row-ios27.png` / `empty-card-holder-ios27.png` / `tag-chips-ios27.png`） | `testcards/ui-baselines/` | 2 **（已完成，run #62 已验证 CI 不再误报）** |
 | 3 | 真实比对通过的 CI run 号 | `docs/验证报告.md`、`tasks.md` 5.4 | 2 |
 | 4 | M01–M36 回填（36 行全部有实际记录） | `docs/UI验收清单.md` | 3 |
 | 5 | 截图与录屏 | `docs/evidence/` | 3 |

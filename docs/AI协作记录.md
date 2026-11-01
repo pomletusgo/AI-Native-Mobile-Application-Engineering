@@ -36,6 +36,7 @@
 | Week 6 | 拍板「先收口，解析器修复另开 change 提案」 | 避免把「量化取数」与「改规则」两件事混在一轮里，先留下可对照的实测基线 |
 | Week 6 | 拍板「UI 基线直接入库并推 CI 观察」 | 需要实测「基线绑定 iOS 27.0、而 CI 为 macos-15」是否会转红，先拿到事实再决定是否改带环境名的基线 |
 | Week 6 | 定「Mac 只生产、不回传 git」，产物经网盘 / QQ 回传 Windows 入库 | 租机只有国内网络、不入库凭据；入库动作与提交由本机完成 |
+| Week 6 | 在 run #61 转红后拍板按手册 §3.3 预案把「基线文件名带上 iOS 主版本」 | run #61 的三条 `mismatched` 已实测证明是跨环境渲染漂移而非界面回归；按预案收口以恢复 CI 稳定，不擅自放宽容差、也不把这三条测试跳过不管 |
 
 人与 AI 的分工：**路线、取舍与「做哪一项」由人决定**；AI 按 `tasks.md` 逐项实现、跑 CI、回填台账。凡涉及规格解释的取舍（例如手动调整框是否豁免最小面积），AI 先说明理由再落地，并同步写进 `docs/验证报告.md` 与 `tasks.md`，不静默改动。
 
@@ -286,6 +287,18 @@
 - **证据**：Mac 本机日志 5 份——`mac-local-tests.log`（SHA256 `4e09c97d…`）、`mac-record-golden.log`（`53fb9f5e…`）、`mac-compare-golden.log`（`71e65d01…`）、`mac-export-ocr.log`（`0ce2efb8…`）、`mac-field-accuracy.log`（`f325649f…`）；基线 3 个 PNG 的 SHA256 为 `468df770…` / `23bce89f…` / `ecbfb6b8…`。已勾选 `tasks.md` 的 4.4 与 5.4。
 - **口径更正**：此前台账写的「337 / 341 个单测」为漏计，本轮以 Mac 实测的 **344** 为准并已在 `docs/验证报告.md`、`docs/规格测试追踪表.md`、`tasks.md` 三处同步更正（漏计来源：多 Email 细化的 3 个 `BusinessCardFieldParserTests` 与 Golden Test / OCR 导出的 4 个方法）。**根因分析**：4 处「虚构」经取证 OCR 原文后确认均为「归错桶」而非编造（首行公司名误入地址 / 姓名或被丢弃、无标签孤立号码被默认判为手机），**未违反**「缺失字段返回 nil，严禁虚构数据」的硬约束，已在文档中按「分类准确率问题」而非「编造数据」表述。
 
+### 第 22 轮 — Week 6：推 CI 观察 → 基线跨环境误报 → 按预案收口
+
+- **提示词要点**
+  - 限定上下文：上一轮已把 Mac 侧产物入库并提交（`b765baa`），本轮只做「推送 → 读 CI 结论 → 按预案处置」，不改业务代码、不动解析规则。
+  - 目标：验证「基线录于 iOS 27.0、而 CI runner 为 `macos-15`」是否真会报 `mismatched`；若转红，按 `docs/Mac端验收执行手册.md` §3.3 预案把基线改成带环境标识的文件名。
+  - 禁止项：不得为了让 CI 变绿而直接放大容差或删掉这三条断言；不得把「CI 绿」写成「这三条在 CI 上也真比对通过了」；不得把未经观测的数字（如 CI 侧 `Executed N` 行）当成实测写进台账。
+  - 证据要求：给出转红 run 号、失败步骤、逐条差异数值与失败原因（注解原文），处置后再给出复绿 run 号；产物改名要证明「内容未变」。
+- **AI 输出**：`git push origin main` 把 `b765baa` 推上远端，触发 `iOS CI` run #61——`OpenSpec Validate` success，`Build & Test (iOS Simulator)` 的 `Run unit tests` failure，三条基线全部 `mismatched`（`card-row` 2.41% / `tag-chips` 2.76% / `empty-card-holder` 7.11%，最大通道差 40 / 65 / 255，阈值 0.01）。按预案改 `CamCardCloneTests/UISnapshotGolden.swift`：新增 `environmentKey`（取 `UIDevice.current.systemVersion` 的 iOS 主版本，如 `ios27`）与 `baselineName(_:)`，`baselineURL` / `failureDumpURL` 一并改为按带环境名的主名寻址；用例文案改为打印真实文件名，并把跳过原因写清「本机 iOS 主版本与录制环境不一致属预期」。三条基线用 `git mv` 只改名（`card-row.png` → `card-row-ios27.png` 等，`git` 显示 `similarity 100%`）。提交 `7cdcc34` 推送后，`iOS CI` run #62 双作业全绿。
+- **AI 的错误**：① **首次收口时没有把「基线绑定运行环境」这件事做成机制**——第 21 轮只把「跨环境可能转红」写成风险提示，没在文件名里预置环境隔离，导致 run #61 直接把 main 推成红的（见错误表第 18 条）；② 向用户汇报 run #61 失败原因时，助手先说「注解步骤的 `grep` 未命中，所以失败原因不是注解」——这与事实相反：那三条注解正是该步骤把 `error:` 行捕获后用 `::error::` 提升出来的（见错误表第 19 条）。
+- **修正**：① 按手册 §3.3 预案把环境标识写进基线文件名，同环境真比对、异环境跳过，既恢复 CI 稳定又不牺牲 Mac 侧的真比对覆盖；② 更正表述——失败原因确实由 workflow 的 `Surface errors as annotations` 步骤提升为注解，用 `repos/.../check-runs/<check_run_id>/annotations` 公开读到（含 `Process completed with exit code 65.`），并把这条更正后的表述写回手册 §3.3。
+- **证据**：run #61（`b765baa`，失败）与 run #62（`7cdcc34`，success）的作业级与步骤级状态经 GitHub 公开 API 读取；run #61 的失败明细取自 `check-runs/<id>/annotations` 的三条 `error:` 原文。**口径声明**：run #62 的绿只能证明「不再误报」，不能证明「三条基线在 CI 上真比对通过」——CI 侧 `Executed N / skipped N` 行需下载运行 artifact（需仓库授权令牌，本机没有），故台账按「run #61 同容差必然不匹配 ⇒ 若 runner 同为 iOS 27 则 run #62 会同样转红 ⇒ 现为跳过路径」的推理口径记录，未替 CI 编造数字。
+
 ## 3. AI 犯过的错误汇总
 
 | # | 错误 | 触发的 CI 运行 | 修正 |
@@ -307,18 +320,22 @@
 | 15 | 在用户尚未贴回状态时误发上一轮的 `grep -iE "recorded\|RECORD_GOLDEN"` 诊断命令（提示文案为中文，必然不命中） | 本机 Mac，未进 CI | 承认该排查已无意义（基线已被 `ls` + `file` + SHA256 三重确认），改问真实状态 |
 | 16 | 在 macOS 上用 `unzip` 解含中文名的 zip，报 `disk full?`（UTF-8 标志位问题） | 本机 Mac，未进 CI | 改用 `ditto -x -k`（`tar -xf` 亦可），中文名正常还原 |
 | 17 | Windows 侧回传处理时 `tar.exe` 打不开中文路径；`Copy-Item` 找错源文件（实际在 `camcard-back\` 子目录，助手未打印相对路径） | 本机 Windows，未进 CI | 改用纯 ASCII 路径 `C:\Temp\...` 中转；先 `Get-ChildItem -Recurse` 确认真实结构再拷 |
+| 18 | 首次收口 5.4 时只把「基线绑定运行环境」写成风险提示，没在基线文件名里预置环境隔离 | run #61（`Build & Test` 的 `Run unit tests` 失败） | 按手册 §3.3 预案实现 `UISnapshotGolden.environmentKey`（iOS 主版本进文件名），基线 `git mv` 改名（内容不变），run #62 复绿（`7cdcc34`） |
+| 19 | 汇报 run #61 失败原因时称「注解步骤的 `grep` 未命中，失败原因不是注解」 | 与 run #61 同批，未额外触发运行 | 更正：三条失败注解正是 `Surface errors as annotations` 步骤把 `error:` 行提升所得；更正后的表述已写回手册 §3.3 |
 
-这些错误都由 CI、命令退出码或提交前的自查**当场暴露**，没有一条是靠人工肉眼发现后悄悄改掉的；修正都单独提交，台账里保留「哪个 run 因何失败」。第 13 条属提交前自查发现，未产生失败运行；第 14–17 条发生在 2026-11-01 的 Mac 本机验证与产物往返环节，由命令回显与指纹比对当场暴露，未进 CI（Mac 端不入库、不回传 git）。
+这些错误都由 CI、命令退出码或提交前的自查**当场暴露**，没有一条是靠人工肉眼发现后悄悄改掉的；修正都单独提交，台账里保留「哪个 run 因何失败」。第 13 条属提交前自查发现，未产生失败运行；第 14–17 条发生在 2026-11-01 的 Mac 本机验证与产物往返环节，由命令回显与指纹比对当场暴露，未进 CI（Mac 端不入库、不回传 git）；第 18 条由 CI 直接暴露（run #61 转红），第 19 条属助手的口头结论出错、由复核 `check-runs/<id>/annotations` 的原始内容当场纠正。
 
 ## 4. 实际执行的命令与结果
 
 | 命令 | 结果 |
 | --- | --- |
 | `git -c user.name="刘润东" -c user.email="760592343@qq.com" commit -F <临时信息文件>` | 退出码 0，作者为本人（如 `7726e31`、`8008a36`） |
-| `git push origin main` | 退出码 0，触发 `iOS CI`；本文件编写前最后一次为 run #58 |
+| `git push origin main` | 退出码 0，触发 `iOS CI`；本文件编写前最近两次为 run #61（commit `b765baa`，因三条 UI 基线跨环境 `mismatched` 转红）与 run #62（commit `7cdcc34`，success） |
 | `npm run spec:validate`（即 `openspec validate --all --strict`） | 退出码 0，`1 passed, 0 failed` |
 | `npx openspec@1.13.2 validate --all --strict` | 退出码 1（版本不存在），已改用上一条 |
-| 经 GitHub 公开 API 读取 `actions/runs` 与 `jobs` | run #2 / #4 / #6 / #9 / #10 / #14 / #16 / #20 / #21 / #22 / #25 / #27 / #28 / #30 / #31 / #33 / #34 / #36 / #40 / #46 / #48 / #49 / #50 / #53 / #54 / #55 / #56 / #57 / #58 的 `OpenSpec Validate` 与 `Build & Test (iOS Simulator)` 均 success |
+| 经 GitHub 公开 API 读取 `actions/runs` 与 `jobs` | run #2 / #4 / #6 / #9 / #10 / #14 / #16 / #20 / #21 / #22 / #25 / #27 / #28 / #30 / #31 / #33 / #34 / #36 / #40 / #46 / #48 / #49 / #50 / #53 / #54 / #55 / #56 / #57 / #58 / #62 的 `OpenSpec Validate` 与 `Build & Test (iOS Simulator)` 均 success；run #61 的 `Build & Test` 为 failure（只算失败，不计入成功清单） |
+| 经 GitHub 公开 API 读取 `check-runs/<check_run_id>/annotations` | 退出码 0（无需登录）：读到 run #61 的三条 `error: ... UISnapshotGoldenTests.swift:25/34/43 : failed - 截图与基线不一致 ...` 与 `Process completed with exit code 65.`，据此定位失败步骤与逐条差异数值 |
+| `git mv testcards/ui-baselines/{card-row,tag-chips,empty-card-holder}.png` → 各加 `-ios27` 后缀 | 退出码 0，`git status` 显示 `R`（rename，`similarity 100%`），证明基线**内容未变、仅改名** |
 | `xcodebuild ... build-for-testing` / `Cmd+U`（Windows 本机） | **未执行**：本机为 Windows，无 macOS 与 Xcode，故不存在 Windows 本机的编译与测试记录 |
 | `xcodebuild ... test-without-building`（Mac 本机，2026-11-01） | 退出码 0：`Executed 344 tests, with 5 tests skipped and 0 failures (0 unexpected)`、`** TEST SUCCEEDED **`（日志 `mac-local-tests.log`，SHA256 `4e09c97d…`）；Mac 端不回传 git |
 | `TEST_RUNNER_RECORD_GOLDEN=1 xcodebuild ... -only-testing:...UISnapshotGoldenTests`（Mac） | 录制 3 个基线，该轮 3 条按设计 `XCTFail`（强制重跑做真比对）；随后普通模式比对得 `Executed 3 tests, with 0 failures`、`** TEST SUCCEEDED **` |
@@ -329,5 +346,5 @@
 ## 5. 复现与补验
 
 1. 在仓库 Actions 页手动触发 `iOS CI`（已配置 `workflow_dispatch`），或任意推送到 `main`。
-2. 失败时无需登录：workflow 的 `Surface errors as annotations` 步骤会把 `error:` 行提升为注解，可用 `repos/<owner>/<repo>/check-runs/<job_id>/annotations` 直接读到。
-3. 拿到 Mac 后按 `docs/Mac端验收执行手册.md` 逐阶段执行（环境就绪 → 本机编译与全量单测 → UI 基线录制与比对 → M01–M36 人工验收 → 4.4 与 T06 真实数据量化 → 归档）；`docs/验证报告.md` 的「待补验步骤」只列要点，具体命令与产物清单以手册为准。**进度（2026-11-01）**：手册 §1–§2 与 §3 的基线录制 / 比对、§5.1 的 OCR 导出与字段级评价均已在租用 Mac 上执行完毕（Mac 只生产、产物回传入库，不执行 `git push`）；§4 的 M01–M36 人工验收与 §5.2 的 T06 `isReliable()` 阈值标定仍未执行（机器按需租用、用完即停）。
+2. 失败时无需登录：workflow 的 `Surface errors as annotations` 步骤会把 `error:` 行提升为注解，可用 `repos/<owner>/<repo>/check-runs/<check_run_id>/annotations` 直接读到（run #61 的三条 UI 基线不匹配就是这样读到的；注意是 `check_runs` 的 `id`，与 Actions 的 `run_number` 不是一回事）。
+3. 拿到 Mac 后按 `docs/Mac端验收执行手册.md` 逐阶段执行（环境就绪 → 本机编译与全量单测 → UI 基线录制与比对 → M01–M36 人工验收 → 4.4 与 T06 真实数据量化 → 归档）；`docs/验证报告.md` 的「待补验步骤」只列要点，具体命令与产物清单以手册为准。**进度（2026-11-01）**：手册 §1–§2 与 §3 的基线录制 / 比对、§5.1 的 OCR 导出与字段级评价均已在租用 Mac 上执行完毕（Mac 只生产、产物回传入库，不执行 `git push`）；§3.3 的回传与「推 CI 观察」也已完成闭环——run #61 转红实测出跨环境误报，按预案改成带 iOS 主版本的基线名后 run #62 复绿；§4 的 M01–M36 人工验收与 §5.2 的 T06 `isReliable()` 阈值标定仍未执行（机器按需租用、用完即停）。
