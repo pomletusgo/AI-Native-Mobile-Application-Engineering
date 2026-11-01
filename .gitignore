@@ -5,5 +5,7 @@ node_modules/
 *.xcuserstate
 xcuserdata/
 .DS_Store
+# macOS 的 AppleDouble 伴生文件（从 Mac 打包 / 解压时会带上，不入库）
+._*
 .swiftpm/
 *.xcresult

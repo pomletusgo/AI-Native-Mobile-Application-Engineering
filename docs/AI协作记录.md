@@ -32,6 +32,10 @@
 | Week 6 | 在候选项里拍板做 5.4 的 UI Golden Test 骨架 | 这是当时还不依赖 Mac 的功能性交付物，先把录制 / 比对工具与断言写好，截图对比留待 Mac |
 | 各轮 | 由人在候选项里拍板下一步做哪一项 | 决定权在人，AI 不自行扩张范围 |
 | 会话中 | 人工清理 AI 留下的临时提交信息文件 | 保持工作区干净 |
+| Week 6 | 租用一台物理 Mac 做本机编译、UI 基线录制与 OCR 原文导出 | 本机无 macOS / Xcode，而这些结论必须在具备 Vision 与模拟器的环境里产生 |
+| Week 6 | 拍板「先收口，解析器修复另开 change 提案」 | 避免把「量化取数」与「改规则」两件事混在一轮里，先留下可对照的实测基线 |
+| Week 6 | 拍板「UI 基线直接入库并推 CI 观察」 | 需要实测「基线绑定 iOS 27.0、而 CI 为 macos-15」是否会转红，先拿到事实再决定是否改带环境名的基线 |
+| Week 6 | 定「Mac 只生产、不回传 git」，产物经网盘 / QQ 回传 Windows 入库 | 租机只有国内网络、不入库凭据；入库动作与提交由本机完成 |
 
 人与 AI 的分工：**路线、取舍与「做哪一项」由人决定**；AI 按 `tasks.md` 逐项实现、跑 CI、回填台账。凡涉及规格解释的取舍（例如手动调整框是否豁免最小面积），AI 先说明理由再落地，并同步写进 `docs/验证报告.md` 与 `tasks.md`，不静默改动。
 
@@ -269,6 +273,19 @@
 - **修正**：无需修正。文件头注释如实声明两条边界：①对整张图片识别、不经过「检测 → 透视校正」（4.4 衡量的是字段抽取器在 OCR 原文上的准确率，检测与校正属 T06 / T07）；②合成图比真实拍照干净，由此得到的准确率**偏乐观**。
 - **证据**：**run #58**（commit `e6ee54b`）success。**边界**：本机可验证的只有「编译通过 + 按设计跳过」，30 个 txt 的真实产出仍需在 Mac 上执行一次。
 
+### 第 21 轮 — Week 6：Mac 端本机验证与 4.4 / 5.4 收口
+
+- **提示词要点**
+  - 限定上下文：在租来的物理 Mac（macOS 27.0.1 / arm64 / Xcode 27.0 / iOS 27.0 模拟器，机型 `iPhone 17`）上，对已入库的代码包跑本机编译与全量单测，并执行 5.4 的基线录制与 4.4 的 OCR 原文导出；产物回传 Windows 入库，**Mac 端不执行 `git push`**。
+  - 目标：拿到「344 个单测通过」「UI 组件级截图比对通过」「30 张卡的字段级准确率数值」三类此前只能标「待执行」的实测证据，并据此回填台账、勾选 4.4 与 5.4。
+  - 禁止项：不得把录制模式（`RECORD_GOLDEN=1`）当轮的 `XCTFail` 写成失败；不得把 3 条失败当成「卡住」；不得在拿到 OCR 原文前给出任何准确率数字；不得把「合成图得到的 51.9%」夸大为「真实名片的准确率」；不得把「本应为空与正确同计」的误解留在文档里。
+  - 证据要求：给出每步命令的关键回显与 `** TEST SUCCEEDED **`；产物给出文件大小、`file` 类型与 SHA256；本机与 Mac 两侧指纹逐一比对。
+- **AI 输出**：先在 Mac 上完成环境摸底与代码包解压；随后 `xcodebuild test-without-building` 实跑得 `Executed 344 tests, with 5 tests skipped and 0 failures (0 unexpected)`、`** TEST SUCCEEDED **`；以 `TEST_RUNNER_RECORD_GOLDEN=1` 录制 3 个 UI 基线（`card-row.png` 640×192 / `empty-card-holder.png` 640×640 / `tag-chips.png` 480×80），再以普通模式真实比对得 `Executed 3 tests, with 0 failures`；以 `TEST_RUNNER_EXPORT_OCR_TEXT=1` 导出 `已导出 30/30 个 OCR 原文`，随后字段级评价用例由 `XCTSkip` 转真跑（`Executed 12 tests, with 0 failures`），报告整体「正确」51.9%（140/270）、误报率 3.8%（4/105）。产物经 `tar.gz` + QQ / 网盘回传 Windows，6 个日志与 3 个 PNG 的 SHA256 **两侧逐一一致**；30 个 `testcards/ocr/*.txt` 与 3 个基线入库（排除 macOS 的 `._*` AppleDouble 伴生文件）。
+- **AI 的错误**：① 把录制模式的 3 条 `XCTFail` 一度按「你可能卡住了」去排查，实际上 `Executed 3 tests ... in 1.023 seconds` 已是最终结论行、进程早已退出（见错误表第 14 条）；② 诊断命令误发——在用户尚未贴回状态时先发了上一轮的 `grep -iE "recorded|RECORD_GOLDEN"`，而提示文案是中文「已录制基线」，grep 必然不命中，属无效排查（见第 15 条）；③ Mac 侧解压踩到 `unzip` 对中文名的 UTF-8 标志位问题，误报 `disk full?`（见第 16 条）；④ Windows 侧回传时 `tar.exe` 打不开中文路径、`Copy-Item` 找错源文件（见第 17 条）。
+- **修正**：① 改按设计的 `XCTFail` 语义解释（录制后强制重跑一次做真比对），不再当故障；② 明确「基线已被 `ls` + `file` + SHA256 三重确认」，删除无意义排查，改问真实状态；③ 换 `ditto -x -k` 解压（`tar -xf` 亦可），中文名正常还原、116 个文件齐全；④ 改用纯 ASCII 路径 `C:\Temp\...` 中转，并用 `Get-ChildItem -Recurse` 先确认真实目录结构（文件其实在 `camcard-back\` 子目录里）再拷。
+- **证据**：Mac 本机日志 5 份——`mac-local-tests.log`（SHA256 `4e09c97d…`）、`mac-record-golden.log`（`53fb9f5e…`）、`mac-compare-golden.log`（`71e65d01…`）、`mac-export-ocr.log`（`0ce2efb8…`）、`mac-field-accuracy.log`（`f325649f…`）；基线 3 个 PNG 的 SHA256 为 `468df770…` / `23bce89f…` / `ecbfb6b8…`。已勾选 `tasks.md` 的 4.4 与 5.4。
+- **口径更正**：此前台账写的「337 / 341 个单测」为漏计，本轮以 Mac 实测的 **344** 为准并已在 `docs/验证报告.md`、`docs/规格测试追踪表.md`、`tasks.md` 三处同步更正（漏计来源：多 Email 细化的 3 个 `BusinessCardFieldParserTests` 与 Golden Test / OCR 导出的 4 个方法）。**根因分析**：4 处「虚构」经取证 OCR 原文后确认均为「归错桶」而非编造（首行公司名误入地址 / 姓名或被丢弃、无标签孤立号码被默认判为手机），**未违反**「缺失字段返回 nil，严禁虚构数据」的硬约束，已在文档中按「分类准确率问题」而非「编造数据」表述。
+
 ## 3. AI 犯过的错误汇总
 
 | # | 错误 | 触发的 CI 运行 | 修正 |
@@ -286,8 +303,12 @@
 | 11 | 用 `CGPoint` 直接相等比较浮点累加结果 | run #45 | 改逐分量 `accuracy` 比较（`efc2417`） |
 | 12 | 用了不存在的 npm 包版本（`openspec@1.13.2`） | 本机，未进 CI | 改用 `npm run spec:validate` |
 | 13 | 生成名片图脚本的 5 处问题（位图比对方式不可靠、冗余赋值引用不存在的字段、自造 `Int()` 辅助函数、旋转裁掉卡角、无排版溢出自检） | 本机，未进 CI | 提交前自查逐一改正（`724b1d0`） |
+| 14 | 把录制模式（`RECORD_GOLDEN=1`）当轮的 3 条 `XCTFail` 当成「卡住」，去做无关排查 | 本机 Mac，未进 CI | 按设计语义解释：录制后主动失败以强制重跑一次做真比对，不是故障；`Executed 3 tests ... in 1.023 seconds` 已是最终结论行 |
+| 15 | 在用户尚未贴回状态时误发上一轮的 `grep -iE "recorded\|RECORD_GOLDEN"` 诊断命令（提示文案为中文，必然不命中） | 本机 Mac，未进 CI | 承认该排查已无意义（基线已被 `ls` + `file` + SHA256 三重确认），改问真实状态 |
+| 16 | 在 macOS 上用 `unzip` 解含中文名的 zip，报 `disk full?`（UTF-8 标志位问题） | 本机 Mac，未进 CI | 改用 `ditto -x -k`（`tar -xf` 亦可），中文名正常还原 |
+| 17 | Windows 侧回传处理时 `tar.exe` 打不开中文路径；`Copy-Item` 找错源文件（实际在 `camcard-back\` 子目录，助手未打印相对路径） | 本机 Windows，未进 CI | 改用纯 ASCII 路径 `C:\Temp\...` 中转；先 `Get-ChildItem -Recurse` 确认真实结构再拷 |
 
-这些错误都由 CI、命令退出码或提交前的自查**当场暴露**，没有一条是靠人工肉眼发现后悄悄改掉的；修正都单独提交，台账里保留「哪个 run 因何失败」。第 13 条属提交前自查发现，未产生失败运行。
+这些错误都由 CI、命令退出码或提交前的自查**当场暴露**，没有一条是靠人工肉眼发现后悄悄改掉的；修正都单独提交，台账里保留「哪个 run 因何失败」。第 13 条属提交前自查发现，未产生失败运行；第 14–17 条发生在 2026-11-01 的 Mac 本机验证与产物往返环节，由命令回显与指纹比对当场暴露，未进 CI（Mac 端不入库、不回传 git）。
 
 ## 4. 实际执行的命令与结果
 
@@ -298,11 +319,15 @@
 | `npm run spec:validate`（即 `openspec validate --all --strict`） | 退出码 0，`1 passed, 0 failed` |
 | `npx openspec@1.13.2 validate --all --strict` | 退出码 1（版本不存在），已改用上一条 |
 | 经 GitHub 公开 API 读取 `actions/runs` 与 `jobs` | run #2 / #4 / #6 / #9 / #10 / #14 / #16 / #20 / #21 / #22 / #25 / #27 / #28 / #30 / #31 / #33 / #34 / #36 / #40 / #46 / #48 / #49 / #50 / #53 / #54 / #55 / #56 / #57 / #58 的 `OpenSpec Validate` 与 `Build & Test (iOS Simulator)` 均 success |
-| `xcodebuild ... build-for-testing` / `Cmd+U` | **未执行**：本机为 Windows，无 macOS 与 Xcode，故不存在本机编译与测试记录 |
+| `xcodebuild ... build-for-testing` / `Cmd+U`（Windows 本机） | **未执行**：本机为 Windows，无 macOS 与 Xcode，故不存在 Windows 本机的编译与测试记录 |
+| `xcodebuild ... test-without-building`（Mac 本机，2026-11-01） | 退出码 0：`Executed 344 tests, with 5 tests skipped and 0 failures (0 unexpected)`、`** TEST SUCCEEDED **`（日志 `mac-local-tests.log`，SHA256 `4e09c97d…`）；Mac 端不回传 git |
+| `TEST_RUNNER_RECORD_GOLDEN=1 xcodebuild ... -only-testing:...UISnapshotGoldenTests`（Mac） | 录制 3 个基线，该轮 3 条按设计 `XCTFail`（强制重跑做真比对）；随后普通模式比对得 `Executed 3 tests, with 0 failures`、`** TEST SUCCEEDED **` |
+| `TEST_RUNNER_EXPORT_OCR_TEXT=1 xcodebuild ... -only-testing:...OCRTextCorpusExporterTests`（Mac） | `已导出 30/30 个 OCR 原文`、`** TEST SUCCEEDED **`；随后字段级评价用例转真跑得 `Executed 12 tests, with 0 failures` |
+| `shasum -a 256`（Mac）与 `Get-FileHash`（Windows）比对 6 个日志 + 3 个 PNG | 两侧指纹逐一一致，产物无损往返 |
 | `openspec archive`（6.5） | **未执行**：必需验证（6.4 人工验收）未完成，按规则 10 不得提前归档 |
 
 ## 5. 复现与补验
 
 1. 在仓库 Actions 页手动触发 `iOS CI`（已配置 `workflow_dispatch`），或任意推送到 `main`。
 2. 失败时无需登录：workflow 的 `Surface errors as annotations` 步骤会把 `error:` 行提升为注解，可用 `repos/<owner>/<repo>/check-runs/<job_id>/annotations` 直接读到。
-3. 拿到 Mac 后按 `docs/Mac端验收执行手册.md` 逐阶段执行（环境就绪 → 本机编译与全量单测 → UI 基线录制与比对 → M01–M36 人工验收 → 4.4 与 T06 真实数据量化 → 归档）；`docs/验证报告.md` 的「待补验步骤」只列要点，具体命令与产物清单以手册为准。
+3. 拿到 Mac 后按 `docs/Mac端验收执行手册.md` 逐阶段执行（环境就绪 → 本机编译与全量单测 → UI 基线录制与比对 → M01–M36 人工验收 → 4.4 与 T06 真实数据量化 → 归档）；`docs/验证报告.md` 的「待补验步骤」只列要点，具体命令与产物清单以手册为准。**进度（2026-11-01）**：手册 §1–§2 与 §3 的基线录制 / 比对、§5.1 的 OCR 导出与字段级评价均已在租用 Mac 上执行完毕（Mac 只生产、产物回传入库，不执行 `git push`）；§4 的 M01–M36 人工验收与 §5.2 的 T06 `isReliable()` 阈值标定仍未执行（机器按需租用、用完即停）。

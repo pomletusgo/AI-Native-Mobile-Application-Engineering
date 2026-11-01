@@ -1,8 +1,10 @@
 # Mac 端验收执行手册
 
-> **本手册是待执行清单，不是已执行记录。** 下面所有步骤在本机（Windows）都没有运行过——本机没有 macOS 与 Xcode，编译与单元测试一直由 GitHub Actions 的 `macos-15` runner 代跑。手册中的「预期」来自 CI 已通过的结论与源码，**具体数字以 Mac 上实际输出为准**；执行结果须回填到 `docs/UI验收清单.md`、`docs/验证报告.md` 与 `openspec/changes/replicate-camcard-core-slice/tasks.md`，不得直接照抄这里的预期值。
+> **本手册是待执行清单，不是已执行记录。** 下面所有步骤在**本机（Windows）**都没有运行过——本机没有 macOS 与 Xcode，编译与单元测试一直由 GitHub Actions 的 `macos-15` runner 代跑。手册中的「预期」来自 CI 已通过的结论与源码，**具体数字以 Mac 上实际输出为准**；执行结果须回填到 `docs/UI验收清单.md`、`docs/验证报告.md` 与 `openspec/changes/replicate-camcard-core-slice/tasks.md`，不得直接照抄这里的预期值。
 
 本手册覆盖拿到 Mac 之后从环境就绪到归档（6.5）的全部步骤，以及每一步要产出的证据。
+
+**执行状态（最近更新 2026-11-01）**：已在租用的物理 Mac 上执行完 §1 环境就绪、§2 本机编译与全量单测、§3 UI 基线录制与真实比对、§5.1 的 OCR 原文导出与字段级准确率量化。**实际环境**：macOS 27.0.1（Build 26A434）/ arm64 / Xcode 27.0（Build 27A266a）/ iOS 27.0 模拟器 runtime 24A434，**选定机型 `iPhone 17`**（即各命令里的 `<你的机型>` = `iPhone 17`）。结果：`Executed 344 tests, with 5 tests skipped and 0 failures`、`** TEST SUCCEEDED **`；UI 基线 3 个、字段级准确率整体「正确」51.9% / 误报率 3.8%。日志存于 `docs/evidence/mac-2026-11-01/`。租机**只有国内网络、不提供外网 / 梯子**，代码与产物经网盘 / QQ 往返，**Mac 端不执行 `git push`**；机器按需租用、用完即停，故 §4 的 M01–M36 人工验收与 §5.2 的 T06 `isReliable()` 阈值标定**仍未执行**——这两节的「预期」仍属待验证。
 
 ---
 
@@ -63,7 +65,9 @@ xcrun simctl privacy booted reset all com.example.camcardclone  # 重置全部�
 
 `Cmd+U`。
 
-**预期**：340 个方法全部通过。其中 `UISnapshotGoldenTests` 的 3 条会因为 `testcards/ui-baselines/` 下还没有基线而 **`XCTSkip`**——这是设计如此，不是失败。
+**预期**：340 个方法全部通过。其中 `UISnapshotGoldenTests` 的 3 条会因为 `testcards/ui-baselines/` 下还没有基线而 **`XCTSkip`**——这是设计如此，不是失败。若此时 `testcards/ocr/` 仍为空，`FieldExtractionEvaluatorTests` 里那条评价用例同样按设计 `XCTSkip`（见 §5.1）。
+
+> **2026-11-01 实测**：此时基线尚未录制，故实际输出为 `Executed 344 tests, with 5 tests skipped and 0 failures (0 unexpected)`、`** TEST SUCCEEDED **`（344 而非 340，是台账此前漏计，已在 `docs/验证报告.md` 更正）。
 
 在终端里跑一遍更容易留证据：
 
@@ -75,7 +79,7 @@ xcodebuild test -project CamCardClone.xcodeproj -scheme CamCardClone \
 
 把日志里 `Executed N tests` 那一行保存下来。这条记录比 CI 更强——它是**本机 Xcode 编译 + 本机模拟器运行**，而 CI 只能证明远程 runner 上通过。
 
-**回填**：`docs/验证报告.md` 新增一行「Mac 本机编译与全量单测」，写明机型 / iOS 版本 / 方法数 / 结果 / 证据路径。
+**回填**：`docs/验证报告.md` 写明机型 / iOS 版本 / 方法数 / 结果 / 证据路径（2026-11-01 已以「文件头补充段落 + 「344 个单元测试实际运行」行」的形式回填，日志留档在 `docs/evidence/mac-2026-11-01/`）。
 
 ---
 
@@ -88,14 +92,21 @@ xcodebuild test -project CamCardClone.xcodeproj -scheme CamCardClone \
 Xcode → **Edit Scheme** → Test → Arguments → Environment Variables，加一条 `RECORD_GOLDEN = 1`，然后只跑这一组：
 
 ```bash
-xcodebuild test -project CamCardClone.xcodeproj -scheme CamCardClone \
+# 命令行方式：用 TEST_RUNNER_ 前缀把开关透传给测试进程（2026-11-01 实测有效，Xcode 27）
+TEST_RUNNER_RECORD_GOLDEN=1 xcodebuild test -project CamCardClone.xcodeproj -scheme CamCardClone \
   -destination 'platform=iOS Simulator,name=<你的机型>' \
   -only-testing:CamCardCloneTests/UISnapshotGoldenTests
 ```
 
+> 直接写 `RECORD_GOLDEN=1 xcodebuild test ...` 只会把变量设给 `xcodebuild` 本身、不会传进测试进程；必须加 `TEST_RUNNER_` 前缀（Xcode 会剥掉该前缀再透传）。
+
 跑完 `testcards/ui-baselines/` 下会生成三个 PNG：`card-row.png` / `tag-chips.png` / `empty-card-holder.png`。
 
-> 本轮 3 条用例会**故意报红**（录制模式下走 `XCTFail`，提示「已录制基线，重跑一次以执行比对」）。这是设计如此，不是失败。也可以直接在 Xcode 里 `Cmd+U` 后看这三个文件是否生成。
+> 本轮 3 条用例会**故意报红**（录制模式下走 `XCTFail`，提示「已录制基线，重跑一次以执行比对」）。这是设计如此，不是失败（`Executed 3 tests, with 3 failures` 是最终结论行，不是「卡住」）。也可以直接在 Xcode 里 `Cmd+U` 后看这三个文件是否生成。
+
+录制模式跑完后，再用**普通模式**重跑一次同一组（不加环境变量）做真实逐像素比对，应得 `Executed 3 tests, with 0 failures (0 unexpected)` 与 `** TEST SUCCEEDED **`。
+
+> **2026-11-01 实际产出（`iPhone 17` / iOS 27.0）**：`card-row.png` 19080 字节 / 640×192 / SHA256 `468df770…`、`empty-card-holder.png` 31430 字节 / 640×640 / SHA256 `23bce89f…`、`tag-chips.png` 4542 字节 / 480×80 / SHA256 `ecbfb6b8…`；比对为 `Executed 3 tests, with 0 failures`。日志见 `docs/evidence/mac-2026-11-01/mac-record-golden.log` 与 `mac-compare-golden.log`。**注意**：基线绑定机型与 iOS 版本，CI runner（`macos-15`）的 iOS 版本更早，推 CI 后逐像素比对可能报 `mismatched`；若转红，按 §3.3 预案把基线改成带环境名（如 `card-row-ios17.png`）。
 
 ### 3.2 执行真实比对
 
@@ -205,14 +216,25 @@ testcards/ocr/TC01.txt … TC30.txt
 
 ```bash
 # 在仓库根目录执行；-only-testing 限定只跑这一个用例
-EXPORT_OCR_TEXT=1 xcodebuild test \
+TEST_RUNNER_EXPORT_OCR_TEXT=1 xcodebuild test \
   -project CamCardClone.xcodeproj -scheme CamCardClone \
-  -destination 'platform=iOS Simulator,name=iPhone 15' \
-  -only-testing:CamCardCloneTests/OCRTextCorpusExporterTests \
-  | xcpretty || true
+  -destination 'platform=iOS Simulator,name=<你的机型>' \
+  -only-testing:CamCardCloneTests/OCRTextCorpusExporterTests
 ```
 
-（用 Xcode 图形界面跑时，在 Scheme 的 Test → Arguments → Environment Variables 里加 `EXPORT_OCR_TEXT = 1`，`Cmd+U` 亦可。）
+> 同 §3.1：必须用 `TEST_RUNNER_` 前缀才能把开关透传给测试进程。2026-11-01 在 `iPhone 17` / iOS 27.0 上实测输出 `已导出 30/30 个 OCR 原文到 …/testcards/ocr` 与 `** TEST SUCCEEDED **`，日志见 `docs/evidence/mac-2026-11-01/mac-export-ocr.log`。
+
+（用 Xcode 图形界面跑时，在 Scheme 的 Test → Arguments → Environment Variables 里加 `EXPORT_OCR_TEXT = 1`，`Cmd+U` 亦可——GUI 路径下变量直接进测试进程，无需前缀。）
+
+导出 30 个 txt 后，再跑字段级评价用例（它此前因缺 OCR 原文而 `XCTSkip`，现在会自动改为真跑）：
+
+```bash
+xcodebuild test -project CamCardClone.xcodeproj -scheme CamCardClone \
+  -destination 'platform=iOS Simulator,name=<你的机型>' \
+  -only-testing:CamCardCloneTests/FieldExtractionEvaluatorTests
+```
+
+> 2026-11-01 实测：`Executed 12 tests, with 0 failures`，报告整体「正确」51.9%（140/270）、缺失字段误报率 3.8%（4/105）；日志见 `mac-field-accuracy.log`。读数口径（本应为空不计入「正确」、天花板 61.1%）与 4 处「虚构」属归错桶的取证结论见 `docs/验证报告.md` 与 `docs/能力边界分析.md` §6.3。
 
 用例会逐张打印「行数」并汇总「已导出 N/30」，完成后把 `testcards/ocr/` 整个目录连同 30 个 txt 一并提交。注意两点：
 

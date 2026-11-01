@@ -1,0 +1,144 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild test -project CamCardClone.xcodeproj -scheme CamCardClone -destination "platform=iOS Simulator,name=iPhone 17" "-only-testing:CamCardCloneTests/FieldExtractionEvaluatorTests"
+
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (2 targets)
+    Target 'CamCardCloneTests' in project 'CamCardClone'
+        ➜ Explicit dependency on target 'CamCardClone' in project 'CamCardClone'
+    Target 'CamCardClone' in project 'CamCardClone' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk /Users/chuzu/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache
+    cd /Users/chuzu/camcard/CamCardClone.xcodeproj
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -o /Users/chuzu/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache
+
+ProcessInfoPlistFile /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Products/Debug-iphonesimulator/CamCardClone.app/Info.plist /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Intermediates.noindex/CamCardClone.build/Debug-iphonesimulator/CamCardClone.build/empty-CamCardClone.plist (in target 'CamCardClone' from project 'CamCardClone')
+    cd /Users/chuzu/camcard
+    builtin-infoPlistUtility /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Intermediates.noindex/CamCardClone.build/Debug-iphonesimulator/CamCardClone.build/empty-CamCardClone.plist -producttype com.apple.product-type.application -genpkginfo /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Products/Debug-iphonesimulator/CamCardClone.app/PkgInfo -expandbuildsettings -format binary -platform iphonesimulator -o /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Products/Debug-iphonesimulator/CamCardClone.app/Info.plist
+
+ProcessInfoPlistFile /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Products/Debug-iphonesimulator/CamCardClone.app/PlugIns/CamCardCloneTests.xctest/Info.plist /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Intermediates.noindex/CamCardClone.build/Debug-iphonesimulator/CamCardCloneTests.build/empty-CamCardCloneTests.plist (in target 'CamCardCloneTests' from project 'CamCardClone')
+    cd /Users/chuzu/camcard
+    builtin-infoPlistUtility /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Intermediates.noindex/CamCardClone.build/Debug-iphonesimulator/CamCardCloneTests.build/empty-CamCardCloneTests.plist -producttype com.apple.product-type.bundle.unit-test -expandbuildsettings -format binary -platform iphonesimulator -o /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Products/Debug-iphonesimulator/CamCardClone.app/PlugIns/CamCardCloneTests.xctest/Info.plist
+
+CopySwiftLibs /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Products/Debug-iphonesimulator/CamCardClone.app/PlugIns/CamCardCloneTests.xctest (in target 'CamCardCloneTests' from project 'CamCardClone')
+    cd /Users/chuzu/camcard
+    builtin-swiftStdLibTool --copy --verbose --sign - --scan-executable /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Products/Debug-iphonesimulator/CamCardClone.app/PlugIns/CamCardCloneTests.xctest/CamCardCloneTests --scan-folder /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Products/Debug-iphonesimulator/CamCardClone.app/PlugIns/CamCardCloneTests.xctest/Frameworks --scan-folder /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Products/Debug-iphonesimulator/CamCardClone.app/PlugIns/CamCardCloneTests.xctest/PlugIns --scan-folder /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Products/Debug-iphonesimulator/CamCardClone.app/PlugIns/CamCardCloneTests.xctest/SystemExtensions --scan-folder /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Products/Debug-iphonesimulator/CamCardClone.app/PlugIns/CamCardCloneTests.xctest/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Products/Debug-iphonesimulator/CamCardClone.app/PlugIns/CamCardCloneTests.xctest/Frameworks --strip-bitcode --scan-executable /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libXCTestSwiftSupport.dylib --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Intermediates.noindex/CamCardClone.build/Debug-iphonesimulator/CamCardCloneTests.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+
+PruneExplicitPrecompiledModules /Users/chuzu/Library/Developer/Xcode/DerivedData/SDKExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Intermediates.noindex/ExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+
+2026-11-01 14:48:11.633674+0800 CamCardClone[25907:183066] [Assert] _dictationButton not yet initialized when setting up for the large content viewer.
+2026-11-01 14:48:11.652339+0800 CamCardClone[25907:183066] [XPCErrors] non-launching port is incompatible with service identifier "com.apple.PointerUI.pointeruid.default-service"
+2026-11-01 14:48:11.653113+0800 CamCardClone[25907:183066] [API] cannot add handler to 0 from 0 - dropping
+2026-11-01 14:48:11.653520+0800 CamCardClone[25907:183066] [API] cannot add handler to 0 from 0 - dropping
+Test Suite 'Selected tests' started at 2026-11-01 14:48:11.918.
+Test Suite 'CamCardCloneTests.xctest' started at 2026-11-01 14:48:11.918.
+Test Suite 'FieldExtractionEvaluatorTests' started at 2026-11-01 14:48:11.919.
+Test Case '-[CamCardCloneTests.FieldExtractionEvaluatorTests testBlankExtractedValueIsTreatedAsMissing]' started.
+Test Case '-[CamCardCloneTests.FieldExtractionEvaluatorTests testBlankExtractedValueIsTreatedAsMissing]' passed (0.001 seconds).
+Test Case '-[CamCardCloneTests.FieldExtractionEvaluatorTests testComparisonIgnoresCaseAndExtraSpacing]' started.
+Test Case '-[CamCardCloneTests.FieldExtractionEvaluatorTests testComparisonIgnoresCaseAndExtraSpacing]' passed (0.000 seconds).
+Test Case '-[CamCardCloneTests.FieldExtractionEvaluatorTests testFieldAccuracyOnCorpusIsPendingUntilOCRTextsExist]' started.
+## 字段级准确率
+
+- 参与评价：30 张名片 / 270 个字段
+- 字段级准确率：51.9%（正确 140 / 总计 270）
+- 缺失字段误报率：3.8%（虚构 4 / 本应为空 105）
+
+| 字段 | 正确 | 参与 | 准确率 |
+|---|---|---|---|
+| 姓名 | 29 | 30 | 96.7% |
+| 公司 | 23 | 30 | 76.7% |
+| 职位 | 17 | 30 | 56.7% |
+| 手机 | 23 | 30 | 76.7% |
+| 固话 | 11 | 30 | 36.7% |
+| 传真 | 3 | 30 | 10.0% |
+| 邮箱 | 19 | 30 | 63.3% |
+| 网站 | 5 | 30 | 16.7% |
+| 地址 | 10 | 30 | 33.3% |
+
+### 错误明细
+
+| 名片 | 字段 | 判定 | ground truth | 抽取结果 |
+|---|---|---|---|---|
+| TC03 | 职位 | missed | 市场经理 | — |
+| TC03 | 地址 | mismatch | 上海市静安区南京西路500号 | 市场经理 |
+| TC04 | 公司 | missed | 蓝海设计工作室 | — |
+| TC04 | 职位 | mismatch | 首席设计师 | 设计师 |
+| TC04 | 地址 | invented | — | 蓝海设计工作室 |
+| TC07 | 手机 | invented | — | +1-555-0307 |
+| TC07 | 固话 | missed | +1-555-0307 | — |
+| TC08 | 职位 | missed | 教师 | — |
+| TC09 | 职位 | missed | 注册会计师 | — |
+| TC12 | 邮箱 | mismatch | david@abc.example.edu | david@abc.example.eau |
+| TC13 | 姓名 | mismatch | Emily Zhang | Global Vision Lta. |
+| TC13 | 公司 | missed | Global Vision Ltd. | — |
+| TC15 | 公司 | mismatch | 康泰医疗器械 | 康泰医疗嚣械 |
+| TC16 | 职位 | missed | 编导 | — |
+| TC17 | 公司 | missed | Dark Tower Studios | — |
+| TC17 | 职位 | missed | Producer | — |
+| TC17 | 地址 | invented | — | Dark Tower Studios |
+| TC18 | 职位 | missed | 店长 | — |
+| TC20 | 邮箱 | missed | hejing@example.com | — |
+| TC21 | 职位 | missed | Data Scientist | — |
+| TC21 | 手机 | invented | — | +1-555-0821 |
+| TC21 | 固话 | missed | +1-555-0821 | — |
+| TC22 | 职位 | mismatch | 高级合伙人 | 合伙人 |
+| TC23 | 固话 | missed | +1-555-0924 | — |
+| TC23 | 传真 | missed | +1-555-0925 | — |
+| TC26 | 邮箱 | missed | anna.white@example.com | — |
+| TC28 | 公司 | missed | Apple | — |
+| TC28 | 职位 | mismatch | 软件工程师 | 工程师 |
+| TC30 | 职位 | missed | 导游 | — |
+Test Case '-[CamCardCloneTests.FieldExtractionEvaluatorTests testFieldAccuracyOnCorpusIsPendingUntilOCRTextsExist]' passed (0.015 seconds).
+Test Case '-[CamCardCloneTests.FieldExtractionEvaluatorTests testGroundTruthCorpusHasThirtyLabeledCards]' started.
+Test Case '-[CamCardCloneTests.FieldExtractionEvaluatorTests testGroundTruthCorpusHasThirtyLabeledCards]' passed (0.001 seconds).
+Test Case '-[CamCardCloneTests.FieldExtractionEvaluatorTests testGroundTruthValuesOnlyContainEvaluatedKeys]' started.
+Test Case '-[CamCardCloneTests.FieldExtractionEvaluatorTests testGroundTruthValuesOnlyContainEvaluatedKeys]' passed (0.001 seconds).
+Test Case '-[CamCardCloneTests.FieldExtractionEvaluatorTests testInventedFieldIsCountedAsFalsePositive]' started.
+Test Case '-[CamCardCloneTests.FieldExtractionEvaluatorTests testInventedFieldIsCountedAsFalsePositive]' passed (0.000 seconds).
+Test Case '-[CamCardCloneTests.FieldExtractionEvaluatorTests testMismatchedValueIsCountedAsMismatch]' started.
+Test Case '-[CamCardCloneTests.FieldExtractionEvaluatorTests testMismatchedValueIsCountedAsMismatch]' passed (0.000 seconds).
+Test Case '-[CamCardCloneTests.FieldExtractionEvaluatorTests testMissingFieldIsCountedAsMissed]' started.
+Test Case '-[CamCardCloneTests.FieldExtractionEvaluatorTests testMissingFieldIsCountedAsMissed]' passed (0.000 seconds).
+Test Case '-[CamCardCloneTests.FieldExtractionEvaluatorTests testPerfectExtractionCountsCorrectAndAbsentFieldsWithoutErrors]' started.
+Test Case '-[CamCardCloneTests.FieldExtractionEvaluatorTests testPerfectExtractionCountsCorrectAndAbsentFieldsWithoutErrors]' passed (0.000 seconds).
+Test Case '-[CamCardCloneTests.FieldExtractionEvaluatorTests testPhoneComparisonIgnoresSeparators]' started.
+Test Case '-[CamCardCloneTests.FieldExtractionEvaluatorTests testPhoneComparisonIgnoresSeparators]' passed (0.000 seconds).
+Test Case '-[CamCardCloneTests.FieldExtractionEvaluatorTests testReportListsPerFieldAccuracyAndErrors]' started.
+Test Case '-[CamCardCloneTests.FieldExtractionEvaluatorTests testReportListsPerFieldAccuracyAndErrors]' passed (0.000 seconds).
+Test Case '-[CamCardCloneTests.FieldExtractionEvaluatorTests testUndeclaredFieldIsNotEvaluated]' started.
+Test Case '-[CamCardCloneTests.FieldExtractionEvaluatorTests testUndeclaredFieldIsNotEvaluated]' passed (0.000 seconds).
+Test Suite 'FieldExtractionEvaluatorTests' passed at 2026-11-01 14:48:11.947.
+	 Executed 12 tests, with 0 failures (0 unexpected) in 0.021 (0.028) seconds
+Test Suite 'CamCardCloneTests.xctest' passed at 2026-11-01 14:48:11.947.
+	 Executed 12 tests, with 0 failures (0 unexpected) in 0.021 (0.029) seconds
+Test Suite 'Selected tests' passed at 2026-11-01 14:48:11.947.
+	 Executed 12 tests, with 0 failures (0 unexpected) in 0.021 (0.029) seconds
+2026-11-01 14:48:12.237 xcodebuild[25663:180999] [MT] IDETestOperationsObserverDebug: 24.716 elapsed -- Testing started completed.
+2026-11-01 14:48:12.237 xcodebuild[25663:180999] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-11-01 14:48:12.237 xcodebuild[25663:180999] [MT] IDETestOperationsObserverDebug: 24.716 sec, +24.716 sec -- end
+
+Test session results, code coverage, and logs:
+	/Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Logs/Test/Test-CamCardClone-2026.11.01_14-47-47-+0800.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

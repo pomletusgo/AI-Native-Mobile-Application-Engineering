@@ -1,0 +1,125 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild test -project CamCardClone.xcodeproj -scheme CamCardClone -destination "platform=iOS Simulator,name=iPhone 17" "-only-testing:CamCardCloneTests/UISnapshotGoldenTests"
+
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (2 targets)
+    Target 'CamCardCloneTests' in project 'CamCardClone'
+        ➜ Explicit dependency on target 'CamCardClone' in project 'CamCardClone'
+    Target 'CamCardClone' in project 'CamCardClone' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
+
+Build description signature: a5c9f90df93dc49f273678f987c6a48a
+Build description path: /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Intermediates.noindex/XCBuildData/a5c9f90df93dc49f273678f987c6a48a.xcbuilddata
+ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk /Users/chuzu/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache
+    cd /Users/chuzu/camcard/CamCardClone.xcodeproj
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.0.sdk -o /Users/chuzu/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator27.0-24A430-8dc58220667be655e1bcc261a7455254.sdkstatcache
+
+ProcessInfoPlistFile /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Products/Debug-iphonesimulator/CamCardClone.app/Info.plist /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Intermediates.noindex/CamCardClone.build/Debug-iphonesimulator/CamCardClone.build/empty-CamCardClone.plist (in target 'CamCardClone' from project 'CamCardClone')
+    cd /Users/chuzu/camcard
+    builtin-infoPlistUtility /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Intermediates.noindex/CamCardClone.build/Debug-iphonesimulator/CamCardClone.build/empty-CamCardClone.plist -producttype com.apple.product-type.application -genpkginfo /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Products/Debug-iphonesimulator/CamCardClone.app/PkgInfo -expandbuildsettings -format binary -platform iphonesimulator -o /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Products/Debug-iphonesimulator/CamCardClone.app/Info.plist
+
+CopySwiftLibs /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Products/Debug-iphonesimulator/CamCardClone.app (in target 'CamCardClone' from project 'CamCardClone')
+    cd /Users/chuzu/camcard
+    builtin-swiftStdLibTool --copy --verbose --sign - --scan-executable /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Products/Debug-iphonesimulator/CamCardClone.app/CamCardClone.debug.dylib --scan-folder /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Products/Debug-iphonesimulator/CamCardClone.app/Frameworks --scan-folder /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Products/Debug-iphonesimulator/CamCardClone.app/PlugIns --scan-folder /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Products/Debug-iphonesimulator/CamCardClone.app/SystemExtensions --scan-folder /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Products/Debug-iphonesimulator/CamCardClone.app/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Products/Debug-iphonesimulator/CamCardClone.app/Frameworks --strip-bitcode --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Intermediates.noindex/CamCardClone.build/Debug-iphonesimulator/CamCardClone.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+
+ProcessInfoPlistFile /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Products/Debug-iphonesimulator/CamCardClone.app/PlugIns/CamCardCloneTests.xctest/Info.plist /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Intermediates.noindex/CamCardClone.build/Debug-iphonesimulator/CamCardCloneTests.build/empty-CamCardCloneTests.plist (in target 'CamCardCloneTests' from project 'CamCardClone')
+    cd /Users/chuzu/camcard
+    builtin-infoPlistUtility /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Intermediates.noindex/CamCardClone.build/Debug-iphonesimulator/CamCardCloneTests.build/empty-CamCardCloneTests.plist -producttype com.apple.product-type.bundle.unit-test -expandbuildsettings -format binary -platform iphonesimulator -o /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Products/Debug-iphonesimulator/CamCardClone.app/PlugIns/CamCardCloneTests.xctest/Info.plist
+
+CopySwiftLibs /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Products/Debug-iphonesimulator/CamCardClone.app/PlugIns/CamCardCloneTests.xctest (in target 'CamCardCloneTests' from project 'CamCardClone')
+    cd /Users/chuzu/camcard
+    builtin-swiftStdLibTool --copy --verbose --sign - --scan-executable /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Products/Debug-iphonesimulator/CamCardClone.app/PlugIns/CamCardCloneTests.xctest/CamCardCloneTests --scan-folder /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Products/Debug-iphonesimulator/CamCardClone.app/PlugIns/CamCardCloneTests.xctest/Frameworks --scan-folder /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Products/Debug-iphonesimulator/CamCardClone.app/PlugIns/CamCardCloneTests.xctest/PlugIns --scan-folder /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Products/Debug-iphonesimulator/CamCardClone.app/PlugIns/CamCardCloneTests.xctest/SystemExtensions --scan-folder /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Products/Debug-iphonesimulator/CamCardClone.app/PlugIns/CamCardCloneTests.xctest/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Products/Debug-iphonesimulator/CamCardClone.app/PlugIns/CamCardCloneTests.xctest/Frameworks --strip-bitcode --scan-executable /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libXCTestSwiftSupport.dylib --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Intermediates.noindex/CamCardClone.build/Debug-iphonesimulator/CamCardCloneTests.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+
+CodeSign /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Products/Debug-iphonesimulator/CamCardClone.app/CamCardClone.debug.dylib (in target 'CamCardClone' from project 'CamCardClone')
+    cd /Users/chuzu/camcard
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Products/Debug-iphonesimulator/CamCardClone.app/CamCardClone.debug.dylib
+/Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Products/Debug-iphonesimulator/CamCardClone.app/CamCardClone.debug.dylib: replacing existing signature
+
+CodeSign /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Products/Debug-iphonesimulator/CamCardClone.app/__preview.dylib (in target 'CamCardClone' from project 'CamCardClone')
+    cd /Users/chuzu/camcard
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Products/Debug-iphonesimulator/CamCardClone.app/__preview.dylib
+/Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Products/Debug-iphonesimulator/CamCardClone.app/__preview.dylib: replacing existing signature
+
+CodeSign /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Products/Debug-iphonesimulator/CamCardClone.app (in target 'CamCardClone' from project 'CamCardClone')
+    cd /Users/chuzu/camcard
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Products/Debug-iphonesimulator/CamCardClone.app
+/Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Products/Debug-iphonesimulator/CamCardClone.app: replacing existing signature
+
+Validate /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Products/Debug-iphonesimulator/CamCardClone.app (in target 'CamCardClone' from project 'CamCardClone')
+    cd /Users/chuzu/camcard
+    builtin-validationUtility /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Products/Debug-iphonesimulator/CamCardClone.app -shallow-bundle -infoplist-subpath Info.plist
+
+PruneExplicitPrecompiledModules /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /Users/chuzu/Library/Developer/Xcode/DerivedData/SDKExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Build/Intermediates.noindex/ExplicitPrecompiledModules
+
+2026-11-01 14:32:32.352175+0800 CamCardClone[20479:146354] [Assert] _dictationButton not yet initialized when setting up for the large content viewer.
+2026-11-01 14:32:32.462518+0800 CamCardClone[20479:146354] [XPCErrors] non-launching port is incompatible with service identifier "com.apple.PointerUI.pointeruid.default-service"
+2026-11-01 14:32:32.464636+0800 CamCardClone[20479:146354] [API] cannot add handler to 0 from 0 - dropping
+2026-11-01 14:32:32.465256+0800 CamCardClone[20479:146354] [API] cannot add handler to 0 from 0 - dropping
+Test Suite 'Selected tests' started at 2026-11-01 14:32:32.897.
+Test Suite 'CamCardCloneTests.xctest' started at 2026-11-01 14:32:32.898.
+Test Suite 'UISnapshotGoldenTests' started at 2026-11-01 14:32:32.898.
+Test Case '-[CamCardCloneTests.UISnapshotGoldenTests testCardRowViewMatchesBaseline]' started.
+IOSurfaceClientSetSurfaceNotify failed e00002c7
+/Users/chuzu/camcard/CamCardCloneTests/UISnapshotGoldenTests.swift:25: error: -[CamCardCloneTests.UISnapshotGoldenTests testCardRowViewMatchesBaseline] : failed - 已录制基线 card-row.png，重跑一次以执行比对（录制模式不应作为最终结论）
+Test Case '-[CamCardCloneTests.UISnapshotGoldenTests testCardRowViewMatchesBaseline]' failed (0.942 seconds).
+Test Case '-[CamCardCloneTests.UISnapshotGoldenTests testEmptyCardHolderViewMatchesBaseline]' started.
+/Users/chuzu/camcard/CamCardCloneTests/UISnapshotGoldenTests.swift:43: error: -[CamCardCloneTests.UISnapshotGoldenTests testEmptyCardHolderViewMatchesBaseline] : failed - 已录制基线 empty-card-holder.png，重跑一次以执行比对（录制模式不应作为最终结论）
+Test Case '-[CamCardCloneTests.UISnapshotGoldenTests testEmptyCardHolderViewMatchesBaseline]' failed (0.033 seconds).
+Test Case '-[CamCardCloneTests.UISnapshotGoldenTests testTagChipsViewMatchesBaseline]' started.
+/Users/chuzu/camcard/CamCardCloneTests/UISnapshotGoldenTests.swift:34: error: -[CamCardCloneTests.UISnapshotGoldenTests testTagChipsViewMatchesBaseline] : failed - 已录制基线 tag-chips.png，重跑一次以执行比对（录制模式不应作为最终结论）
+Test Case '-[CamCardCloneTests.UISnapshotGoldenTests testTagChipsViewMatchesBaseline]' failed (0.048 seconds).
+Test Suite 'UISnapshotGoldenTests' failed at 2026-11-01 14:32:33.923.
+	 Executed 3 tests, with 3 failures (0 unexpected) in 1.023 (1.026) seconds
+Test Suite 'CamCardCloneTests.xctest' failed at 2026-11-01 14:32:33.923.
+	 Executed 3 tests, with 3 failures (0 unexpected) in 1.023 (1.026) seconds
+Test Suite 'Selected tests' failed at 2026-11-01 14:32:33.924.
+	 Executed 3 tests, with 3 failures (0 unexpected) in 1.023 (1.026) seconds
+2026-11-01 14:42:34.237 xcodebuild[20180:146377]  IDETestOperationsObserverDebug: Failure collecting diagnostics from simulator: Timed out after 600.0 seconds while waiting for a response from the invoked process
+2026-11-01 14:42:34.258 xcodebuild[20180:144008] [MT] IDETestOperationsObserverDebug: 636.642 elapsed -- Testing started completed.
+2026-11-01 14:42:34.258 xcodebuild[20180:144008] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-11-01 14:42:34.258 xcodebuild[20180:144008] [MT] IDETestOperationsObserverDebug: 636.642 sec, +636.642 sec -- end
+
+Test session results, code coverage, and logs:
+	/Users/chuzu/Library/Developer/Xcode/DerivedData/CamCardClone-bqhhspusxktcgjfbdpqivtkybzsi/Logs/Test/Test-CamCardClone-2026.11.01_14-31-57-+0800.xcresult
+
+Failing tests:
+	UISnapshotGoldenTests.testCardRowViewMatchesBaseline()
+	UISnapshotGoldenTests.testEmptyCardHolderViewMatchesBaseline()
+	UISnapshotGoldenTests.testTagChipsViewMatchesBaseline()
+
+** TEST FAILED **
+
+Testing started
