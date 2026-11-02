@@ -4,7 +4,7 @@
 
 本手册覆盖拿到 Mac 之后从环境就绪到归档（6.5）的全部步骤，以及每一步要产出的证据。
 
-**执行状态（最近更新 2026-11-01）**：已在租用的物理 Mac 上执行完 §1 环境就绪、§2 本机编译与全量单测、§3 UI 基线录制与真实比对、§5.1 的 OCR 原文导出与字段级准确率量化。**实际环境**：macOS 27.0.1（Build 26A434）/ arm64 / Xcode 27.0（Build 27A266a）/ iOS 27.0 模拟器 runtime 24A434，**选定机型 `iPhone 17`**（即各命令里的 `<你的机型>` = `iPhone 17`）。结果：`Executed 344 tests, with 5 tests skipped and 0 failures`、`** TEST SUCCEEDED **`；UI 基线 3 个、字段级准确率整体「正确」51.9% / 误报率 3.8%。推 CI 后发现基线跨环境误报（`iOS CI` run #61 三条 `mismatched`），已按 §3.3 预案改为带 iOS 主版本的基线文件名，`iOS CI` run #62 双作业全绿。日志存于 `docs/evidence/mac-2026-11-01/`。租机**只有国内网络、不提供外网 / 梯子**，代码与产物经网盘 / QQ 往返，**Mac 端不执行 `git push`**；机器按需租用、用完即停，故 §4 的 M01–M36 人工验收与 §5.2 的 T06 `isReliable()` 阈值标定**仍未执行**——这两节的「预期」仍属待验证。**2026-11-01 追加**：租机上能装到的 Xcode 27.2（Build 27B52）缺 `Simulator.app`，模拟器窗口打不开、点击式人工验收无法进行，故改走**无头 XCUITest**（见 §4.4）——`CamCardCloneUITests` 已接进 `iOS CI` 的 `ui` 作业，`iOS CI` run #68（commit `5295a66`）三作业全绿，其中相册导入的两条端到端用例通过。这只是 M01–M36 里**适合自动化**的那部分；视觉呈现、拖拽手感与真实权限弹窗仍须人工，相机取景仍须真机。
+**执行状态（最近更新 2026-11-02）**：已在租用的物理 Mac 上执行完 §1 环境就绪、§2 本机编译与全量单测、§3 UI 基线录制与真实比对、§5.1 的 OCR 原文导出与字段级准确率量化。**实际环境**：macOS 27.0.1（Build 26A434）/ arm64 / Xcode 27.0（Build 27A266a）/ iOS 27.0 模拟器 runtime 24A434，**选定机型 `iPhone 17`**（即各命令里的 `<你的机型>` = `iPhone 17`）。结果：`Executed 344 tests, with 5 tests skipped and 0 failures`、`** TEST SUCCEEDED **`；UI 基线 3 个、字段级准确率整体「正确」51.9% / 误报率 3.8%。推 CI 后发现基线跨环境误报（`iOS CI` run #61 三条 `mismatched`），已按 §3.3 预案改为带 iOS 主版本的基线文件名，`iOS CI` run #62 双作业全绿。日志存于 `docs/evidence/mac-2026-11-01/`。租机**只有国内网络、不提供外网 / 梯子**，代码与产物经网盘 / QQ 往返，**Mac 端不执行 `git push`**；机器按需租用、用完即停，故 §4 的 M01–M36 人工验收与 §5.2 的 T06 `isReliable()` 阈值标定**仍未执行**——这两节的「预期」仍属待验证。**2026-11-01 追加**：租机上能装到的 Xcode 27.2（Build 27B52）缺 `Simulator.app`，模拟器窗口打不开、点击式人工验收无法进行，故改走**无头 XCUITest**（见 §4.4）——`CamCardCloneUITests` 已接进 `iOS CI` 的 `ui` 作业，`iOS CI` run #68（commit `5295a66`）三作业全绿，其中相册导入的两条端到端用例通过。这只是 M01–M36 里**适合自动化**的那部分；视觉呈现、拖拽手感与真实权限弹窗仍须人工，相机取景仍须真机。**2026-11-02 追加**：新增变更 `fix-field-classification-errors`（解析器三类错例修复——地址 / 公司特征竞争、无标签号码按形态 + 空槽位落位、职位双路；字段级准确率 51.9% → 57.8%、误报率 3.8% → 1.9%，`iOS CI` run #70 / #71 / #72 三作业全绿）。此变更后 `openspec/specs/` **仍未生成**、两个变更各有未勾的必需验证项，故 §6 的**归档仍不执行**——归档前置条件与阻塞项固化在 §6.0。
 
 ---
 
@@ -303,15 +303,37 @@ xcodebuild test -project CamCardClone.xcodeproj -scheme CamCardClone \
 
 > **本节在 Windows 上执行**，不要在 Mac 上做。Mac 上收到的包是 `git archive` 产物、不含 `.git`，敲 `git` 会直接报「不是 git 仓库」（见 §3.3 与 §8 第 2 条）。
 
-只有前面全部绿了才做。
+### 6.0 当前不满足归档条件（2026-11-02 核定）
+
+`openspec/specs/` 目录**尚不存在**，说明至今没有任何变更被归档。归档门 = 该变更的**必需验证项全部有实际证据**（`PROJECT_RULES.md` 第 10 条：阻塞的检查保持未勾选）。两个变更现在都还有未勾项，因此**保持不归档**，等物理 iPhone 与完整 GUI 环境就绪后再执行本节。下表是「哪些项必须真机 / 当前证据到哪一步 / 通过判据」的固化清单。
+
+| # | 阻塞项 | 属于 | 必须真机 / GUI？ | 当前证据到哪一步 | 通过判据 |
+| --- | --- | --- | --- | --- | --- |
+| 1 | 3.1「拍摄」分支（T04） | `replicate-camcard-core-slice` | **是**（模拟器无摄像头） | 「相册导入」分支已在 CI 端到端跑通（`iOS CI` run #68）；真实取景与快门**无证据** | 真 iPhone 拍到照片 → 检测识别走通 |
+| 2 | 5.1 界面交互人工验收（M23–M29） | `replicate-camcard-core-slice` | **是**（需 `Simulator.app`；租机 Xcode 27.2 缺该 GUI 前端） | 逻辑层三段已完成；界面仅被无头 XCUITest 覆盖「行为」而非「观感」 | 人工逐条走完 M23–M29 并回填 |
+| 3 | 6.1 全量回归 T01–T20 100% 通过 | `replicate-camcard-core-slice` | **部分**（T02 / T04 / T05 需真机） | 回归矩阵已编制，逻辑层断言由 CI 通过；人工与真实数据部分**未完成** | T01–T20 每一项都有实际证据 |
+| 4 | 6.4 M01–M36 人工验收 | `replicate-camcard-core-slice` | **是**（视觉呈现 / 拖拽手感 / 真实权限弹窗） | 适合自动化的 M 项已无头跑通（run #68），视觉与手感项**未做** | M01–M36 逐条回填结论与证据路径 |
+| 5 | 4.3 M18 真实照片复核 + T06 阈值标定 | `fix-field-classification-errors` | **是**（缺物理设备与实物名片） | 合成语料上整体「正确」57.8% / 误报率 1.9%；`testcards/real-photos/` **不存在** | 实物名片照片上跑检测与抽取，并据实标定 `isReliable()` 阈值 |
+
+> 诚实口径：第 3 项「6.1 全量回归」与第 4 项「6.4 人工验收」涵盖面重叠——6.1 的「逻辑层有断言」不构成通过，必须等人工与真实数据两部分补齐。**不要为了能归档而把 6.1 / 6.4 / 4.3 勾上。**
+
+### 6.1 归档顺序（不可颠倒）
+
+1. 先归档 `replicate-camcard-core-slice`——把 app-shell / card-library / card-holder / card-scanner 四个 ADDED 能力并入 `openspec/specs/`；
+2. 再归档 `fix-field-classification-errors`——它是对 `card-scanner` 追加三条新需求（无标签行归属裁决 / 无标签号码分类 / 职位识别）的增量变更。
+
+理由：`fix-field-classification-errors` 的 delta 以 `card-scanner` 基础规格为前提，而该基础规格由 `replicate-camcard-core-slice` 归档时才生成；若颠倒顺序，`card-scanner` 会先落成一份只含解析器新增需求的残缺规格，语义与既定顺序相反。
+
+### 6.2 满足条件后执行
 
 ```bash
 npm run spec:validate      # 预期 1 passed, 0 failed
 git status --short         # 工作区必须干净
 openspec archive replicate-camcard-core-slice
+openspec archive fix-field-classification-errors
 ```
 
-归档前先把 `openspec/changes/replicate-camcard-core-slice/tasks.md` 的 6.1 / 6.4 按实际结果勾上。归档后四个 ADDED 能力（app-shell / card-library / card-holder / card-scanner）合并为主规格。
+归档前把 `openspec/changes/replicate-camcard-core-slice/tasks.md` 的 6.1 / 6.4 与 `openspec/changes/fix-field-classification-errors/tasks.md` 的 4.3 按**实际结果**勾选——未通过就保持未勾，不为了归档而勾。归档后四个能力合并为主规格。
 
 ---
 
