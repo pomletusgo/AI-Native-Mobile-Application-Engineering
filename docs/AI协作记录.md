@@ -39,6 +39,8 @@
 | Week 6 | 在 run #61 转红后拍板按手册 §3.3 预案把「基线文件名带上 iOS 主版本」 | run #61 的三条 `mismatched` 已实测证明是跨环境渲染漂移而非界面回归；按预案收口以恢复 CI 稳定，不擅自放宽容差、也不把这三条测试跳过不管 |
 | Week 6 | 在租机 Xcode 27.2 确认缺 `Simulator.app` 后，拍板改走「无头 XCUITest」并在 CI 上跑，而不是继续找 GUI 版 Xcode | 环境给不出可点击的模拟器窗口，但 M01–M36 里适合自动化的 UI 行为不应因此整批挂空；先把它们变成可复跑的断言，剩下必须人眼与真机的部分另行处理 |
 | Week 6 | 在「有 iPhone 但 Mac 是远程租的、插不上」时，拍板在租机上做「相册导入」端到端用例 | 相机取景类条目（M04 / M34）确实跨不过去，但相册导入不经摄像头，同一台租机就能闭环，先把能做的做完 |
+| Week 6 | 在解析器修复的 D2 上拍板「**不动 `testcards/ground_truth.json` 任何值，把 TC07 / TC21 记为「数据集标注内部不一致」的残留**」 | 数据集是字段级评价的基准，改它等于改考题；宁可如实留下 2 条无法归零的 `invented`，也不为了让「归零」这个指标好看而篡改真值 |
+| Week 6 | 在「先补单测再一起推」与「先推规则实现再补单测」之间，拍板**先补单测**再一次性推送 | 让同一轮 CI 同时验证编译、新旧单测与字段级报告，避免「代码先落地、断言后补」造成的假绿窗口 |
 
 人与 AI 的分工：**路线、取舍与「做哪一项」由人决定**；AI 按 `tasks.md` 逐项实现、跑 CI、回填台账。凡涉及规格解释的取舍（例如手动调整框是否豁免最小面积），AI 先说明理由再落地，并同步写进 `docs/验证报告.md` 与 `tasks.md`，不静默改动。
 
@@ -313,6 +315,18 @@
 - **修正**：① `b7de580` 删除 `emptyCardHolder` / `scannerEntry` / `scanReview` / `tagManagement` 四处**容器级** `accessibilityIdentifier`（SwiftUI 会把容器标识符下发并覆盖子元素自己的标识符，按钮因此定位不到）；② `3f93fb8` 把 `isReliable()` 的长宽比判据从归一化坐标改为**像素空间**（`aspectRatio(in imageSize:)`）；③ `5295a66` 把相册选择器的导航栏断言由写死中文「照片」改为多语言 `NSPredicate`（CI runner 为 `en_US`，标题是 `"Photos"`），并新增 `dumpHierarchy(of:)` 与 workflow 的 `UIPROBE` 分块注解，作为下一轮万一还不过时的失败现场采集通道。
 - **证据**：run #65（`118a65c`，`ui` 作业 failure）、run #66（`b7de580`，`ui` 作业 failure）、run #67（`3f93fb8`，语料报告已转为 `共30张 detected=30 unreliable=0 notFound=0`，`ui` 作业仍 failure）、run #68（`5295a66`，`Build & Test` / `OpenSpec Validate` / `UI Tests` **三作业全部 success**，`testM04_相册导入取到照片并进入检测识别` 与 `testM18M19_…` 通过）。失败明细均取自 `check-runs/<id>/annotations`（免登录）。**口径声明**：run #68 证明的是「相册导入 → 检测识别 → 逐字段改正 → 确认保存 → 详情核对」这条链路在真实 App 进程与手势下走得通；它**不能**替代 M01–M36 的人工视觉验收，也不能覆盖相机取景（模拟器无摄像头）。
 
+### 第 24 轮 — Week 6：解析器三类错例的 SDD 修复与字段级准确率前后对比
+
+- **提示词要点**
+  - 限定上下文：以 2026-11-01 基线实测（51.9% / 误报 3.8%）暴露的三类错例为唯一输入——字段归属错（公司名误入地址 / 姓名）、无标签号码分类、职位召回缺失；先读 `docs/能力边界分析.md` 与 `testcards/ground_truth.json`，只改 `BusinessCardFieldParser.swift` 与 `BusinessCardFieldParserTests.swift`，并同步规格与台账。
+  - 目标：按 SDD 流程**先出变更提案再改代码**——新建 `openspec/changes/fix-field-classification-errors/`（`proposal.md` / `design.md` / `spec.md` / `tasks.md`），提案合入后再实现三处规则，并给规则补足单测，最后用同一套字段级评价口径取「改前 / 改后」对照。
+  - 禁止项：**不得改动 `testcards/ground_truth.json` 任何一个值**（数据集是评价基准，改它等于改考题）；不改字段级评价的判定口径与 9 个评价字段的集合；不得违反对已确定的「不得改动清单」的约定；不做未在提案里写明的越界改动。
+  - 证据要求：给出提案与实现的 run 号、`check-runs/<id>/annotations` 的读回原文；字段级报告要「改前 / 改后」两个数都可追（改前取自 Mac 端 `mac-field-accuracy.log`，改后取自 CI 注解）；「未达成的目标」要如实写，不粉饰。
+- **AI 输出**：`04f8082` 合入变更提案（`proposal.md` 三类错因归因、`design.md` D1–D5、`spec.md` 5 个新 Scenario、`tasks.md` 四组），`iOS CI` run #70 的 `OpenSpec Validate` success；`2263a2e` 落盘三处规则改写（`addressOrCompanyKey(for:)` 地址 / 公司特征竞争、`phoneTargetWithoutLabel(in:fields:)` 形态优先 + 空槽位落位、`isJobTitleLike` / `isCJKJobTitleLike` / `isLatinJobTitleLike` 职位双路）并把 `BusinessCardFieldParserTests` 由 22 补到 41 个方法；`d74450e` 给 `FieldExtractionEvaluatorTests` 的报告逐行加 `FIELDRPT` 前缀、在 workflow 内 `grep "^FIELDRPT"` 后按 8 行分块发 `::notice::`，使改后数值可经免登录端点读回。
+- **AI 的错误**：① `design.md` 的 D2 最初把「号码带 `+1` 区号且位数不足 → 固话」写成规则，只核对了 TC07 / TC21，**没有回看 TC02 / 06 / 10 / 13 / 17 的真值其实标的是 mobile**，照此实现会把本属手机的无标签号码错判成固话；② `phoneTargetWithoutLabel` 早稿对「形态判不出」的情况兜底 `return (.mobile, value)`，导致 TC23 的固话 / 传真漏抽；③ `jobTitleKeywords` 早稿漏了「主任」，是靠 `git diff` 逐行复核才发现并补回。
+- **修正**：① D2 改为「形态能判出时优先；目标槽位已占用则返回 `nil`（宁漏不假）；形态判不出时按 mobile → phone → fax 第一个空槽位落位」，并在 `design.md` 记明「TC07 / TC21 的 `ground_truth.json` 把无标签号码标为 phone、而规则按形态判为 mobile，属**数据集标注内部不一致**」——经人工决策选择「**不动数据，记残留**」，不为了让两个数好看去改考题（该决策已写入本记录第 1 节与 `docs/能力边界分析.md` §3.5）；② 去掉 `(.mobile, value)` 兜底，改走空槽位落位，TC23 修复；③ 补回「主任」。
+- **证据**：run #70（`04f8082`，提案，`OpenSpec Validate` success）、run #71（`2263a2e`，规则与 19 个新单测，因随即被新提交取代而 `cancelled`，但该次运行内 `OpenSpec Validate` 与 `Build & Test (iOS Simulator)` 两作业已 success）、run #72（`d74450e`，`OpenSpec Validate` / `Build & Test (iOS Simulator)` / `UI Tests (XCUITest, headless)` **三作业全绿**）。**字段级准确率对照**（同一口径、同一 30 张语料 / 270 字段）：整体「正确」51.9%（140/270）→ **57.8%（156/270）**，误报率 3.8%（4/105）→ **1.9%（2/105）**，错误明细 29 → **11** 条；职位 56.7% → **93.3%**、公司 76.7% → **83.3%**、地址 33.3% → 36.7%、固话 36.7% → 40.0%、传真 10.0% → 13.3%。改后报告由 `check-runs/125116046722/annotations` 读回，落盘为 `docs/evidence/ci-2026-11-02/field-accuracy-report.md`。**未达成项如实记录**：提案设想的「`invented` 归零」**未达成**（4 → 2），剩余 2 条恰为已授权的 TC07 / TC21「数据集标注内部不一致」残留；无标签号码类错误由 6 降到 4（未归零）；剩余 11 条中 6 条为 OCR 噪声（TC12 / TC13 / TC15 / TC20 / TC26）、1 条为能力边界（TC28 `Apple` 无公司后缀，按 D1 刻意不下判），均已逐条归因，不记为规则缺陷。「字段归属错」与「职位召回缺失」两类错例已归零。
+
 ## 3. AI 犯过的错误汇总
 
 | # | 错误 | 触发的 CI 运行 | 修正 |
@@ -339,8 +353,11 @@
 | 20 | 给四个 SwiftUI 视图加了**容器级** `accessibilityIdentifier`，其标识符下发并覆盖子元素自己的标识符 | run #65（`ui` 作业，`emptyStateScanButton` 三处定位不到） | 删除容器级标识符（`b7de580`），按钮标识符恢复可见；run #68 复绿 |
 | 21 | `isReliable()` 用**归一化**坐标算长宽比：横版照片（1400×900）把 1.667 的卡面压成 `1.667 × 900/1400 = 1.072`，低于下限 1.15 被系统性误杀 | run #66 / #67（`testDiagnoseCorpusDetection` 报告 30 张全 `unreliable`） | 改在**像素空间**计算（`aspectRatio(in imageSize:)`，`3f93fb8`）；run #67 转为 `共30张 detected=30 unreliable=0 notFound=0` |
 | 22 | UI 用例把相册选择器的导航栏标题写死为中文「照片」，而 CI runner 的语言环境是 `en_US`（标题为 `"Photos"`） | run #66 / #67（`ui` 作业，`ScanImportUITests.swift:92` 相册选择器未打开） | 改为与语言无关的多语言 `NSPredicate` 匹配（`5295a66`）；run #68 复绿 |
+| 23 | `design.md` 的 D2 只核对了 TC07 / TC21 就写成「号码带 `+1` 区号且位数不足 → 固话」，**没回看 TC02 / 06 / 10 / 13 / 17 的真值标的是 mobile** | 提案阶段人工复核时发现（未进 CI） | D2 改为「形态能判出时优先、目标槽位已占用则返回 `nil`（宁漏不假）、形态判不出时按 mobile → phone → fax 第一个空槽位落位」；TC07 / TC21 按人工决策「不动数据，记残留」如实记录为数据集标注内部不一致（`04f8082` / `2263a2e`） |
+| 24 | `phoneTargetWithoutLabel` 早稿对「形态判不出」的情况兜底 `return (.mobile, value)` | 改规则前用同一语料预测结果时发现 | 去掉该兜底，改走空槽位落位，TC23 的固话 / 传真不再漏抽（`2263a2e`） |
+| 25 | `jobTitleKeywords` 早稿漏了通用职务词「主任」，会漏判「销售部主任」这类职位 | 提交前用 `git diff` 逐行复核时发现 | 补回「主任」（`2263a2e`） |
 
-这些错误都由 CI、命令退出码或提交前的自查**当场暴露**，没有一条是靠人工肉眼发现后悄悄改掉的；修正都单独提交，台账里保留「哪个 run 因何失败」。第 13 条属提交前自查发现，未产生失败运行；第 14–17 条发生在 2026-11-01 的 Mac 本机验证与产物往返环节，由命令回显与指纹比对当场暴露，未进 CI（Mac 端不入库、不回传 git）；第 18 条由 CI 直接暴露（run #61 转红），第 19 条属助手的口头结论出错、由复核 `check-runs/<id>/annotations` 的原始内容当场纠正。第 20–22 条是 2026-11-01 把无头 XCUITest 接进 CI 后，由 run #65 / #66 / #67 连续三次转红逐个暴露的——第 20、22 条属测试接入侧的缺陷（容器标识符遮蔽、选择器标题语言差），第 21 条则是**被测试照出来的实现缺陷**：`isReliable()` 的几何判据此前有 4 个单测覆盖，但它们全部用竖版归一化坐标，**没有一条覆盖横版照片**这条路径，因此缺陷一直没被单测拦住。
+这些错误都由 CI、命令退出码或提交前的自查**当场暴露**，没有一条是靠人工肉眼发现后悄悄改掉的；修正都单独提交，台账里保留「哪个 run 因何失败」。第 13 条属提交前自查发现，未产生失败运行；第 14–17 条发生在 2026-11-01 的 Mac 本机验证与产物往返环节，由命令回显与指纹比对当场暴露，未进 CI（Mac 端不入库、不回传 git）；第 18 条由 CI 直接暴露（run #61 转红），第 19 条属助手的口头结论出错、由复核 `check-runs/<id>/annotations` 的原始内容当场纠正。第 20–22 条是 2026-11-01 把无头 XCUITest 接进 CI 后，由 run #65 / #66 / #67 连续三次转红逐个暴露的——第 20、22 条属测试接入侧的缺陷（容器标识符遮蔽、选择器标题语言差），第 21 条则是**被测试照出来的实现缺陷**：`isReliable()` 的几何判据此前有 4 个单测覆盖，但它们全部用竖版归一化坐标，**没有一条覆盖横版照片**这条路径，因此缺陷一直没被单测拦住。第 23–25 条发生在 2026-11-02 的解析器修复轮：第 23 条属**规格设计阶段的推理缺陷**（只看了两个样例就外推出一条会误伤其它样例的规则），由人工复核真值数据集时拦下；第 24、25 条是实现侧的疏漏，分别由「先用同一语料做规则预测」与「提交前 `git diff` 逐行复核」暴露。三条都未进 CI 失败，均以真实语料或真值数据当场校验，未靠估计。
 
 ## 4. 实际执行的命令与结果
 
@@ -350,8 +367,10 @@
 | `git push origin main` | 退出码 0，触发 `iOS CI`；本文件编写前最近的 UI 测试相关三次为 run #66（commit `b7de580`，`ui` 作业 failure：相册选择器未打开）、run #67（commit `3f93fb8`，语料报告已转 30/30 `detected`，`ui` 作业仍 failure）与 run #68（commit `5295a66`，三作业全绿）；再往前为 run #61（commit `b765baa`，因三条 UI 基线跨环境 `mismatched` 转红）、run #62（commit `7cdcc34`，success）与 run #63（commit `d1f4b08`，台账回填的文档提交，success） |
 | `npm run spec:validate`（即 `openspec validate --all --strict`） | 退出码 0，`1 passed, 0 failed` |
 | `npx openspec@1.13.2 validate --all --strict` | 退出码 1（版本不存在），已改用上一条 |
-| 经 GitHub 公开 API 读取 `actions/runs` 与 `jobs` | run #2 / #4 / #6 / #9 / #10 / #14 / #16 / #20 / #21 / #22 / #25 / #27 / #28 / #30 / #31 / #33 / #34 / #36 / #40 / #46 / #48 / #49 / #50 / #53 / #54 / #55 / #56 / #57 / #58 / #62 / #63 的 `OpenSpec Validate` 与 `Build & Test (iOS Simulator)` 均 success；run #61 的 `Build & Test` 为 failure（只算失败，不计入成功清单） |
-| 经 GitHub 公开 API 读取 `check-runs/<check_run_id>/annotations` | 退出码 0（无需登录）：读到 run #61 的三条 `error: ... UISnapshotGoldenTests.swift:25/34/43 : failed - 截图与基线不一致 ...` 与 `Process completed with exit code 65.`，据此定位失败步骤与逐条差异数值；run #65 读到 `CardHolderUITests.swift:21/30/46` 三处 `Failed to tap "emptyStateScanButton"` 原文；run #66 / #67 读到 `ScanImportUITests.swift:92 … 相册选择器未打开`；run #67 / #68 读到语料自检报告 `DETECTCORPUS` 共 4 块（`part-aa`…`part-ad`，单条注解约 4000 字符即被截断，故 workflow 内用 `split -l 8` 分块） |
+| 经 GitHub 公开 API 读取 `actions/runs` 与 `jobs` | run #2 / #4 / #6 / #9 / #10 / #14 / #16 / #20 / #21 / #22 / #25 / #27 / #28 / #30 / #31 / #33 / #34 / #36 / #40 / #46 / #48 / #49 / #50 / #53 / #54 / #55 / #56 / #57 / #58 / #62 / #63 / #70 / #72 的 `OpenSpec Validate` 与 `Build & Test (iOS Simulator)` 均 success；run #61 的 `Build & Test` 为 failure（只算失败，不计入成功清单）；run #71 因随即被新提交取代而 `cancelled`，但该次运行内两作业已 success，故不计入失败；run #72 的 `UI Tests (XCUITest, headless)` 亦为 success |
+| 经 GitHub 公开 API 读取 `check-runs/<check_run_id>/annotations` | 退出码 0（无需登录）：读到 run #61 的三条 `error: ... UISnapshotGoldenTests.swift:25/34/43 : failed - 截图与基线不一致 ...` 与 `Process completed with exit code 65.`，据此定位失败步骤与逐条差异数值；run #65 读到 `CardHolderUITests.swift:21/30/46` 三处 `Failed to tap "emptyStateScanButton"` 原文；run #66 / #67 读到 `ScanImportUITests.swift:92 … 相册选择器未打开`；run #67 / #68 读到语料自检报告 `DETECTCORPUS` 共 4 块（`part-aa`…`part-ad`，单条注解约 4000 字符即被截断，故 workflow 内用 `split -l 8` 分块）；run #72 读到改后字段级报告 `FIELDRPT`，落盘为 `docs/evidence/ci-2026-11-02/field-accuracy-report.md` |
+| `Invoke-RestMethod https://api.github.com/repos/<owner>/<repo>/...`（Windows 本机，无 `gh` CLI） | 退出码 0：先用 `git rev-parse <短SHA>` 取完整 SHA，再查 `actions/runs?head_sha=<full-sha>` 定位 run 号（**短 SHA 查不到**，须传完整 SHA）；查得提案 `04f8082` = run #70、规则与单测 `2263a2e` = run #71、注解通道 `d74450e` = run #72 |
+| `git -c user.name=… -c user.email=… commit` + `git push origin main`（本机，2026-11-02） | 退出码 0，仅有 LF→CRLF 警告，触发 `iOS CI` run #70 / #71 / #72 |
 | `git mv testcards/ui-baselines/{card-row,tag-chips,empty-card-holder}.png` → 各加 `-ios27` 后缀 | 退出码 0，`git status` 显示 `R`（rename，`similarity 100%`），证明基线**内容未变、仅改名** |
 | `xcodebuild ... build-for-testing` / `Cmd+U`（Windows 本机） | **未执行**：本机为 Windows，无 macOS 与 Xcode，故不存在 Windows 本机的编译与测试记录 |
 | `xcodebuild ... test-without-building`（Mac 本机，2026-11-01） | 退出码 0：`Executed 344 tests, with 5 tests skipped and 0 failures (0 unexpected)`、`** TEST SUCCEEDED **`（日志 `mac-local-tests.log`，SHA256 `4e09c97d…`）；Mac 端不回传 git |
