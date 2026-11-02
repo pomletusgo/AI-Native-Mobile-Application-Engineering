@@ -129,6 +129,25 @@ jobs:
             echo "::notice::$(basename "$part") $escaped"
           done
 
+      # 字段级准确率报告（FieldExtractionEvaluatorTests）同样只出现在日志里，日志端点需授权（实测 403）。
+      # 报告以 `FIELDRPT` 前缀逐行输出，这里按 8 行一条分块提成 notice 注解，
+      # 使前后对比的数值与错误明细都能通过公开端点读回。
+      - name: Surface field accuracy report as annotations
+        if: always()
+        run: |
+          [ -f unit-tests.log ] || exit 0
+          grep "^FIELDRPT" unit-tests.log > field-report-lines.txt || true
+          echo "字段级报告行数：$(wc -l < field-report-lines.txt)"
+          if [ ! -s field-report-lines.txt ]; then
+            echo "::warning::单测日志里没有 FIELDRPT 行"
+            exit 0
+          fi
+          split -l 8 field-report-lines.txt field-report-part-
+          for part in field-report-part-*; do
+            escaped=$(sed -e 's/%/%25/g' "$part" | awk '{ printf "%s%%0A", $0 }')
+            echo "::notice::$(basename "$part") $escaped"
+          done
+
       # 日志归档需要仓库权限才能下载；这里把关键错误行提升为注解（annotation），
       # 使失败原因可以通过公开 API 读到，无需登录即可排查。
       - name: Surface errors as annotations

@@ -179,7 +179,12 @@ final class FieldExtractionEvaluatorTests: XCTestCase {
         }
 
         let summary = FieldExtractionEvaluator.summarize(results)
-        print(FieldExtractionEvaluator.report(summary: summary, cards: results))
+        // 报告在 CI 上只能经免登录的注解端点读回，因此逐行加 `FIELDRPT` 前缀，
+        // 便于 `grep` 后分块提成 `::notice::`（与 `CardBoundaryTests` 的 `DETECTCORPUS` 同一做法）。
+        let report = FieldExtractionEvaluator.report(summary: summary, cards: results)
+        for line in report.split(separator: "\n", omittingEmptySubsequences: false) {
+            print("FIELDRPT \(line)")
+        }
         XCTAssertEqual(results.count, cards.count, "OCR 原文不完整，无法统计全部 30 张")
     }
 
