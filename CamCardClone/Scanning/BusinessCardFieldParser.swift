@@ -165,13 +165,13 @@ extension ExtractedCardFields {
 /// 2. 网址（必须带 `http(s)://` / `www.` 前缀，或整段就是一个含已知顶级域的域名）；
 /// 3. 以首个 `:` 切出的「标签: 值」——标签在词表内则按标签归属，否则标签与值各自再判定；
 /// 4. 邮编（整段为 6 位数字）；
-/// 5. 电话（整段只由数字与 `+ - ( ) . /` 组成，7–15 位数字）；
-/// 6. 地址（强特征：路/街/号/楼/室/层/大道/大厦，或 Street/Road/Avenue/Suite…）；
-/// 7. 公司（后缀：有限公司/集团/大学/Inc./Ltd./Consulting/University…）；
-/// 8. 地址（弱特征：省/市/区/县，或 District/City…）；
-/// 9. 部门；
-/// 10. 职位；
-/// 11. 姓名（中文 2–4 个汉字，或 2–4 个首字母大写的西文词）。
+/// 5. 电话（整段只由数字与 `+ - ( ) . /` 组成，7–15 位数字；无标签号码按形态或空槽位落位）；
+/// 6. 职位（后缀形态 + 通用职务词，段尾整词匹配。**必须排在地址之前**，否则「市场经理」
+///    会被弱地址特征「市」抢走）；
+/// 7. 地址 / 公司（**特征竞争**：门牌号类数字或行政区划词 → 地址；公司后缀在**段尾** →
+///    公司；两者都无证据则不下判，继续下渗）；
+/// 8. 部门；
+/// 9. 姓名（中文 2–4 个汉字，或 2–4 个首字母大写的西文词）。
 ///
 /// 明确不作推测的边界：
 /// - 单个西文单词不判为姓名（`Apple` 既不判姓名也不判公司，避免把产品名塞进姓名字段）；
@@ -196,20 +196,32 @@ struct BusinessCardFieldParser {
         // "tech" 会命中 `Technical Director`，把职位误判成公司。
         "inc", "ltd", "llc", "corp", "corporation", "company",
         "technologies", "technology", "solutions", "systems", "software", "robotics", "analytics",
-        "studio", "group", "holdings", "university", "college", "school", "institute",
+        // "studios" 单列：公司后缀要在段尾命中（D1），而 `studios` 并不以 `studio` 结尾。
+        "studio", "studios", "group", "holdings", "university", "college", "school", "institute",
         "laboratory", "labs", "consulting", "partners", "agency", "media",
     ]
 
+    /// 中文职务词（D3）。既用于「整段以职务词结尾」的形态判定，也用于整词命中。
+    /// 单字条目（师 / 员 / 长 / 监 / 理 / 士）用来兜住「市场经理」这类没有专门词条的组合，
+    /// 但只在整段 ≥ 3 字时才生效，避免把两字人名（如「王理」）判成职务。
     private static let jobTitleKeywords: [String] = [
-        "总经理", "副教授", "总监", "经理", "主管", "工程师", "设计师", "教授", "讲师",
-        "院长", "主任", "总裁", "董事", "助理", "顾问", "专员", "代表", "创始人", "合伙人",
-        "架构师", "分析师",
+        "总经理", "副总经理", "副教授", "总监", "经理", "主管", "专员", "代表", "助理", "顾问",
+        "总裁", "董事长", "董事", "主任", "合伙人", "创始人", "架构师", "设计师", "工程师",
+        "分析师", "规划师", "会计师", "审计师", "教师", "医师", "律师", "技师", "讲师", "教授",
+        "研究员", "导演", "编导", "店长", "校长", "院长", "部长", "组长", "队长", "教练",
+        "司机", "导游", "师", "员", "长", "监", "理", "士",
     ]
+
+    /// 单字职务后缀：只在整段 ≥ 3 字时才算证据（见 `jobTitleKeywords` 的说明）。
+    private static let singleCharacterJobTitleSuffixes: Set<String> = ["师", "员", "长", "监", "理", "士"]
 
     private static let latinJobTitleKeywords: [String] = [
         "ceo", "cto", "cfo", "coo", "cio", "director", "manager", "engineer", "designer",
         "professor", "doctor", "president", "founder", "consultant", "specialist", "lead",
         "head", "architect", "analyst", "assistant", "officer", "chairman", "partner", "intern",
+        // D3 补入的通用西文职务：语料里的 Producer（TC17）、Data Scientist（TC21）等原本漏抽。
+        "producer", "scientist", "editor", "chef", "nurse", "writer", "accountant", "lawyer",
+        "teacher", "photographer", "technician", "coordinator", "planner",
     ]
 
     private static let departmentKeywords: [String] = [
@@ -364,8 +376,12 @@ struct BusinessCardFieldParser {
         return rest.isEmpty ? [text] : [words[0], rest]
     }
 
+    /// 只在整段较长（> 6 字）时才拆「前缀 + 职务后缀」。
+    ///
+    /// 阈值与职位形态判定的 2–6 字窗口对齐：`首席设计师` / `高级合伙人` / `软件工程师` 这类
+    /// 「定语 + 职务」本身就是完整职位，整段保留；再长才可能是「职位 + 机构」粘在一行。
     private func splitCJKJobTitle(_ text: String) -> [String] {
-        guard text.count > 4 else { return [text] }
+        guard text.count > 6 else { return [text] }
         let keywords = Self.jobTitleKeywords.sorted { $0.count > $1.count }
         for keyword in keywords {
             guard let range = text.range(of: keyword), range.upperBound == text.endIndex else { continue }
@@ -405,41 +421,123 @@ struct BusinessCardFieldParser {
         classifyValue(segment, into: &fields)
     }
 
-    /// 无标签内容的判定（第 4–11 步）。
+    /// 无标签内容的判定（第 4–9 步）。
     private func classifyValue(_ text: String, into fields: inout ExtractedCardFields) {
         guard !text.isEmpty else { return }
         if let value = postalCodeCandidate(in: text) {
             assign(.postalCode, value: value, into: &fields)
             return
         }
-        if let target = phoneTarget(in: text) {
+        if let target = phoneTarget(in: text, fields: fields) {
             assign(target.key, value: target.value, into: &fields)
             return
         }
-        if containsAny(text, Self.strongAddressMarkers) || containsAny(text, Self.latinStrongAddressMarkers) {
-            assign(.address, value: text, into: &fields)
+        // 职位必须排在地址之前：「市场经理」含弱地址特征「市」，先判地址就会把职位抢走。
+        if isJobTitleLike(text) {
+            assign(.jobTitle, value: text, into: &fields)
             return
         }
-        if containsAny(text, Self.companySuffixes) || containsAny(text, Self.latinCompanySuffixes) {
-            assign(.company, value: text, into: &fields)
-            return
-        }
-        if containsAny(text, Self.weakAddressMarkers) || containsAny(text, Self.latinWeakAddressMarkers) {
-            assign(.address, value: text, into: &fields)
+        // 地址与公司由「命中顺序」改为「特征竞争」：两者都有证据时按形态裁决；都没有证据时
+        // 返回 nil 继续下渗，避免把 `Apple` 这类无后缀的单个西文词塞进地址。
+        if let key = addressOrCompanyKey(for: text) {
+            assign(key, value: text, into: &fields)
             return
         }
         if containsAny(text, Self.departmentKeywords) || containsAny(text, Self.latinDepartmentKeywords) {
             assign(.department, value: text, into: &fields)
             return
         }
-        if containsAny(text, Self.jobTitleKeywords) || containsAny(text, Self.latinJobTitleKeywords) {
-            assign(.jobTitle, value: text, into: &fields)
-            return
-        }
         if let value = nameCandidate(in: text) {
             assign(.name, value: value, into: &fields)
         }
         // 识别不了的段落直接丢弃，不产出推测值。
+    }
+
+    // MARK: - 地址 / 公司的特征竞争
+
+    /// 地址与公司特征竞争后的归属；两者都无证据时返回 `nil`，交给后续的部门 / 姓名判定。
+    private func addressOrCompanyKey(for text: String) -> CardFieldKey? {
+        let addressLike = containsAny(text, Self.strongAddressMarkers)
+            || containsAny(text, Self.latinStrongAddressMarkers)
+            || hasAdministrativeDivision(text)
+        let companyLike = hasCompanySuffixAtTail(text)
+        guard addressLike || companyLike else { return nil }
+        // 门牌号类数字与行政区划词是比公司后缀更强的地址证据。
+        if hasStreetNumberEvidence(text) || hasAdministrativeDivision(text) {
+            return .address
+        }
+        return companyLike ? .company : .address
+    }
+
+    /// 段内含门牌号类数字：`\d+号 / \d+楼 / \d+层 / \d+室 / \d+F`，或「数字 + 地址特征词」
+    /// （如 `100 Market Street`）。
+    private func hasStreetNumberEvidence(_ text: String) -> Bool {
+        if text.range(of: "\\d+\\s*(号|楼|层|室|F|f)", options: .regularExpression) != nil {
+            return true
+        }
+        guard text.contains(where: { $0.isNumber }) else { return false }
+        return containsAny(text, Self.strongAddressMarkers)
+            || containsAny(text, Self.latinStrongAddressMarkers)
+    }
+
+    /// 段内含行政区划词（省 / 市 / 区 / 县 / 镇 / 乡，或 District / City…）。
+    private func hasAdministrativeDivision(_ text: String) -> Bool {
+        containsAny(text, Self.weakAddressMarkers) || containsAny(text, Self.latinWeakAddressMarkers)
+    }
+
+    /// 公司后缀出现在**段尾**才算公司证据（`…有限公司` / `…工作室` / `…Studios`）。
+    ///
+    /// 改成段尾判定，是为了让「张江高科技园区」这类**地址里含行业词**的段不被判成公司：
+    /// `科技` 在其中但不在段尾，而地址特征 `园区` 在段尾。
+    private func hasCompanySuffixAtTail(_ text: String) -> Bool {
+        let lowered = text
+            .trimmingCharacters(in: CharacterSet(charactersIn: " \t\n.,:;、。"))
+            .lowercased()
+        guard !lowered.isEmpty else { return false }
+        if Self.companySuffixes.contains(where: { lowered.hasSuffix($0.lowercased()) }) { return true }
+        return Self.latinCompanySuffixes.contains { lowered.hasSuffix($0) }
+    }
+
+    // MARK: - 职位判定
+
+    /// 职位判定：形态路（职务后缀）与词表路（通用职务词），都按**段尾整词**匹配。
+    private func isJobTitleLike(_ text: String) -> Bool {
+        if text.contains(where: isCJK) {
+            return isCJKJobTitleLike(text)
+        }
+        return isLatinJobTitleLike(text)
+    }
+
+    /// 中文职位：整段 2–6 个汉字、不含数字与强地址特征，且整词命中词表或以职务后缀结尾。
+    private func isCJKJobTitleLike(_ text: String) -> Bool {
+        guard text.allSatisfy(isCJK) else { return false }
+        guard text.count >= 2 && text.count <= 6 else { return false }
+        guard !text.contains(where: { $0.isNumber }) else { return false }
+        // 含强地址特征或省 / 区 / 县等行政区划词的是地址，不是职位。这里刻意不含「市」，
+        // 否则「市场经理」会被挡掉。
+        if containsAny(text, Self.strongAddressMarkers)
+            || containsAny(text, ["省", "区", "县", "镇", "乡"]) {
+            return false
+        }
+        if Self.jobTitleKeywords.contains(text) { return true }
+        for suffix in Self.jobTitleKeywords where text.count > suffix.count && text.hasSuffix(suffix) {
+            // 单字后缀（师 / 员 / 长…）只在整段 ≥ 3 字时才算证据，避免把两字人名判成职位。
+            if Self.singleCharacterJobTitleSuffixes.contains(suffix) {
+                if text.count >= 3 { return true }
+            } else {
+                return true
+            }
+        }
+        return false
+    }
+
+    /// 西文职位：末词（去尾标点、忽略大小写）命中职务词表才算。
+    ///
+    /// 按末词整词匹配而不是子串匹配，避免 `Technical` 这类碎片命中。
+    private func isLatinJobTitleLike(_ text: String) -> Bool {
+        guard let last = text.split(separator: " ").last else { return false }
+        let word = last.lowercased().trimmingCharacters(in: CharacterSet(charactersIn: ".,:;"))
+        return Self.latinJobTitleKeywords.contains(word)
     }
 
     // MARK: - 各字段判定
@@ -474,8 +572,8 @@ struct BusinessCardFieldParser {
         return trimmed
     }
 
-    private func phoneTarget(in segment: String) -> (key: CardFieldKey, value: String)? {
-        if let direct = phoneTargetWithoutLabel(in: segment) {
+    private func phoneTarget(in segment: String, fields: ExtractedCardFields) -> (key: CardFieldKey, value: String)? {
+        if let direct = phoneTargetWithoutLabel(in: segment, fields: fields) {
             return direct
         }
         // 去掉行首的电话标签再试，如「手机13912345678」
@@ -490,21 +588,31 @@ struct BusinessCardFieldParser {
         return nil
     }
 
-    private func phoneTargetWithoutLabel(in segment: String) -> (key: CardFieldKey, value: String)? {
+    /// 无标签号码的归属：先看形态（`+86` / 首位 `0` / 位数），形态给不出结论时按
+    /// 「手机 → 固话 → 传真」的第一个空槽位落位，使同一张卡上的多个无标签号码各占一个槽位。
+    private func phoneTargetWithoutLabel(in segment: String, fields: ExtractedCardFields) -> (key: CardFieldKey, value: String)? {
         guard let value = phoneNumberValue(in: segment) else { return nil }
         let compact = value.filter { $0.isNumber || $0 == "+" }
         let digitCount = value.filter { $0.isNumber }.count
+        let preferred: CardFieldKey?
         if compact.hasPrefix("+86") && digitCount >= 13 {
-            return (.mobile, value)
+            preferred = .mobile
+        } else if value.hasPrefix("0") {
+            preferred = .phone
+        } else if digitCount >= 11 {
+            preferred = .mobile
+        } else {
+            // 形态判不出手机还是固话（如 `+1-555-0923`）：交给空槽位顺序。
+            preferred = nil
         }
-        if value.hasPrefix("0") {
-            return (.phone, value)
+        if let preferred {
+            // 形态给出的槽位已被占用时不改投别的槽位：宁可留空，也不把手机号写进固话。
+            return fields[preferred] == nil ? (preferred, value) : nil
         }
-        if digitCount >= 11 {
-            return (.mobile, value)
+        for key in [CardFieldKey.mobile, .phone, .fax] where fields[key] == nil {
+            return (key, value)
         }
-        // 无标签也判断不出类型时，按「手机 → 固话 → 传真」的第一个空位落位。
-        return (.mobile, value)
+        return nil
     }
 
     /// 值必须是「只由数字与电话分隔符组成、7–15 位数字」的号码。

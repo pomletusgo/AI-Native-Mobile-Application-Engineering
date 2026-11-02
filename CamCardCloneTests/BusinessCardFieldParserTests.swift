@@ -312,4 +312,154 @@ final class BusinessCardFieldParserTests: XCTestCase {
         XCTAssertEqual(card?.company, "中远物流有限公司")
         XCTAssertEqual(card?.department, "销售部")
     }
+
+    // MARK: - D1 公司 / 地址特征竞争（fix-field-classification-errors）
+
+    func testCompanyNameWithSingleCharacterAddressMarkerIsNotStolen() {
+        // `工作室` 整词命中公司后缀；若仍按子串判地址，`室` 会把公司名抢成地址。
+        let fields = parser.parse("蓝海设计工作室")
+
+        XCTAssertEqual(fields.company, "蓝海设计工作室")
+        XCTAssertNil(fields.address)
+    }
+
+    func testAddressWithIndustryKeywordIsNotStolenByCompanySuffix() {
+        // `科技` 在段中而非段尾，地址特征 `园区` 在段尾 → 地址。
+        let fields = parser.parse("张江高科技园区")
+
+        XCTAssertEqual(fields.address, "张江高科技园区")
+        XCTAssertNil(fields.company)
+    }
+
+    func testLatinAddressMarkerInMiddleDoesNotBeatTailCompanySuffix() {
+        // `Tower` 是地址特征但在段中；公司后缀 `Consulting` 在段尾 → 公司。
+        let fields = parser.parse("Tower Consulting")
+
+        XCTAssertEqual(fields.company, "Tower Consulting")
+        XCTAssertNil(fields.address)
+    }
+
+    func testStreetNumberEvidenceBeatsCompanySuffix() {
+        // 门牌号类数字是比公司后缀更强的地址证据。
+        let fields = parser.parse("100 Tower Studios")
+
+        XCTAssertEqual(fields.address, "100 Tower Studios")
+        XCTAssertNil(fields.company)
+    }
+
+    func testAmbiguousWordWithoutEvidenceIsNotForcedIntoAddress() {
+        let fields = parser.parse("Nebula")
+
+        XCTAssertNil(fields.address, "既无地址也无公司证据的西文单词不下判，不默认塞进地址")
+        XCTAssertNil(fields.company)
+        XCTAssertTrue(fields.isEmpty)
+    }
+
+    // MARK: - D2 无标签号码（fix-field-classification-errors）
+
+    func testUnlabeledInternationalNumberFillsFirstEmptySlot() {
+        let fields = parser.parse("+1-555-0307")
+
+        XCTAssertEqual(fields.mobile, "+1-555-0307", "形态分不出手机与固话时落首个空槽位")
+        XCTAssertNil(fields.phone)
+        XCTAssertNil(fields.fax)
+    }
+
+    func testUnlabeledElevenDigitNumberBecomesMobile() {
+        let fields = parser.parse("13800000001")
+
+        XCTAssertEqual(fields.mobile, "13800000001")
+        XCTAssertNil(fields.phone)
+    }
+
+    func testSeveralUnlabeledNumbersFillDistinctSlots() {
+        let fields = parser.parse("+1-555-0923\n+1-555-0924\n+1-555-0925")
+
+        XCTAssertEqual(fields.mobile, "+1-555-0923")
+        XCTAssertEqual(fields.phone, "+1-555-0924")
+        XCTAssertEqual(fields.fax, "+1-555-0925")
+    }
+
+    func testShapePreferredSlotAlreadyTakenIsDropped() {
+        let fields = parser.parse("13800000001\n13800000002")
+
+        XCTAssertEqual(fields.mobile, "13800000001")
+        XCTAssertNil(fields.phone, "形态判为手机但手机已占用时不改投固话，宁可留空")
+        XCTAssertNil(fields.fax)
+    }
+
+    func testPhoneLabelTakesPrecedenceOverShape() {
+        let fields = parser.parse("传真: 139-0000-0002")
+
+        XCTAssertEqual(fields.fax, "139-0000-0002", "标签优先于号码形态")
+        XCTAssertNil(fields.mobile)
+        XCTAssertNil(fields.phone)
+    }
+
+    // MARK: - D3 职位判定（fix-field-classification-errors）
+
+    func testJobTitleOutsideClosedListIsRecognized() {
+        let fields = parser.parse("摄影师")
+
+        XCTAssertEqual(fields.jobTitle, "摄影师", "词表外但以职务后缀结尾的整段应判为职位")
+    }
+
+    func testJobTitleSuffixOnlyNeedsThreeCharacters() {
+        let fields = parser.parse("调度员")
+
+        XCTAssertEqual(fields.jobTitle, "调度员")
+    }
+
+    func testSloganIsNotTreatedAsJobTitle() {
+        let fields = parser.parse("张伟\n专业可靠")
+
+        XCTAssertEqual(fields.name, "张伟")
+        XCTAssertNil(fields.jobTitle, "标语既不命中词表也不以后缀结尾，不得判为职位")
+    }
+
+    func testJobTitleAndCompanyOnSameLineAreSeparated() {
+        let fields = parser.parse("王强\n首席设计师  蓝海设计工作室")
+
+        XCTAssertEqual(fields.name, "王强")
+        XCTAssertEqual(fields.jobTitle, "首席设计师")
+        XCTAssertEqual(fields.company, "蓝海设计工作室")
+    }
+
+    func testLatinWordFragmentIsNotTreatedAsJobTitle() {
+        let fields = parser.parse("徐磊\nTechnical")
+
+        XCTAssertEqual(fields.name, "徐磊")
+        XCTAssertNil(fields.jobTitle, "`Technical` 只是碎片，末词不命中词表不得判职位")
+    }
+
+    // MARK: - D4 语料外构造样例（防过拟合）
+
+    func testUnseenChineseJobTitlesGeneralize() {
+        for title in ["摄影师", "调酒师", "咖啡师", "测绘员", "售票员", "快递员"] {
+            XCTAssertEqual(parser.parse(title).jobTitle, title, "\(title) 应可由职务后缀外推")
+        }
+    }
+
+    func testUnseenLatinJobTitlesGeneralize() {
+        for title in ["Chief Technology Officer", "Cybersecurity Analyst", "Product Designer"] {
+            XCTAssertEqual(parser.parse(title).jobTitle, title, "\(title) 应可由末词整词匹配外推")
+        }
+    }
+
+    func testUnseenInternationalNumberFillsFirstEmptySlot() {
+        let fields = parser.parse("+44-20-7946-0958")
+
+        XCTAssertEqual(fields.mobile, "+44-20-7946-0958", "语料外的国际号码应按空槽位落位")
+        XCTAssertNil(fields.phone)
+    }
+
+    func testUnseenAddressAndCompanyCompetitionGeneralizes() {
+        let address = parser.parse("上海市徐汇区漕溪北路88号")
+        XCTAssertEqual(address.address, "上海市徐汇区漕溪北路88号")
+        XCTAssertNil(address.company)
+
+        let company = parser.parse("远见医疗科技有限公司")
+        XCTAssertEqual(company.company, "远见医疗科技有限公司")
+        XCTAssertNil(company.address)
+    }
 }

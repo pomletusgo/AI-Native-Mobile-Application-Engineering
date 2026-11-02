@@ -20,15 +20,23 @@
 - **THEN** 相关字段保持为空，不产生任何虚构值
 
 ### Requirement: Phone number classification without labels
-无标签号码 SHALL 依据号码形态（国家码、首位、位数）判定归属；当形态不足以区分手机与固话时，该字段 SHALL 保持为空值，系统 SHALL NOT 默认把无标签号码判为手机。
+无标签号码 SHALL 依据号码形态（国家码、首位、位数）判定归属；当形态不足以区分手机与固话时，系统 SHALL 按「手机 → 固话 → 传真」的顺序把它填入第一个空槽位，使同一张卡上的多个无标签号码各占一个槽位，且 SHALL NOT 覆盖任何已有值。
 
-#### Scenario: Unlabeled number with an international prefix
-- **WHEN** 一行只包含一个无标签号码，其形态为「国际区号 + 不足以构成移动号的位数」（如 `+1-555-0307`）
-- **THEN** 该号码进入固话字段，手机字段保持为空
+#### Scenario: Unlabeled number starting with zero
+- **WHEN** 一行只包含一个无标签号码，且其首位为 `0`（如 `0755-1234567`）
+- **THEN** 该号码进入固话字段
 
 #### Scenario: Unlabeled Chinese mobile number
 - **WHEN** 一行只包含一个无标签号码，以 `1` 开头且为 11 位数字
 - **THEN** 该号码进入手机字段
+
+#### Scenario: Unlabeled number with an international prefix
+- **WHEN** 一行只包含一个无标签号码，且形态不足以区分手机与固话（如 `+1-555-0307`）
+- **THEN** 该号码进入「手机 → 固话 → 传真」中的第一个空槽位，不产生新字段、也不覆盖已有值
+
+#### Scenario: Several unlabeled numbers fill distinct slots
+- **WHEN** 一张卡上有多个形态不足以区分手机与固话的无标签号码（如 `+1-555-0923` / `+1-555-0924` / `+1-555-0925`）
+- **THEN** 这些号码依次进入手机、固话、传真字段，互不覆盖
 
 #### Scenario: Label takes precedence over shape
 - **WHEN** 号码前带有标签（如「手机」「传真」「Tel」「Fax」）
