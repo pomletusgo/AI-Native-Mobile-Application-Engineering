@@ -8,11 +8,11 @@
 - 工程规则：`PROJECT_RULES.md`、`.trae/rules/project_rules.md`
 - 追踪与验收：`docs/规格测试追踪表.md`、`docs/UI验收清单.md`、`docs/验证报告.md`
 
-当前进度：Week 1 规格与 Week 2 骨架已完成；相机、OCR、字段抽取、持久化与导出留待 Week 3–6。
+当前进度：Week 1–6 的规格、骨架与功能切片均已完成（相机接入与相册导入、区域检测与透视校正、OCR、字段结构化抽取、持久化、联系人 / VCF 导出、标签管理页、UI Golden 基线、字段级准确率量化）。`openspec/specs/` 仍为空，主规格处于**归档前**状态。剩余项全部依赖物理 iPhone 与带 `Simulator.app` 的 GUI 环境（M01–M36 人工验收、相机取景端到端、真实名片照片复核与 `isReliable()` 阈值标定），其阻塞清单与归因见 `docs/Mac端验收执行手册.md` §6.0。
 
 ## 推送后运行 CI
 
-本机没有 macOS/Xcode 时，用 GitHub Actions 完成「编译 + 跑 42 个单元测试」。workflow 见 `.github/workflows/ios-ci.yml`。
+本机没有 macOS/Xcode 时，用 GitHub Actions 完成「规格校验 + 编译 + 单元测试 + 无头 UI 测试」。workflow 见 `.github/workflows/ios-ci.yml`，含三个作业：`OpenSpec Validate`、`Build & Test (iOS Simulator)`、`UI Tests (XCUITest, headless)`。单元测试为静态统计 363 个方法（模型 / 仓储 / 视图模型 / 扫描 / 导出 / 字段评估 / UI 快照等），CI 侧以实际 `Executed N tests` 行为准。
 
 首次推送（在本目录 `CamCardClone/` 下执行）：
 
@@ -27,14 +27,14 @@ git push -u origin main
 
 推送成功后：
 
-1. 打开仓库的 **Actions** 页，会看到 `iOS CI` 自动运行，含 `OpenSpec Validate` 与 `Build & Test (iOS Simulator)` 两个作业。
-2. 运行结束后，在该次运行页面底部 **Artifacts** 下载 `ios-build-test-logs`：`build-for-testing.log` 是编译证据，`unit-tests.log` 是测试证据。
-3. 把该运行页链接回填到 `docs/验证报告.md`，并把其中「iOS 编译」「42 个单元测试实际运行」两行改为「通过」。
+1. 打开仓库的 **Actions** 页，会看到 `iOS CI` 自动运行，含 `OpenSpec Validate`、`Build & Test (iOS Simulator)` 与 `UI Tests (XCUITest, headless)` 三个作业。
+2. 运行结束后，在该次运行页面底部 **Artifacts** 下载 `ios-build-test-logs`（`build-for-testing.log` 编译证据、`unit-tests.log` 单测证据）与 `ios-ui-test-logs`（`ui-tests.log`）。
+3. 把该运行的结论回填到 `docs/验证报告.md` 的对应行（编译 / 单元测试 / UI 测试），只按实际结果写；失败时用**免登录**的 `repos/<owner>/<repo>/check-runs/<check_run_id>/annotations` 端点读回关键错误行。
 
 其他说明：
 
 - public 仓库的 macOS runner 不额外收费；private 仓库按分钟计费。
 - macOS 运行较慢，首次构建通常需要数分钟。
-- workflow 默认使用 `macos-15` + `iPhone 16` 模拟器。若 GitHub 更换镜像导致找不到该机型，改 `-destination` 里的机型名即可（运行日志的 `List available iPhone simulators` 步骤会列出所有可用机型）。
+- workflow 使用 `macos-15`，运行时从可用设备里挑**第一个** iPhone（不写死机型名），镜像换机型也无需改 `-destination`（运行日志的 `Pick an available iPhone simulator` 步骤会打印可用机型列表）。
 - 手动重跑：Actions 页选择 `iOS CI` → **Run workflow**（已配置 `workflow_dispatch`）。
 
