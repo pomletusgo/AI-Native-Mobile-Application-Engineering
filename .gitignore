@@ -9,3 +9,5 @@ xcuserdata/
 ._*
 .swiftpm/
 *.xcresult
+__pycache__/
+*.pyc

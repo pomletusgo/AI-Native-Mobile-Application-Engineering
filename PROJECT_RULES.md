@@ -1,7 +1,7 @@
 # 项目规则
 
 1. 复刻对象限定为名片全能王（CamCard）的「名片数字化与联系人管理」闭环：名片夹 → 拍摄/导入 → 检测校正 → OCR → 字段结构化 → 人工校正 → 保存 → 详情 → 搜索/管理 → 重新打开 → 导出。
-2. 只做增量开发，禁止用一个 Prompt 生成整个 App。当前提交只覆盖 Week 1（规格）与 Week 2（骨架），后续周次通过新的任务项推进。
+2. 只做增量开发，禁止用一个 Prompt 生成整个 App。当前提交已覆盖 Week 1–6（规格、骨架与功能切片），后续变更仍通过新的任务项逐项推进。
 3. 先读 `docs/规格说明书.md` 与 `openspec/` 下的现行契约，再动代码。
 4. 现有工程没有既存主规格；新能力 app-shell、card-library、card-holder、card-scanner 一律用 `## ADDED Requirements`，归档前主规格保持为空。
 5. 模块边界稳定：Week 3 引入相机与 OCRService、Week 5 引入持久化实现时，不得修改 `BusinessCard` 与 `BusinessCardRepository` 的既有接口。
