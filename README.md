@@ -2,13 +2,14 @@
 
 用 Xcode 打开 `CamCardClone.xcodeproj` 并选择同名 Scheme `CamCardClone`。
 
-- 规格来源：`docs/规格说明书.md`
-- 变更契约：`openspec/changes/replicate-camcard-core-slice/`
+- 规格来源：`docs/规格说明书.md`（附录 C 为参考 App 观察记录）
+- 变更契约：`openspec/changes/archive/2026-11-05-replicate-camcard-core-slice/`
 - 测试数据：`testcards/ground_truth.json`（30 张合成名片 + Ground Truth）
 - 工程规则：`PROJECT_RULES.md`、`.trae/rules/project_rules.md`
-- 追踪与验收：`docs/规格测试追踪表.md`、`docs/UI验收清单.md`、`docs/验证报告.md`
+- 验收与推进：`docs/验证报告.md`（附录 A UI 验收清单 / 附录 B 规格测试追踪表 / 附录 C 能力边界分析）、`docs/工作推进记录.md`（附录 A 最终演示材料 / 附录 B Mac 端验收执行手册）
+- AI 协作记录：`docs/AI协作记录.md`（附录 A TRAE 提示词模板）
 
-当前进度：Week 1–6 的规格、骨架与功能切片均已完成（相机接入与相册导入、区域检测与透视校正、OCR、字段结构化抽取、持久化、联系人 / VCF 导出、标签管理页、UI Golden 基线、字段级准确率量化）；M01–M36 人工 UI 验收已于 2026-11-03 在 Mac mini M4 / `iPhone 17` 模拟器（iOS 27.0）上完成——**36 项全部通过**。`openspec/specs/` 已生成 app-shell / card-library / card-holder / card-scanner 四份主规格，`openspec validate --all --strict` 为 `4 passed, 0 failed`；两个变更已归档至 `openspec/changes/archive/2026-11-05-*`。归档前置项的复核结论见 `docs/Mac端验收执行手册.md` §6.0。
+当前进度：Week 1–6 的规格、骨架与功能切片均已完成（相机接入与相册导入、区域检测与透视校正、OCR、字段结构化抽取、持久化、联系人 / VCF 导出、标签管理页、UI Golden 基线、字段级准确率量化）；M01–M36 人工 UI 验收已于 2026-11-03 在 Mac mini M4 / `iPhone 17` 模拟器（iOS 27.0）上完成——**36 项全部通过**。`openspec/specs/` 已生成 app-shell / card-library / card-holder / card-scanner 四份主规格，`openspec validate --all --strict` 为 `4 passed, 0 failed`；两个变更已归档至 `openspec/changes/archive/2026-11-05-*`。归档前置项的复核结论见 `docs/工作推进记录.md 附录 B` §6.0。
 
 ## 推送后运行 CI
 

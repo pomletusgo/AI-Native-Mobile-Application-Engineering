@@ -17,7 +17,7 @@ import XCTest
 ///
 /// - 这里对**整张图片**做识别，不经过「检测 → 透视校正」。理由是 4.4 衡量的是字段抽取器在
 ///   OCR 原文上的准确率（见 `FieldExtractionEvaluator` 的类型注释）；检测与校正的影响属于
-///   T06 / T07，不计入该指标。端到端的识别效果另需按 `docs/UI验收清单.md` 在真机上验收。
+///   T06 / T07，不计入该指标。端到端的识别效果另需按 `docs/验证报告.md 附录 A` 在真机上验收。
 /// - 图片是程序化渲染的合成名片，真实 OCR 质量要跑过才知道；渲染文字比真实拍照干净，
 ///   因此由它得到的准确率偏乐观。
 final class OCRTextCorpusExporterTests: XCTestCase {

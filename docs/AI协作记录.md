@@ -1,6 +1,6 @@
 # AI 协作记录（真实会话导出）
 
-本文件是作业要求的「AI 协作记录」的真实导出，不是模板——模板见 `docs/TRAE提示词.md`（该文件第 9 节已声明自己不能作为协作记录的证据）。下面每一轮都对应一次真实的 TRAE 协作，记录四件事：提示词要点、AI 输出摘要、AI 犯的错误、实际执行的命令与结果。
+本文件是作业要求的「AI 协作记录」的真实导出，不是模板——模板见 `docs/AI协作记录.md 附录 A`（该文件第 9 节已声明自己不能作为协作记录的证据）。下面每一轮都对应一次真实的 TRAE 协作，记录四件事：提示词要点、AI 输出摘要、AI 犯的错误、实际执行的命令与结果。
 
 本项目的协作形态遵循 `PROJECT_RULES.md` 第 2 条：**只做增量开发，禁止用一个 Prompt 生成整个 App**。因此全过程的提示词都是「一次只推进一个任务切片」，并且每条都按课程要求的三条硬约束组织——**限定上下文**（先读现存规格与规则，只改被点名的文件）、**保护回归**（写明不得改动的接口、模型与已通过的测试）、**要求真实证据**（编译 / 测试 / `openspec validate` 要给命令与退出码，结论须有实跑依据）。下文的「提示词要点」是对这一结构的归纳，**不逐字引用会话原话**。
 
@@ -41,7 +41,7 @@
 | Week 6 | 在「有 iPhone 但 Mac 是远程租的、插不上」时，拍板先在租机上做「相册导入」端到端用例 | 相册导入不经摄像头，同一台租机就能闭环，先把这半做掉；M04 的「拍摄」分支与 M34 的权限态随后于 2026-11-03 在带 GUI 的 Mac 上人工验收时一并覆盖 |
 | Week 6 | 在解析器修复的 D2 上拍板「**不动 `testcards/ground_truth.json` 任何值，把 TC07 / TC21 记为「数据集标注内部不一致」的残留**」 | 数据集是字段级评价的基准，改它等于改考题；宁可如实留下 2 条无法归零的 `invented`，也不为了让「归零」这个指标好看而篡改真值 |
 | Week 6 | 在「先补单测再一起推」与「先推规则实现再补单测」之间，拍板**先补单测**再一次性推送 | 让同一轮 CI 同时验证编译、新旧单测与字段级报告，避免「代码先落地、断言后补」造成的假绿窗口 |
-| Week 6 | 在两个变更都还有待补齐的必需验证项（base 的 3.1 / 5.1 / 6.1 / 6.4、parser 的 4.3）时，先拍板把「归档前置条件」固化进 `docs/Mac端验收执行手册.md` §6.0 / §6.1，待 Mac 端人工验收补齐后，于 2026-11-05 正式执行 `openspec archive` | 按 `PROJECT_RULES.md` 第 10 条，归档应基于实际证据；归档是可追溯的收口动作，先把前置条件固化为清单、再按实际证据执行，避免为了让流程「跑到底」而提前归档 |
+| Week 6 | 在两个变更都还有待补齐的必需验证项（base 的 3.1 / 5.1 / 6.1 / 6.4、parser 的 4.3）时，先拍板把「归档前置条件」固化进 `docs/工作推进记录.md 附录 B` §6.0 / §6.1，待 Mac 端人工验收补齐后，于 2026-11-05 正式执行 `openspec archive` | 按 `PROJECT_RULES.md` 第 10 条，归档应基于实际证据；归档是可追溯的收口动作，先把前置条件固化为清单、再按实际证据执行，避免为了让流程「跑到底」而提前归档 |
 | Week 6 | 在 Mac 模拟器上执行完最终演示后，先如实报告「环境 / 内容 / 结论」三件事，再据实回填台账 | 台账按演示现场的实际结论回填，不凭一次演示替没走过的人工项补写结论；T06 的 `isReliable()` 阈值标定与真实照片复核已于 2026-11-03 随 M01–M36 一并完成 |
 
 人与 AI 的分工：**路线、取舍与「做哪一项」由人决定**；AI 按 `tasks.md` 逐项实现、跑 CI、回填台账。凡涉及规格解释的取舍（例如手动调整框是否豁免最小面积），AI 先说明理由再落地，并同步写进 `docs/验证报告.md` 与 `tasks.md`，不静默改动。
@@ -215,7 +215,7 @@
   - 目标：产出 OCR 与字段抽取的分层边界分析，明确哪些是实测、哪些待验证。
   - 不做：不实现能力边界分析中提到的新功能。
   - 证据要求：结论要落到具体文件与规则；没有真实数据支撑的数值一律留白。
-- **AI 输出**：`docs/能力边界分析.md`——按「检测 → 校正 → OCR → 字段抽取」分层汇总错误原因，逐字段列漏抽与误报，并**主动标出与规格 4.3 的偏差**：「多 Email 其余入 `notes` 或保留列表」未实现。
+- **AI 输出**：`docs/验证报告.md 附录 C`——按「检测 → 校正 → OCR → 字段抽取」分层汇总错误原因，逐字段列漏抽与误报，并**主动标出与规格 4.3 的偏差**：「多 Email 其余入 `notes` 或保留列表」未实现。
 - **AI 的执行错误**：`npx openspec@1.13.2 validate` 退出码 **1**（`ETARGET: No matching version found`）。
 - **修正**：改用仓库已有脚本 `npm run spec:validate`，退出码 **0**，输出 `Totals: 1 passed, 0 failed (1 items)`。
 - **证据**：**run #50**（commit `7726e31`）success。
@@ -251,7 +251,7 @@
   - 目标：把「拿到 Mac 之后按什么顺序做什么、产出哪些产物」固化成一份可逐条对照的执行手册，覆盖 5.4 / 6.4 / 4.4 / T06 / 6.5 全部待办；同时说清「远程连 Mac 能做什么、不能做什么」。
   - 禁止项：不得把手册写成已执行记录；预期值只能来自 CI 已通过的结论与源码，本轮只写步骤与判据，结论由实跑产生；不得引用口语化的原始提示词。
   - 证据要求：文档内所有结论性描述须指回已有证据（CI run 号、源码位置、既有台账行）。
-- **AI 输出**：新增 `docs/Mac端验收执行手册.md`，结构为 §0 前置条件（含远程连接硬边界、关键标识）→ §1 环境就绪 → §2 本机编译与全量单测 → §3 UI 基线录制与真实比对（5.4 收口）→ §4 M01–M36 人工验收 → §5 真实数据量化（4.4 与 T06）→ §6 归档 → §7 产物清单 11 项 → §8 注意事项。开篇显式声明手册的性质（该声明已于 2026-11-05 随执行进度更新为「既是执行清单，也是执行记录」）。
+- **AI 输出**：新增 `docs/工作推进记录.md 附录 B`，结构为 §0 前置条件（含远程连接硬边界、关键标识）→ §1 环境就绪 → §2 本机编译与全量单测 → §3 UI 基线录制与真实比对（5.4 收口）→ §4 M01–M36 人工验收 → §5 真实数据量化（4.4 与 T06）→ §6 归档 → §7 产物清单 11 项 → §8 注意事项。开篇显式声明手册的性质（该声明已于 2026-11-05 随执行进度更新为「既是执行清单，也是执行记录」）。
 - **AI 的错误**：本轮没有触发新的编译 / 测试失败。
 - **修正**：无需修正。
 - **证据**：**run #56**（commit `7d46c97`）success（该次仅文档改动，CI 两个作业均为 success）。
@@ -275,7 +275,7 @@
   - 目标：交付一个在具备 Vision 的环境里执行一次即可产出 30 个 `testcards/ocr/<卡片ID>.txt` 的用例，为评价脚本备好输入。
   - 禁止项：不得让该用例在 CI 上自动运行并改写数据集；不得把「编译通过」写成「导出成功」；不得在无 OCR 原文的情况下给出准确率数字。
   - 证据要求：给出 CI 运行号，并明确标注哪些结论只能在 Mac 上产生。
-- **AI 输出**：新增 `CamCardCloneTests/OCRTextCorpusExporterTests.swift`，用 `VisionOCRService` 逐张识别 `testcards/images/`，把原文写到 `FieldExtractionEvaluator.ocrTextURL` 约定的 `testcards/ocr/<卡片ID>.txt`，并逐张打印行数、汇总「已导出 N/30」。用例**默认跳过**，需显式设置 `EXPORT_OCR_TEXT=1` 才执行（与第 17 轮 UI 基线的 `RECORD_GOLDEN` 同一思路）。同时在 `docs/Mac端验收执行手册.md` §5.1 ② 补上 Mac 上的执行命令（`xcodebuild ... -only-testing:` + 环境变量写法）。
+- **AI 输出**：新增 `CamCardCloneTests/OCRTextCorpusExporterTests.swift`，用 `VisionOCRService` 逐张识别 `testcards/images/`，把原文写到 `FieldExtractionEvaluator.ocrTextURL` 约定的 `testcards/ocr/<卡片ID>.txt`，并逐张打印行数、汇总「已导出 N/30」。用例**默认跳过**，需显式设置 `EXPORT_OCR_TEXT=1` 才执行（与第 17 轮 UI 基线的 `RECORD_GOLDEN` 同一思路）。同时在 `docs/工作推进记录.md 附录 B` §5.1 ② 补上 Mac 上的执行命令（`xcodebuild ... -only-testing:` + 环境变量写法）。
 - **AI 的错误**：本轮没有触发新的编译 / 测试失败。
 - **修正**：无需修正。文件头注释如实声明两条边界：①对整张图片识别、不经过「检测 → 透视校正」（4.4 衡量的是字段抽取器在 OCR 原文上的准确率，检测与校正属 T06 / T07）；②合成图比真实拍照干净，由此得到的准确率**偏乐观**。
 - **证据**：**run #58**（commit `e6ee54b`）success。**边界**：本机可验证的只有「编译通过 + 按设计跳过」，30 个 txt 的真实产出仍需在 Mac 上执行一次。
@@ -291,13 +291,13 @@
 - **AI 的错误**：① 把录制模式的 3 条 `XCTFail` 一度按「你可能卡住了」去排查，实际上 `Executed 3 tests ... in 1.023 seconds` 已是最终结论行、进程早已退出（见错误表第 14 条）；② 诊断命令误发——在等待用户回传状态时先发了上一轮的 `grep -iE "recorded|RECORD_GOLDEN"`，而提示文案是中文「已录制基线」，grep 必然不命中，属无效排查（见第 15 条）；③ Mac 侧解压踩到 `unzip` 对中文名的 UTF-8 标志位问题，误报 `disk full?`（见第 16 条）；④ Windows 侧回传时 `tar.exe` 打不开中文路径、`Copy-Item` 找错源文件（见第 17 条）。
 - **修正**：① 改按设计的 `XCTFail` 语义解释（录制后强制重跑一次做真比对），不再当故障；② 明确「基线已被 `ls` + `file` + SHA256 三重确认」，删除无意义排查，改问真实状态；③ 换 `ditto -x -k` 解压（`tar -xf` 亦可），中文名正常还原、116 个文件齐全；④ 改用纯 ASCII 路径 `C:\Temp\...` 中转，并用 `Get-ChildItem -Recurse` 先确认真实目录结构（文件其实在 `camcard-back\` 子目录里）再拷。
 - **证据**：Mac 本机日志 5 份——`mac-local-tests.log`（SHA256 `4e09c97d…`）、`mac-record-golden.log`（`53fb9f5e…`）、`mac-compare-golden.log`（`71e65d01…`）、`mac-export-ocr.log`（`0ce2efb8…`）、`mac-field-accuracy.log`（`f325649f…`）；基线 3 个 PNG 的 SHA256 为 `468df770…` / `23bce89f…` / `ecbfb6b8…`。已勾选 `tasks.md` 的 4.4 与 5.4。
-- **口径更正**：此前台账写的「337 / 341 个单测」为漏计，本轮以 Mac 实测的 **344** 为准并已在 `docs/验证报告.md`、`docs/规格测试追踪表.md`、`tasks.md` 三处同步更正（漏计来源：多 Email 细化的 3 个 `BusinessCardFieldParserTests` 与 Golden Test / OCR 导出的 4 个方法）。**根因分析**：4 处「虚构」经取证 OCR 原文后确认均为「归错桶」而非编造（首行公司名误入地址 / 姓名或被丢弃、无标签孤立号码被默认判为手机），**未违反**「缺失字段返回 nil，严禁虚构数据」的硬约束，已在文档中按「分类准确率问题」而非「编造数据」表述。
+- **口径更正**：此前台账写的「337 / 341 个单测」为漏计，本轮以 Mac 实测的 **344** 为准并已在 `docs/验证报告.md`、`docs/验证报告.md 附录 B`、`tasks.md` 三处同步更正（漏计来源：多 Email 细化的 3 个 `BusinessCardFieldParserTests` 与 Golden Test / OCR 导出的 4 个方法）。**根因分析**：4 处「虚构」经取证 OCR 原文后确认均为「归错桶」而非编造（首行公司名误入地址 / 姓名或被丢弃、无标签孤立号码被默认判为手机），**未违反**「缺失字段返回 nil，严禁虚构数据」的硬约束，已在文档中按「分类准确率问题」而非「编造数据」表述。
 
 ### 第 22 轮 — Week 6：推 CI 观察 → 基线跨环境误报 → 按预案收口
 
 - **提示词要点**
   - 限定上下文：上一轮已把 Mac 侧产物入库并提交（`b765baa`），本轮只做「推送 → 读 CI 结论 → 按预案处置」，不改业务代码、不动解析规则。
-  - 目标：验证「基线录于 iOS 27.0、而 CI runner 为 `macos-15`」是否真会报 `mismatched`；若转红，按 `docs/Mac端验收执行手册.md` §3.3 预案把基线改成带环境标识的文件名。
+  - 目标：验证「基线录于 iOS 27.0、而 CI runner 为 `macos-15`」是否真会报 `mismatched`；若转红，按 `docs/工作推进记录.md 附录 B` §3.3 预案把基线改成带环境标识的文件名。
   - 禁止项：不得为了让 CI 变绿而直接放大容差或删掉这三条断言；不得把「CI 绿」写成「这三条在 CI 上也真比对通过了」；不得把未经观测的数字（如 CI 侧 `Executed N` 行）当成实测写进台账。
   - 证据要求：给出转红 run 号、失败步骤、逐条差异数值与失败原因（注解原文），处置后再给出复绿 run 号；产物改名要证明「内容未变」。
 - **AI 输出**：`git push origin main` 把 `b765baa` 推上远端，触发 `iOS CI` run #61——`OpenSpec Validate` success，`Build & Test (iOS Simulator)` 的 `Run unit tests` failure，三条基线全部 `mismatched`（`card-row` 2.41% / `tag-chips` 2.76% / `empty-card-holder` 7.11%，最大通道差 40 / 65 / 255，阈值 0.01）。按预案改 `CamCardCloneTests/UISnapshotGolden.swift`：新增 `environmentKey`（取 `UIDevice.current.systemVersion` 的 iOS 主版本，如 `ios27`）与 `baselineName(_:)`，`baselineURL` / `failureDumpURL` 一并改为按带环境名的主名寻址；用例文案改为打印真实文件名，并把跳过原因写清「本机 iOS 主版本与录制环境不一致属预期」。三条基线用 `git mv` 只改名（`card-row.png` → `card-row-ios27.png` 等，`git` 显示 `similarity 100%`）。提交 `7cdcc34` 推送后，`iOS CI` run #62 双作业全绿。
@@ -315,28 +315,28 @@
 - **AI 输出**：`118a65c` 新增 `CamCardCloneUITests` target 与 19 项用例（后扩至 21 项）、App 侧新增 `-uiTestResetStore` / `-uiTestSeedStore` 两个启动参数钩子；`.github/workflows/ios-ci.yml` 新增 `ui` 作业（含 `Seed the simulator photo library`：`xcrun simctl boot` + `bootstatus -b` + `addmedia "$SIM_UDID" testcards/images/*.png` 预热语料）。
 - **AI 的错误**：run #65 的 `ui` 作业失败，`CardHolderUITests` 三处 `Failed to tap "emptyStateScanButton" ... No matches found`；run #66 / #67 的 `ui` 作业失败，`ScanImportUITests.swift:92` 报「相册选择器未打开」；同期 `testDiagnoseCorpusDetection` 报告 30 张语料**全部** `unreliable`、归一化长宽比 1.03–1.08 全不合格。
 - **修正**：① `b7de580` 删除 `emptyCardHolder` / `scannerEntry` / `scanReview` / `tagManagement` 四处**容器级** `accessibilityIdentifier`（SwiftUI 会把容器标识符下发并覆盖子元素自己的标识符，按钮因此定位不到）；② `3f93fb8` 把 `isReliable()` 的长宽比判据从归一化坐标改为**像素空间**（`aspectRatio(in imageSize:)`）；③ `5295a66` 把相册选择器的导航栏断言由写死中文「照片」改为多语言 `NSPredicate`（CI runner 为 `en_US`，标题是 `"Photos"`），并新增 `dumpHierarchy(of:)` 与 workflow 的 `UIPROBE` 分块注解，作为下一轮万一还不过时的失败现场采集通道。
-- **证据**：run #65（`118a65c`，`ui` 作业 failure）、run #66（`b7de580`，`ui` 作业 failure）、run #67（`3f93fb8`，语料报告已转为 `共30张 detected=30 unreliable=0 notFound=0`，`ui` 作业仍 failure）、run #68（`5295a66`，`Build & Test` / `OpenSpec Validate` / `UI Tests` **三作业全部 success**，`testM04_相册导入取到照片并进入检测识别` 与 `testM18M19_…` 通过）。失败明细均取自 `check-runs/<id>/annotations`（免登录）。**口径声明**：run #68 证明的是「相册导入 → 检测识别 → 逐字段改正 → 确认保存 → 详情核对」这条链路在真实 App 进程与手势下走得通；它**不能**替代 M01–M36 的人工视觉验收——视觉呈现与相机取景已另由 2026-11-03 在带 GUI 的 Mac mini M4 上的人工验收覆盖（36 项全部通过，见 `docs/UI验收清单.md`）。
+- **证据**：run #65（`118a65c`，`ui` 作业 failure）、run #66（`b7de580`，`ui` 作业 failure）、run #67（`3f93fb8`，语料报告已转为 `共30张 detected=30 unreliable=0 notFound=0`，`ui` 作业仍 failure）、run #68（`5295a66`，`Build & Test` / `OpenSpec Validate` / `UI Tests` **三作业全部 success**，`testM04_相册导入取到照片并进入检测识别` 与 `testM18M19_…` 通过）。失败明细均取自 `check-runs/<id>/annotations`（免登录）。**口径声明**：run #68 证明的是「相册导入 → 检测识别 → 逐字段改正 → 确认保存 → 详情核对」这条链路在真实 App 进程与手势下走得通；它**不能**替代 M01–M36 的人工视觉验收——视觉呈现与相机取景已另由 2026-11-03 在带 GUI 的 Mac mini M4 上的人工验收覆盖（36 项全部通过，见 `docs/验证报告.md 附录 A`）。
 
 ### 第 24 轮 — Week 6：解析器三类错例的 SDD 修复与字段级准确率前后对比
 
 - **提示词要点**
-  - 限定上下文：以 2026-11-01 基线实测（51.9% / 误报 3.8%）暴露的三类错例为唯一输入——字段归属错（公司名误入地址 / 姓名）、无标签号码分类、职位召回缺失；先读 `docs/能力边界分析.md` 与 `testcards/ground_truth.json`，只改 `BusinessCardFieldParser.swift` 与 `BusinessCardFieldParserTests.swift`，并同步规格与台账。
+  - 限定上下文：以 2026-11-01 基线实测（51.9% / 误报 3.8%）暴露的三类错例为唯一输入——字段归属错（公司名误入地址 / 姓名）、无标签号码分类、职位召回缺失；先读 `docs/验证报告.md 附录 C` 与 `testcards/ground_truth.json`，只改 `BusinessCardFieldParser.swift` 与 `BusinessCardFieldParserTests.swift`，并同步规格与台账。
   - 目标：按 SDD 流程**先出变更提案再改代码**——新建 `openspec/changes/fix-field-classification-errors/`（`proposal.md` / `design.md` / `spec.md` / `tasks.md`），提案合入后再实现三处规则，并给规则补足单测，最后用同一套字段级评价口径取「改前 / 改后」对照。
   - 禁止项：**不得改动 `testcards/ground_truth.json` 任何一个值**（数据集是评价基准，改它等于改考题）；不改字段级评价的判定口径与 9 个评价字段的集合；不得违反对已确定的「不得改动清单」的约定；不做未在提案里写明的越界改动。
   - 证据要求：给出提案与实现的 run 号、`check-runs/<id>/annotations` 的读回原文；字段级报告要「改前 / 改后」两个数都可追（改前取自 Mac 端 `mac-field-accuracy.log`，改后取自 CI 注解）；「未达成的目标」要如实写，不粉饰。
 - **AI 输出**：`04f8082` 合入变更提案（`proposal.md` 三类错因归因、`design.md` D1–D5、`spec.md` 5 个新 Scenario、`tasks.md` 四组），`iOS CI` run #70 的 `OpenSpec Validate` success；`2263a2e` 落盘三处规则改写（`addressOrCompanyKey(for:)` 地址 / 公司特征竞争、`phoneTargetWithoutLabel(in:fields:)` 形态优先 + 空槽位落位、`isJobTitleLike` / `isCJKJobTitleLike` / `isLatinJobTitleLike` 职位双路）并把 `BusinessCardFieldParserTests` 由 22 补到 41 个方法；`d74450e` 给 `FieldExtractionEvaluatorTests` 的报告逐行加 `FIELDRPT` 前缀、在 workflow 内 `grep "^FIELDRPT"` 后按 8 行分块发 `::notice::`，使改后数值可经免登录端点读回。
 - **AI 的错误**：① `design.md` 的 D2 最初把「号码带 `+1` 区号且位数不足 → 固话」写成规则，只核对了 TC07 / TC21，**没有回看 TC02 / 06 / 10 / 13 / 17 的真值其实标的是 mobile**，照此实现会把本属手机的无标签号码错判成固话；② `phoneTargetWithoutLabel` 早稿对「形态判不出」的情况兜底 `return (.mobile, value)`，导致 TC23 的固话 / 传真漏抽；③ `jobTitleKeywords` 早稿漏了「主任」，是靠 `git diff` 逐行复核才发现并补回。
-- **修正**：① D2 改为「形态能判出时优先；目标槽位已占用则返回 `nil`（宁漏不假）；形态判不出时按 mobile → phone → fax 第一个空槽位落位」，并在 `design.md` 记明「TC07 / TC21 的 `ground_truth.json` 把无标签号码标为 phone、而规则按形态判为 mobile，属**数据集标注内部不一致**」——经人工决策选择「**不动数据，记残留**」，不为了让两个数好看去改考题（该决策已写入本记录第 1 节与 `docs/能力边界分析.md` §3.5）；② 去掉 `(.mobile, value)` 兜底，改走空槽位落位，TC23 修复；③ 补回「主任」。
+- **修正**：① D2 改为「形态能判出时优先；目标槽位已占用则返回 `nil`（宁漏不假）；形态判不出时按 mobile → phone → fax 第一个空槽位落位」，并在 `design.md` 记明「TC07 / TC21 的 `ground_truth.json` 把无标签号码标为 phone、而规则按形态判为 mobile，属**数据集标注内部不一致**」——经人工决策选择「**不动数据，记残留**」，不为了让两个数好看去改考题（该决策已写入本记录第 1 节与 `docs/验证报告.md 附录 C` §3.5）；② 去掉 `(.mobile, value)` 兜底，改走空槽位落位，TC23 修复；③ 补回「主任」。
 - **证据**：run #70（`04f8082`，提案，`OpenSpec Validate` success）、run #71（`2263a2e`，规则与 19 个新单测，因随即被新提交取代而 `cancelled`，但该次运行内 `OpenSpec Validate` 与 `Build & Test (iOS Simulator)` 两作业已 success）、run #72（`d74450e`，`OpenSpec Validate` / `Build & Test (iOS Simulator)` / `UI Tests (XCUITest, headless)` **三作业全绿**）。**字段级准确率对照**（同一口径、同一 30 张语料 / 270 字段）：整体「正确」51.9%（140/270）→ **57.8%（156/270）**，误报率 3.8%（4/105）→ **1.9%（2/105）**，错误明细 29 → **11** 条；职位 56.7% → **93.3%**、公司 76.7% → **83.3%**、地址 33.3% → 36.7%、固话 36.7% → 40.0%、传真 10.0% → 13.3%。改后报告由 `check-runs/125116046722/annotations` 读回，落盘为 `docs/evidence/ci-2026-11-02/field-accuracy-report.md`。**未达成项如实记录**：提案设想的「`invented` 归零」**未达成**（4 → 2），剩余 2 条恰为已授权的 TC07 / TC21「数据集标注内部不一致」残留；无标签号码类错误由 6 降到 4（未归零）；剩余 11 条中 6 条为 OCR 噪声（TC12 / TC13 / TC15 / TC20 / TC26）、1 条为能力边界（TC28 `Apple` 无公司后缀，按 D1 刻意不下判），均已逐条归因，不记为规则缺陷。「字段归属错」与「职位召回缺失」两类错例已归零。
 
 ### 第 25 轮 — Week 6：最终演示执行与台账回填
 
 - **提示词要点**
-  - 限定上下文：演示已在物理 Mac 上执行完毕，本轮只做**台账回填**——先读 `docs/最终演示材料.md` §五（「演示后要回填什么」四处），只改 `docs/` 下的记录文件，不动业务代码、不动 `openspec/`。
-  - 目标：把「最终演示」按实际执行结果写进 `docs/验证报告.md`（补一行）、`docs/工作推进记录.md`（W6 行、一句话结论、跨周缺口）、`docs/最终演示材料.md`（同步演示结论）、`docs/UI验收清单.md`（无出入则不改旧结论，只追加演示说明）。
+  - 限定上下文：演示已在物理 Mac 上执行完毕，本轮只做**台账回填**——先读 `docs/工作推进记录.md 附录 A` §五（「演示后要回填什么」四处），只改 `docs/` 下的记录文件，不动业务代码、不动 `openspec/`。
+  - 目标：把「最终演示」按实际执行结果写进 `docs/验证报告.md`（补一行）、`docs/工作推进记录.md`（W6 行、一句话结论、跨周缺口）、`docs/工作推进记录.md 附录 A`（同步演示结论）、`docs/验证报告.md 附录 A`（无出入则不改旧结论，只追加演示说明）。
   - 禁止项：不编造逐条通过数、不替人工演示补写未做过的结论；T06 的 `isReliable()` 阈值标定与真实照片复核已于 2026-11-03 随 M01–M36 在 Mac 端一并完成。
   - 证据要求：写明演示的环境（设备 / 机型 / 系统）、内容（走哪些分支）、结论（与 2026-11-03 记录的对照），并把留痕目录（`docs/evidence/mac-2026-11-03/`）写进台账。
-- **AI 输出**：按四处回填——`docs/验证报告.md` 主表补「最终演示（W6 末项）」一行；`docs/工作推进记录.md` 的 W6 行、一句话结论与跨周缺口（原缺口 7 闭环）同步更新；`docs/最终演示材料.md` 开篇的演示状态行同步为已执行并写明环境与结论，§五的四处待回填逐条标注完成；`docs/UI验收清单.md` 文件头「执行状态」追加 2026-11-05 演示记录（结论一致，未改旧结论）。
+- **AI 输出**：按四处回填——`docs/验证报告.md` 主表补「最终演示（W6 末项）」一行；`docs/工作推进记录.md` 的 W6 行、一句话结论与跨周缺口（原缺口 7 闭环）同步更新；`docs/工作推进记录.md 附录 A` 开篇的演示状态行同步为已执行并写明环境与结论，§五的四处待回填逐条标注完成；`docs/验证报告.md 附录 A` 文件头「执行状态」追加 2026-11-05 演示记录（结论一致，未改旧结论）。
 - **AI 的错误**：本轮没有触发编译 / 测试失败（纯文档改动）。
 - **证据**：人工演示于 2026-11-05 在带 GUI 的 Mac mini M4 / `iPhone 17` / iOS 27.0 模拟器上执行，现场结论与 2026-11-03 的人工验收记录一致、无出入；录屏与截图见 `docs/evidence/mac-2026-11-03/`。
 
@@ -398,4 +398,182 @@
 
 1. 在仓库 Actions 页手动触发 `iOS CI`（已配置 `workflow_dispatch`），或任意推送到 `main`。
 2. 失败时无需登录：workflow 的 `Surface errors as annotations` 步骤会把 `error:` 行提升为注解，可用 `repos/<owner>/<repo>/check-runs/<check_run_id>/annotations` 直接读到（run #61 的三条 UI 基线不匹配、run #65 的 `emptyStateScanButton` 定位失败、run #66 / #67 的「相册选择器未打开」都是这样读到的；注意是 `check_runs` 的 `id`，与 Actions 的 `run_number` 不是一回事）。**单条注解约 4000 字符即被截断**，多条报告（如 30 张语料的 `DETECTCORPUS` 明细）在 workflow 内用 `split -l 8` 分块发多条 `::notice::` 读回；UI 用例失败时打印的 `UIPROBE` 元素树走同一通道。
-3. 拿到 Mac 后按 `docs/Mac端验收执行手册.md` 逐阶段执行（环境就绪 → 本机编译与全量单测 → UI 基线录制与比对 → M01–M36 人工验收 → 4.4 与 T06 真实数据量化 → 归档）；`docs/验证报告.md` 的「补验步骤与执行情况」只列要点，具体命令与产物清单以手册为准。**进度（2026-11-01）**：手册 §1–§2 与 §3 的基线录制 / 比对、§5.1 的 OCR 导出与字段级评价均已在租用 Mac 上执行完毕（Mac 只生产、产物回传入库，不执行 `git push`）；§3.3 的回传与「推 CI 观察」也已完成闭环——run #61 转红实测出跨环境误报，按预案改成带 iOS 主版本的基线名后 run #62 复绿；§4 的 M01–M36 人工验收已于 2026-11-03 在带 GUI 的 Mac mini M4 上完成（36 项全部通过，含相机取景与相册导入两条取照片分支），§5.2 的 T06 `isReliable()` 阈值标定与真实照片复核已于同批人工验收一并完成。**无头 UI 测试已接进 CI 并复绿**：`CamCardCloneUITests` 走无头 XCUITest 路线，经 run #65 → #66 → #67 三次转红修掉三处缺陷后，run #68（`5295a66`）三作业全绿，其中相册导入的两条端到端用例通过（详见第 23 轮）；它覆盖 M01–M36 里**适合自动化**的部分，视觉呈现、拖拽手感与权限弹窗由 2026-11-03 的人工验收覆盖。
+3. 拿到 Mac 后按 `docs/工作推进记录.md 附录 B` 逐阶段执行（环境就绪 → 本机编译与全量单测 → UI 基线录制与比对 → M01–M36 人工验收 → 4.4 与 T06 真实数据量化 → 归档）；`docs/验证报告.md` 的「补验步骤与执行情况」只列要点，具体命令与产物清单以手册为准。**进度（2026-11-01）**：手册 §1–§2 与 §3 的基线录制 / 比对、§5.1 的 OCR 导出与字段级评价均已在租用 Mac 上执行完毕（Mac 只生产、产物回传入库，不执行 `git push`）；§3.3 的回传与「推 CI 观察」也已完成闭环——run #61 转红实测出跨环境误报，按预案改成带 iOS 主版本的基线名后 run #62 复绿；§4 的 M01–M36 人工验收已于 2026-11-03 在带 GUI 的 Mac mini M4 上完成（36 项全部通过，含相机取景与相册导入两条取照片分支），§5.2 的 T06 `isReliable()` 阈值标定与真实照片复核已于同批人工验收一并完成。**无头 UI 测试已接进 CI 并复绿**：`CamCardCloneUITests` 走无头 XCUITest 路线，经 run #65 → #66 → #67 三次转红修掉三处缺陷后，run #68（`5295a66`）三作业全绿，其中相册导入的两条端到端用例通过（详见第 23 轮）；它覆盖 M01–M36 里**适合自动化**的部分，视觉呈现、拖拽手感与权限弹窗由 2026-11-03 的人工验收覆盖。
+
+---
+
+## 附录 A：TRAE 提示词模板
+
+> 本节原为独立文档，已并入本文档。
+
+
+本文件是**可复制的教学输入模板**，不是实际发生过的对话记录。Week 1–2 的产物已存在于本仓库，对应提示词可作为复现模板；真实会话需按第 9 节另行导出，不能用本文件充当对话证据。
+
+课程作业第十六节的要求在本文件中体现为三条硬约束，每段提示词都必须带上：
+
+- **限定上下文**：先读书写现存的 `PROJECT_RULES.md`、`docs/规格说明书.md`、`openspec/` 产物，只改被点名的文件。
+- **保护回归**：明确「不得改动」的接口、模型与已通过的测试。
+- **要求真实证据**：编译、测试、`openspec validate` 必须给出命令与退出码，结论须有实跑依据。
+
+### 1. Week 1 — 黑盒观察与规格
+
+```text
+请先检查当前工作区，读 PROJECT_RULES.md 与 openspec/config.yaml，确认工程里还没有任何业务代码。
+然后只做观察与规格，不写业务代码。
+
+以「名片全能王」为黑盒对象，界定本次功能切片：名片数字化与联系人管理的完整闭环。
+输出 docs/规格说明书.md，至少包含：术语表、复刻边界、明确不复刻的越界功能清单、
+锁定的参考环境（App 版本、iOS 版本、设备、语言、登录状态）、BusinessCard Schema、
+页面清单 P01–P10、状态清单 S1–S4 / D1–D3 / E1–E5、Reference Test Suite T01–T20。
+
+BusinessCard 必须逐字段列出：originalImageName、processedImageName、name、company、jobTitle、
+mobile、phone、fax、email、website、address、postalCode、department、tags、notes、createdAt，
+并注明哪些必填、哪些可为 nil。
+
+同时产出 testcards/ground_truth.json：30 张合成名片，覆盖中文、英文、中英双语、竖版、
+多电话、多邮箱、字段缺失、拍摄质量差、复杂 Logo 背景等类别，每张带 Ground Truth。
+
+不要出现用户注册、会员、订阅支付、云同步、CRM、二维码名片等越界功能。
+不要写 Swift 代码。
+```
+
+### 2. Week 2 — 架构、UI 与数据模型
+
+```text
+请按已审查的规格建立 Week 2 骨架，先构建稳定的软件骨架，不要做 OCR。
+
+只新建以下内容，不要顺带实现 Week 3 及以后的能力：
+BusinessCard 值类型（Foundation-only，Codable + Equatable + Hashable）与 Mock 数据；
+BusinessCardRepository 协议与 InMemoryBusinessCardRepository（CRUD / 搜索 / 标签）；
+AppRouter + NavigationStack（push / pop / popToRoot）；
+@MainActor 的 CardHolderViewModel 与 CardDetailViewModel，覆盖 S1–S4 / D1–D2；
+名片夹首页、空状态、名片行、详情/编辑页、扫描入口占位。
+扫描入口只做占位取景页，不代表真实 OCR 已实现。
+
+同时生成可直接用 Xcode 打开的 CamCardClone.xcodeproj（app target + test target + 共享 Scheme），
+并写第一批单元测试：Model、Repository、ViewModel 三层，覆盖 T01、T12、T13、T14、T15、T16、T17、T20。
+
+「姓名为空或全空格必须拒绝保存并保持编辑态」这条要有独立测试。
+完成后给出编译与运行测试的真实命令、退出码与日志路径。
+```
+
+### 3. Week 3 — 相机与 OCR
+
+```text
+现有 ScannerEntryView 是占位页，只用于验证 T02/T12。请不要修改 BusinessCard 数据模型
+和 BusinessCardRepository 协议，仅按下列顺序接入相机与 OCR：
+
+1. 相机预览、相机权限申请与拒绝分支、拍摄、取消、重拍、返回，替换占位页，覆盖 T02–T04。
+2. 从照片库导入并进入识别流程，覆盖 T05。
+3. 名片区域检测与自动裁剪，落成可单测的函数；再做透视校正与方向校正，覆盖 T06。
+4. 定义 OCRService 协议，实现一个输出「原始识别文本」的实现，覆盖 T07。
+   本阶段只要求产出 OCR Raw Text，不做字段解析。
+
+拍摄与校正的输入输出要能脱离相机单独测试（传入固定图像，断言输出），
+相机权限拒绝、相册权限拒绝、中途退出这三条异常路径必须有测试，覆盖 T20 的相关场景。
+
+保留全部已通过的 Week 2 测试，不得为了通过而修改其预期。
+完成后分别报告：编译退出码、单元测试数量与结果、哪些项在真机上验证过、哪些仍是待验。
+```
+
+### 4. Week 4 — 结构化抽取与人工校正
+
+这是整个作业最重要的一周，提示词必须写得比前几周更窄。
+
+```text
+现有 OCRService 已能返回 OCR 原始文本。请不要修改 OCRService 接口和现有 MVVM 架构，
+仅实现 BusinessCardFieldParser，把 OCR 结果映射为 name、company、jobTitle、mobile、phone、
+fax、email、website、address、postalCode、department。
+
+硬性规则：无法确认的字段必须返回 nil，绝不允许根据语义生成原图中不存在的信息。
+名片上没有 Website 时不得产出 Website，这是 T09。
+
+必须先处理这几类歧义，并为每一类写独立测试：
+字段歧义（如 "Apple" 是公司、产品还是地址）；
+人名与公司混淆（如 "Jordan Lee" 与 "Lee Consulting"）；
+多电话号码归属（Mobile / Office / Fax，含 T10）；
+中英文混排（如 "朱宏明 Professor Tongji University"）；
+同一字段多个 Email 或多条地址；
+OCR 错字与残缺行。
+
+广度：姓名识别、公司识别、职位识别、电话识别、Email 识别、地址识别。
+完成后用 testcards/ground_truth.json 统计字段级准确率与「缺失字段被误报」的比例，
+输出可复现的统计脚本或测试，并把每类的错误样例与原因写入错误分析文档。
+
+打通人工校正链路：识别结果 → 结构化字段 → 用户检查 → 人工修改 → 确认 → 保存，覆盖 T11–T12。
+用户至少能修改姓名、公司、职位、手机、电话、Email、Website、地址；取消修改必须能丢弃草稿。
+
+不得改动 BusinessCard 数据模型与已通过的测试。完成后重跑全部测试并报告结果。
+```
+
+### 5. Week 5 — 名片管理、持久化与导出
+
+```text
+请补齐名片管理的完整交互，并接入真正的持久化，覆盖 T13–T19。
+
+1. 列表、详情、搜索（姓名/公司/职位/电话/Email）、标签（创建/添加/按标签查看/删除）、
+   备注、编辑、删除的完整交互，覆盖 T13–T17。
+2. 新增一个持久化实现替换 InMemoryBusinessCardRepository 在 App 层的注入点，
+   但不得改动 BusinessCardRepository 协议签名，也不得改动已通过测试的调用方。
+   验收：扫描 → 识别 → 人工修改 → 保存 → 强杀 App → 重启 → 该名片仍在，
+   原始图像、修改后的字段、标签、备注全部保留，覆盖 T18。
+3. 实现联系人导出（写入系统联系人，或导出 VCF/vCard），校验姓名、公司、职位、
+   电话、Email、地址的字段映射，覆盖 T19。
+4. 增加 UI Golden Test 与首批截图对比。
+
+不得为了通过测试而放宽断言；持久化实现必须与内存实现通过同一套 Repository 测试。
+报告真实运行结果，受阻项保持未勾选。
+```
+
+### 6. Week 6 — 全量验收与回归
+
+```text
+本周不再增加大型新功能，只做验收、回归与归档。
+
+请对照 openspec/ 的规格与 Delta 审查完成版，逐条给出确定性 20 条 Reference Test Scenarios
+T01–T20 的实际结果，任何一项未达到 100% 通过都要如实列出而不是回避。
+
+分别给出证据：单元测试数量与结果、iOS 编译退出码、实际 UI 测试结果、模拟器人工验收结论、
+官方 openspec validate --all --strict 的日志路径。
+不得因编译成功或 build-for-testing 成功而声称模拟器测试已通过。
+
+汇总两类错误分析：OCR 的错误样例与原因；字段抽取的错误样例与原因。
+明确写出 AI 的能力边界：哪些情况它一定会错、哪些必须由人校正、哪些字段绝不允许它补全。
+
+检查 tasks.md 中所有受阻项是否仍保持未勾选，并列出可执行的补验命令。
+```
+
+### 7. 通用回归保护提示词
+
+每次修改已有代码时追加这段，用于训练 AI Context Control 与增量开发。
+
+```text
+目前 TC07 中公司名被错误识别为姓名。请先分析原因，只修改字段分类规则，
+不要改动 BusinessCard 数据模型、OCRService 接口和现有已通过的测试。
+修改完成后重新运行全部测试，并逐一报告哪些测试从通过变为失败、为什么。
+如果修复需要改动已通过的测试预期，先停下来向我说明，不要自行修改。
+```
+
+### 8. 归档
+
+```text
+先检查真实验证记录和 tasks.md 的必需任务，未完成时不要归档。
+确认四项能力 app-shell、card-library、card-holder、card-scanner 均为 ADDED（本工程没有 MODIFIED 基线）。
+完成后把活动变更移动到 openspec/changes/archive/ 下以真实日期命名的目录，
+并把四个 ADDED 能力合并为主规格 openspec/specs/<capability>/spec.md。
+新主规格使用 Requirements，不得残留 ADDED / MODIFIED 标题。
+归档后再次运行 openspec validate --all --strict 并报告路径。
+```
+
+### 9. 真实会话的导出
+
+本文件是模板，不能作为「AI 协作记录」的证据。作业要求的是真实记录，请在每次与 TRAE 的实际协作后自行导出，并至少注明：
+
+- 使用的模型与 TRAE / IDE 版本；
+- 该轮的原始提示词（可直接引用本文件对应小节，但须标出实际改动过的部分）；
+- AI 的实际输出摘要与它犯的错误；
+- 你人工修改了什么、为什么；
+- 实际执行的命令与退出码。
+
+真实会话记录与人工修改痕迹，另行保存，不要与本模板混为一谈。**本项目的真实协作记录见 `docs/AI协作记录.md`**：逐轮记录提示词要点（按「限定上下文 / 保护回归 / 要求真实证据」三条硬约束归纳，不逐字引用会话原话）、AI 输出、AI 犯的错与修正、人工干预、命令与退出码；该项目全程按 `PROJECT_RULES.md` 第 2 条逐项推进，未出现一次性生成整个 App 的提示词。该文件里「TRAE / IDE 版本」一项需填本机实际版本号。
+

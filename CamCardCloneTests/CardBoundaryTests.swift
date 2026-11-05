@@ -12,7 +12,7 @@ import XCTest
 /// 几何判定（面积、长宽比、可靠性、旋转方向、像素映射）全部是纯函数，逐条断言；
 /// 依赖 Vision / Core Image 的部分只覆盖可确定的两端——不可解码的图片数据会失败、
 /// 无矩形候选的纯白图片返回 `.notFound`、校正对合成图像产出可解码结果。
-/// 真实名片照片上的检测成功率属人工验收（见 `docs/UI验收清单.md`）。
+/// 真实名片照片上的检测成功率属人工验收（见 `docs/验证报告.md 附录 A`）。
 final class CardBoundaryTests: XCTestCase {
 
     // MARK: - Fixtures

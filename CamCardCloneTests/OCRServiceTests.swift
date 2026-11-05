@@ -10,7 +10,7 @@ import XCTest
 ///
 /// 这里只测不依赖真机的部分：阅读顺序整理、结果规范化、错误映射，以及对无效图片数据与
 /// 无文字图片的两条真实 `VisionOCRService` 失败路径。真机拍摄、相册导入与倾斜名片的识别
-/// 效果属人工验收（见 `docs/UI验收清单.md`），不在本文件覆盖范围。
+/// 效果属人工验收（见 `docs/验证报告.md 附录 A`），不在本文件覆盖范围。
 final class OCRServiceTests: XCTestCase {
 
     // MARK: - Fixtures

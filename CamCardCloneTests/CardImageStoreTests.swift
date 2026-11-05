@@ -6,7 +6,7 @@ import XCTest
 /// 覆盖 5.1 第二段「详情页展示原始图」的数据层：图像按名片落盘、按名字取回、
 /// 名字可安全写入 `BusinessCard`（不含路径分隔符），以及名片删除后清理两张图。
 ///
-/// 只验证存储语义，不涉及真实界面的图像呈现（属人工验收，见 `docs/UI验收清单.md`）。
+/// 只验证存储语义，不涉及真实界面的图像呈现（属人工验收，见 `docs/验证报告.md 附录 A`）。
 final class CardImageStoreTests: XCTestCase {
 
     private var directory: URL!

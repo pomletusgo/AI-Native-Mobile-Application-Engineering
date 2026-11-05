@@ -4,7 +4,7 @@ import XCTest
 ///
 /// 不在此文件内的相关条目：M26（详情页展示拍摄/导入的原始图，需要先有真实图像数据）
 /// 与 M30–M33（导出到系统联系人 / 分享 VCF，涉及系统权限与分享面板），仍在
-/// `docs/UI验收清单.md` 里保持「待执行」。
+/// `docs/验证报告.md 附录 A` 里保持「待执行」。
 final class TagManagementUITests: CamCardCloneUITestCase {
 
     // MARK: - 详情编辑态：加标签

@@ -10,7 +10,7 @@ import XCTest
 /// 「未确认前不写库」与 `Abandon recognition`（放弃确认不新增名片）。
 ///
 /// 检测、校正、识别与仓库都以替身注入，整条链路不依赖真机与相机；
-/// 确认页的真实观感、检测框展示与手动调整手势属人工验收（见 `docs/UI验收清单.md`）。
+/// 确认页的真实观感、检测框展示与手动调整手势属人工验收（见 `docs/验证报告.md 附录 A`）。
 @MainActor
 final class ScanReviewViewModelTests: XCTestCase {
 

@@ -11,7 +11,7 @@ import XCTest
 ///
 /// 这些分支在真机上依赖系统弹窗与用户操作，无法稳定复现，因此把顺序逻辑收进
 /// `ScanAccessCoordinator` 并用替身驱动，在此穷举验证。真实的系统弹窗、设置跳转
-/// 与相册选择器行为属人工验收（见 `docs/UI验收清单.md`）。
+/// 与相册选择器行为属人工验收（见 `docs/验证报告.md 附录 A`）。
 final class ScanAuthorizationTests: XCTestCase {
 
     // MARK: - 替身

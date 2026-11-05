@@ -179,7 +179,7 @@ jobs:
   # 作业 3：无头运行 UI 测试（XCUITest）
   #
   # `xcodebuild test` 通过 CoreSimulator 驱动设备，不依赖 `Simulator.app` 窗口，
-  # 因此在没有模拟器 GUI 的环境也能跑；对应 docs/UI验收清单.md 里 M01–M03 /
+  # 因此在没有模拟器 GUI 的环境也能跑；对应 docs/验证报告.md 附录 A 里 M01–M03 /
   # M05–M09 / M11–M14 / M17 / M23–M25 / M27–M29 的自动化部分。
   #
   # 与作业 2 分开的原因：UI 测试走的是真实 App 进程与手势，耗时与稳定性都和单元

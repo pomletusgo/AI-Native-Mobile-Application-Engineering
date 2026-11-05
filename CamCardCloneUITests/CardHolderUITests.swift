@@ -5,7 +5,7 @@ import XCTest
 /// 覆盖范围说明：
 /// - 能被 XCUITest 无头驱动的条目在这里断言，`xcodebuild test` 不需要 `Simulator.app` 窗口；
 /// - M04（真实拍摄 / 相册导入）、M10（拨号 / 邮件 / 浏览器）、M15（外观）、M16（VoiceOver 需人耳）
-///   不在此文件内，仍在 `docs/UI验收清单.md` 里保持「待执行」。
+///   不在此文件内，仍在 `docs/验证报告.md 附录 A` 里保持「待执行」。
 ///
 /// 每个用例都通过启动参数把存储置为确定状态（`-uiTestResetStore` / `-uiTestSeedStore`），
 /// 因此不依赖上一个用例留下的数据，也不依赖执行顺序。

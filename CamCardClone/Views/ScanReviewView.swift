@@ -270,7 +270,7 @@ struct ScanReviewView: View {
 /// 叠框才不会随留白漂移。
 ///
 /// 已知假设：归一化坐标相对**原始像素**，而 `UIImage` 渲染时会应用 EXIF 方向标记；
-/// 带方向标记的照片上叠框可能与画面有偏差，需在真机上用真实照片确认（见 `docs/UI验收清单.md`）。
+/// 带方向标记的照片上叠框可能与画面有偏差，需在真机上用真实照片确认（见 `docs/验证报告.md` 附录 A）。
 private struct BoundaryAdjustmentCanvas: View {
 
     let imageData: Data

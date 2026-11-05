@@ -4,7 +4,7 @@ import XCTest
 /// `TagManagementViewModel` 单元测试，覆盖 P09「创建 / 添加 / 按标签查看 / 删除标签」中的全局管理部分。
 ///
 /// 这里验证的是标签管理页的读写语义（张数统计、按标签查看、删除整个标签、新建标签的校验与落盘）；
-/// 页面呈现与手势属人工验收，见 `docs/UI验收清单.md`。
+/// 页面呈现与手势属人工验收，见 `docs/验证报告.md 附录 A`。
 @MainActor
 final class TagManagementViewModelTests: XCTestCase {
 
