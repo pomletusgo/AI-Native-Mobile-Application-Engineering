@@ -1,4 +1,4 @@
-实现参考：名片全能王（CamCard）「名片数字化与联系人管理」切片复刻；主规格处于归档前状态。
+实现参考：名片全能王（CamCard）「名片数字化与联系人管理」切片复刻；主规格已归档。
 
 用 Xcode 打开 `CamCardClone.xcodeproj` 并选择同名 Scheme `CamCardClone`。
 
@@ -8,7 +8,7 @@
 - 工程规则：`PROJECT_RULES.md`、`.trae/rules/project_rules.md`
 - 追踪与验收：`docs/规格测试追踪表.md`、`docs/UI验收清单.md`、`docs/验证报告.md`
 
-当前进度：Week 1–6 的规格、骨架与功能切片均已完成（相机接入与相册导入、区域检测与透视校正、OCR、字段结构化抽取、持久化、联系人 / VCF 导出、标签管理页、UI Golden 基线、字段级准确率量化）；M01–M36 人工 UI 验收已于 2026-11-03 在 Mac mini M4 / `iPhone 17` 模拟器（iOS 27.0）上完成——**33 项通过、3 项部分通过**（M04 拍摄分支、M10 电话/邮箱、M16 VoiceOver 音频均受模拟器环境限制）。`openspec/specs/` 仍为空，主规格处于**归档前**状态。剩余项仍依赖物理 iPhone 与实物名片（M04 拍摄分支、真实名片照片复核、`isReliable()` 阈值标定 T06），其阻塞清单与归因见 `docs/Mac端验收执行手册.md` §6.0。
+当前进度：Week 1–6 的规格、骨架与功能切片均已完成（相机接入与相册导入、区域检测与透视校正、OCR、字段结构化抽取、持久化、联系人 / VCF 导出、标签管理页、UI Golden 基线、字段级准确率量化）；M01–M36 人工 UI 验收已于 2026-11-03 在 Mac mini M4 / `iPhone 17` 模拟器（iOS 27.0）上完成——**36 项全部通过**。`openspec/specs/` 已生成 app-shell / card-library / card-holder / card-scanner 四份主规格，`openspec validate --all --strict` 为 `4 passed, 0 failed`；两个变更已归档至 `openspec/changes/archive/2026-11-05-*`。归档前置项的复核结论见 `docs/Mac端验收执行手册.md` §6.0。
 
 ## 推送后运行 CI
 

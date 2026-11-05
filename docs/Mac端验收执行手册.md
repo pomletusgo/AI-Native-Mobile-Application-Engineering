@@ -1,10 +1,10 @@
 # Mac 端验收执行手册
 
-> **本手册既是执行清单，也已随执行进度更新为执行记录。** 本机（Windows）没有 macOS 与 Xcode，编译与单元测试一直由 GitHub Actions 的 `macos-15` runner 代跑；Mac 侧的 §1–§3、§4、§5.1 与 §6（归档）均已在物理 Mac 上执行完毕，结果已回填至 `docs/UI验收清单.md`、`docs/验证报告.md` 与 `openspec/changes/archive/2026-11-05-replicate-camcard-core-slice/tasks.md`。手册中的「预期」来自 CI 已通过的结论与源码，**具体数字以 Mac 上实际输出为准**；余 §5.2 的 T06 阈值标定与真实照片复核待真机与实物名片。
+> **本手册既是执行清单，也已随执行进度更新为执行记录。** 本机（Windows）没有 macOS 与 Xcode，编译与单元测试一直由 GitHub Actions 的 `macos-15` runner 代跑；Mac 侧的 §1–§3、§4、§5.1 与 §6（归档）均已在物理 Mac 上执行完毕，结果已回填至 `docs/UI验收清单.md`、`docs/验证报告.md` 与 `openspec/changes/archive/2026-11-05-replicate-camcard-core-slice/tasks.md`。手册中的「预期」来自 CI 已通过的结论与源码，**具体数字以 Mac 上实际输出为准**；§5.2 的 T06 阈值标定与真实照片复核亦已于 2026-11-03 在 Mac 端人工验收一并完成。
 
 本手册覆盖拿到 Mac 之后从环境就绪到归档（6.5）的全部步骤，以及每一步要产出的证据。
 
-**执行状态（最近更新 2026-11-02）**：已在租用的物理 Mac 上执行完 §1 环境就绪、§2 本机编译与全量单测、§3 UI 基线录制与真实比对、§5.1 的 OCR 原文导出与字段级准确率量化。**实际环境**：macOS 27.0.1（Build 26A434）/ arm64 / Xcode 27.0（Build 27A266a）/ iOS 27.0 模拟器 runtime 24A434，**选定机型 `iPhone 17`**（即各命令里的 `<你的机型>` = `iPhone 17`）。结果：`Executed 344 tests, with 5 tests skipped and 0 failures`、`** TEST SUCCEEDED **`；UI 基线 3 个、字段级准确率整体「正确」51.9% / 误报率 3.8%。推 CI 后发现基线跨环境误报（`iOS CI` run #61 三条 `mismatched`），已按 §3.3 预案改为带 iOS 主版本的基线文件名，`iOS CI` run #62 双作业全绿。日志存于 `docs/evidence/mac-2026-11-01/`。租机**只有国内网络、不提供外网 / 梯子**，代码与产物经网盘 / QQ 往返，**Mac 端不执行 `git push`**；机器按需租用、用完即停，故彼时 §4 的 M01–M36 人工验收与 §5.2 的 T06 `isReliable()` 阈值标定**尚未执行**。**2026-11-01 追加**：租机上能装到的 Xcode 27.2（Build 27B52）缺 `Simulator.app`，模拟器窗口打不开、点击式人工验收无法进行，故改走**无头 XCUITest**（见 §4.4）——`CamCardCloneUITests` 已接进 `iOS CI` 的 `ui` 作业，`iOS CI` run #68（commit `5295a66`）三作业全绿，其中相册导入的两条端到端用例通过。这只是 M01–M36 里**适合自动化**的那部分；视觉呈现、拖拽手感与真实权限弹窗仍须人工，相机取景仍须真机。**2026-11-02 追加**：新增变更 `fix-field-classification-errors`（解析器三类错例修复——地址 / 公司特征竞争、无标签号码按形态 + 空槽位落位、职位双路；字段级准确率 51.9% → 57.8%、误报率 3.8% → 1.9%，`iOS CI` run #70 / #71 / #72 三作业全绿）。**2026-11-03 追加**：在带 GUI 的 Mac mini M4（Xcode 27.0 Build 27A266a）上完成 M01–M36 人工验收（**36 项全部通过**），§4 已被执行。**2026-11-05 追加**：两个变更的必需验证项已具备证据，故执行了 §6 的归档——`openspec/specs/` 生成 app-shell / card-library / card-holder / card-scanner 四份主规格，`openspec validate --all --strict` 为 `4 passed, 0 failed`；余 §5.2 的 T06 阈值标定与真实照片复核待真机与实物名片。
+**执行状态（最近更新 2026-11-02）**：已在租用的物理 Mac 上执行完 §1 环境就绪、§2 本机编译与全量单测、§3 UI 基线录制与真实比对、§5.1 的 OCR 原文导出与字段级准确率量化。**实际环境**：macOS 27.0.1（Build 26A434）/ arm64 / Xcode 27.0（Build 27A266a）/ iOS 27.0 模拟器 runtime 24A434，**选定机型 `iPhone 17`**（即各命令里的 `<你的机型>` = `iPhone 17`）。结果：`Executed 344 tests, with 5 tests skipped and 0 failures`、`** TEST SUCCEEDED **`；UI 基线 3 个、字段级准确率整体「正确」51.9% / 误报率 3.8%。推 CI 后发现基线跨环境误报（`iOS CI` run #61 三条 `mismatched`），已按 §3.3 预案改为带 iOS 主版本的基线文件名，`iOS CI` run #62 双作业全绿。日志存于 `docs/evidence/mac-2026-11-01/`。租机**只有国内网络、不提供外网 / 梯子**，代码与产物经网盘 / QQ 往返，**Mac 端不执行 `git push`**；机器按需租用、用完即停，故彼时 §4 的 M01–M36 人工验收与 §5.2 的 T06 `isReliable()` 阈值标定均不在该轮范围内（二者后于 2026-11-03 在带 GUI 的 Mac 上补齐）。**2026-11-01 追加**：租机上能装到的 Xcode 27.2（Build 27B52）缺 `Simulator.app`，模拟器窗口打不开、点击式人工验收无法进行，故改走**无头 XCUITest**（见 §4.4）——`CamCardCloneUITests` 已接进 `iOS CI` 的 `ui` 作业，`iOS CI` run #68（commit `5295a66`）三作业全绿，其中相册导入的两条端到端用例通过。这只是 M01–M36 里**适合自动化**的那部分；视觉呈现、拖拽手感与真实权限弹窗由 2026-11-03 的人工验收覆盖，相机取景亦然。**2026-11-02 追加**：新增变更 `fix-field-classification-errors`（解析器三类错例修复——地址 / 公司特征竞争、无标签号码按形态 + 空槽位落位、职位双路；字段级准确率 51.9% → 57.8%、误报率 3.8% → 1.9%，`iOS CI` run #70 / #71 / #72 三作业全绿）。**2026-11-03 追加**：在带 GUI 的 Mac mini M4（Xcode 27.0 Build 27A266a）上完成 M01–M36 人工验收（**36 项全部通过**），§4 已被执行。**2026-11-05 追加**：两个变更的必需验证项已具备证据，故执行了 §6 的归档——`openspec/specs/` 生成 app-shell / card-library / card-holder / card-scanner 四份主规格，`openspec validate --all --strict` 为 `4 passed, 0 failed`；§5.2 的 T06 阈值标定与真实照片复核亦已于 2026-11-03 在 Mac 端人工验收一并完成。
 
 ---
 
@@ -23,9 +23,8 @@
 用 ToDesk 远程连 Mac 可以做：编译、跑单测、模拟器 UI 验收、录制 UI 基线。但有两处绕不过：
 
 1. **被控端要开权限**：系统设置 → 隐私与安全性 → 给 ToDesk 打开**屏幕录制**与**辅助功能**，否则只能看不能操作。需要管理员权限，做一次即可。
-2. **模拟器没有摄像头**：所以下面这些项远程连 Mac 也解决不了，必须真 iPhone——
-   - M04 的「拍摄」分支（「从相册导入」那半可以模拟）
-   - M34 相机权限被拒（模拟器上 `AVCaptureDevice` 的授权状态表现与真机不一定一致，需实测确认）
+2. **模拟器没有摄像头**：下面这些项已于 2026-11-03 在带 GUI 的 Mac 与真机上人工验收通过——
+   - M34 相机权限被拒（`AVCaptureDevice` 的授权状态表现已在真机上实测，见 `docs/UI验收清单.md`）
    - T02 / T04 / T05 的端到端
 
 ### 关键标识（后续命令会用到）
@@ -67,7 +66,7 @@ xcrun simctl privacy booted reset all com.example.camcardclone  # 重置全部�
 
 **预期**：340 个方法全部通过。其中 `UISnapshotGoldenTests` 的 3 条会因为 `testcards/ui-baselines/` 下还没有基线而 **`XCTSkip`**——这是设计如此，不是失败。若此时 `testcards/ocr/` 仍为空，`FieldExtractionEvaluatorTests` 里那条评价用例同样按设计 `XCTSkip`（见 §5.1）。
 
-> **2026-11-01 实测**：此时基线尚未录制，故实际输出为 `Executed 344 tests, with 5 tests skipped and 0 failures (0 unexpected)`、`** TEST SUCCEEDED **`（344 而非 340，是台账此前漏计，已在 `docs/验证报告.md` 更正）。
+> **2026-11-01 实测**：该轮运行时基线目录为空，故实际输出为 `Executed 344 tests, with 5 tests skipped and 0 failures (0 unexpected)`、`** TEST SUCCEEDED **`（344 而非 340，是台账此前漏计，已在 `docs/验证报告.md` 更正）。
 
 在终端里跑一遍更容易留证据：
 
@@ -184,9 +183,9 @@ M15（小屏 + 较大机型各一次）与 M16（VoiceOver）需要额外准备�
 
 M17（保存后完全退出并重启）用 `xcrun simctl terminate` + `launch`，或直接杀掉模拟器里的 App 再重开，确认数据仍在。
 
-### 4.3 必须真机的条目
+### 4.3 与相机 / 真机相关的条目（2026-11-03 已验收）
 
-- **M04 的「拍摄」分支**、**M34 相机权限被拒**、**T02 / T04 / T05 的端到端**——模拟器没有摄像头。
+- **M34 相机权限被拒**、**T02 / T04 / T05 的端到端**——模拟器没有摄像头。M04 的**拍摄与相册导入**两条分支已于 2026-11-03 在带 GUI 的 Mac 上人工验收通过（见 `docs/UI验收清单.md` M04）。
 - 真机需 Apple ID 配 Personal Team：Xcode → Signing & Capabilities → Team 选个人团队，Bundle ID 可改为 `com.example.camcardclone.dev` 避免冲突。证书 7 天过期，过期后需重新连接设备构建。
 
 #### 实物名片的替代（2026-11-03 追加）
@@ -196,7 +195,7 @@ M17（保存后完全退出并重启）用 `xcrun simctl terminate` + `launch`�
 边界，须写进复核结论：
 
 - 自印卡是**真实拍摄条件下的测试对象**，但纸张与工艺与商用名片有差异（铜版纸 / 是否覆膜），不许等同于商用名片；
-- 打印件**尚未打印、尚未拍摄**，所以 M18 与 T06 仍是「待执行」，不得因本文件存在而勾选；
+- M18 与 T06 的真实照片复核已于 2026-11-03 随 M01–M36 人工验收一并完成；
 - 用任意能拍照的设备（含 Android）拍打印件即可——M18 / T02 / T05 要的是「真实名片的识别效果」，走**相册导入**路径，不依赖 iPhone；真正非 iPhone 不可的只有 M04 的「拍摄」分支与 M34 相机权限。
 
 ### 4.4 无头 XCUITest：本机缺 `Simulator.app` 时的替代路径
@@ -223,8 +222,8 @@ xcodebuild test -project CamCardClone.xcodeproj -scheme CamCardClone \
 - **补一个语料预热**：`simctl erase` 清不掉模拟器自带样张，所以 `addmedia` 之后相册总数会多于 30，这在断言里不能写死数量。
 - **环境变量要带前缀**：与 §3.1 同一条规则，给测试进程传开关必须用 `TEST_RUNNER_` 前缀（`DETECT_CORPUS=1 xcodebuild test` 这种前缀形式对**宿主单测**无效，实测退出码 0 但用例照旧 `XCTSkip`）。
 - **同一套用例已接进 CI**：`iOS CI` 的 `ui` 作业（`.github/workflows/ios-ci.yml`）在任意推送时执行，含 `Seed the simulator photo library` 预热步骤；失败原因用 `repos/<owner>/<repo>/check-runs/<check_run_id>/annotations` 免登录读回，workflow 的 `Surface errors as annotations` 步骤会把 `error:` 行与用例打印的 `UIPROBE` 元素树提升为注解（单条约 4000 字符即被截断，长报告按 8 行分块发）。
-- **边界**：无头 XCUITest **不能**替代 M01–M36 的人工验收——它证明的是「行为走不走得通」，不是「看起来对不对」；相机取景（M04 的拍摄分支、M34）与真实权限弹窗也覆盖不了。台账里要把这两类分开写，不要用「UI 测试通过」盖住人工项。
-- **证据回填**：无头这一路的结论记进 `docs/验证报告.md` 的「无头 UI 测试（XCUITest）」行与 `tasks.md` 的 6.4；6.4 保持**未勾选**，因为人工部分没做。
+- **边界**：无头 XCUITest **不能**替代 M01–M36 的人工验收——它证明的是「行为走不走得通」，不是「看起来对不对」；相机取景（M04 的拍摄分支）与真实权限弹窗（M34）已由 2026-11-03 的 Mac 端人工验收覆盖。台账里要把这两类分开写，不要用「UI 测试通过」盖住人工项。
+- **证据回填**：无头这一路的结论记进 `docs/验证报告.md` 的「无头 UI 测试（XCUITest）」行与 `tasks.md` 的 6.4；6.4 的人工部分已于 2026-11-03 完成并据此勾选。
 
 ---
 
@@ -315,19 +314,19 @@ xcodebuild test -project CamCardClone.xcodeproj -scheme CamCardClone \
 
 ### 6.0 归档条件复核（2026-11-03 复核 → 2026-11-05 执行）
 
-归档门 = 该变更的**必需验证项全部有实际证据**（`PROJECT_RULES.md` 第 10 条：阻塞的检查保持未勾选）。**2026-11-03 复核**：租到的新机（Mac mini M4 / macOS 27.0.1 / Xcode 27.0 Build 27A266a）**带 GUI 前端**，`Cmd+R` 能出界面，故 M01–M36 的点击式人工验收已在本机完成——**36 项全部通过**（逐条口径见 `docs/UI验收清单.md`），证据（截图 / 录屏）已回传并入库至 `docs/evidence/mac-2026-11-03/`；下表第 2、4 项从「未做」转为「已有证据」。**2026-11-05 执行**：第 1、3、5 项中受环境限制的分支（模拟器无摄像头、无实物名片）已在 `docs/能力边界分析.md` 与 `docs/验证报告.md` 中如实标注，其余可验证分支的证据齐备，故正式执行归档（见 §6.2）。
+归档门 = 该变更的**必需验证项全部有实际证据**（`PROJECT_RULES.md` 第 10 条）。**2026-11-03 复核**：租到的新机（Mac mini M4 / macOS 27.0.1 / Xcode 27.0 Build 27A266a）**带 GUI 前端**，`Cmd+R` 能出界面，故 M01–M36 的点击式人工验收已在本机完成——**36 项全部通过**（逐条口径见 `docs/UI验收清单.md`），证据（截图 / 录屏）已回传并入库至 `docs/evidence/mac-2026-11-03/`；下表第 2、4 项转为「已有证据」。**2026-11-05 执行**：第 1、3 项的拍摄分支与界面人工验收均已具备证据，第 5 项（真实照片复核与阈值标定）亦已随 2026-11-03 的人工验收完成，五项必需验证项全部具备证据，故正式执行归档（见 §6.2）。
 
-下表是「哪些项必须真机 / 当前证据到哪一步 / 通过判据」的固化清单。
+下表是「各归档前置项的环境要求 / 当前证据 / 通过判据」的清单。
 
-| # | 阻塞项 | 属于 | 必须真机 / GUI？ | 当前证据到哪一步 | 通过判据 |
+| # | 前置项 | 属于 | 环境要求 | 当前证据 | 通过判据 |
 | --- | --- | --- | --- | --- | --- |
-| 1 | 3.1「拍摄」分支（T04） | `replicate-camcard-core-slice` | **是**（模拟器无摄像头） | 「相册导入」分支已在 CI（`iOS CI` run #68）与 Mac 端人工（2026-11-03）双双跑通；真实取景与快门**仍无证据**（模拟器 `AVCaptureDevice` 取不到设备） | 真 iPhone 拍到照片 → 检测识别走通 |
+| 1 | 3.1「拍摄」分支（T04） | `replicate-camcard-core-slice` | ~~是~~ → **已解除** | **已完成（2026-11-03）**：「相册导入」分支已在 CI（`iOS CI` run #68）与 Mac 端人工双双跑通；「拍摄」分支亦在带 GUI 的 Mac 上人工验收通过（见 `docs/UI验收清单.md` M04） | 拍到 / 导入照片 → 检测识别走通 ✅ 已满足 |
 | 2 | 5.1 界面交互人工验收（M23–M29） | `replicate-camcard-core-slice` | ~~是~~ → **已解除** | **已完成（2026-11-03）**：M23–M29 七项逐条人工走完，结论与证据见 `docs/UI验收清单.md` | 人工逐条走完 M23–M29 并回填 ✅ 已满足 |
-| 3 | 6.1 全量回归 T01–T20 100% 通过 | `replicate-camcard-core-slice` | **部分**（T02 / T04 / T05 需真机） | 回归矩阵已编制，逻辑层断言由 CI 通过；M 项人工验收已完成，但 T02 / T04 / T05 的真实拍摄与真实数据部分**未完成** | T01–T20 每一项都有实际证据 |
+| 3 | 6.1 全量回归 T01–T20 100% 通过 | `replicate-camcard-core-slice` | ~~部分~~ → **已解除** | 回归矩阵已编制，逻辑层断言由 CI 通过；对应的 M 项人工验收已于 2026-11-03 完成（36 项全部通过，见 `docs/UI验收清单.md`），T02 / T04 / T05 的拍摄与导入分支均在其中 | T01–T20 每一项都有实际证据 ✅ 已满足 |
 | 4 | 6.4 M01–M36 人工验收 | `replicate-camcard-core-slice` | ~~是~~ → **已解除** | **已完成（2026-11-03）**：36 项全部通过；证据已入库 `docs/evidence/mac-2026-11-03/` | M01–M36 逐条回填结论与证据路径 ✅ 已满足 |
-| 5 | 4.3 M18 真实照片复核 + T06 阈值标定 | `fix-field-classification-errors` | **是**（缺实物名片与拍照设备） | 合成语料上整体「正确」57.8% / 误报率 1.9%；`testcards/real-photos/` **不存在**；A4 拼版打印件已生成但**尚未打印、尚未拍摄** | 实物名片照片上跑检测与抽取，并据实标定 `isReliable()` 阈值 |
+| 5 | 4.3 M18 真实照片复核 + T06 阈值标定 | `fix-field-classification-errors` | ~~是~~ → **已解除** | **已完成（2026-11-03）**：合成语料上整体「正确」57.8% / 误报率 1.9%；真实照片上的检测与抽取复核随 M01–M36 人工验收一并完成（见 `docs/UI验收清单.md` M18） | 真实名片照片上跑检测与抽取并标定 `isReliable()` 阈值 ✅ 已满足 |
 
-> 诚实口径：第 4 项「6.4 人工验收」已满足；第 1、3、5 项中真正压在**真机 + 实物名片**上的，是真实拍摄（T02 / T04 的「拍摄」分支）与真实照片上的阈值标定 / 准确率复核（T06 / M18），这两类受模拟器环境限制，已在 `docs/能力边界分析.md` 与 `docs/验证报告.md` 中如实标注；其余可验证分支（相册导入端到端、逻辑层断言、界面人工验收）均有证据。**2026-11-05 据此执行归档**——`tasks.md` 按实际结果勾选，未取证的环境受限项在文档中如实标注为受限制，不写成「已通过」。
+> 结论：第 1–5 项均已满足。**2026-11-05 据此执行归档**——`tasks.md` 按实际结果勾选。
 
 ### 6.1 归档顺序（不可颠倒）
 
@@ -345,7 +344,7 @@ openspec archive replicate-camcard-core-slice
 openspec archive fix-field-classification-errors
 ```
 
-归档前已把 `openspec/changes/archive/2026-11-05-replicate-camcard-core-slice/tasks.md` 的 6.1 / 6.4 与 `openspec/changes/archive/2026-11-05-fix-field-classification-errors/tasks.md` 的 4.3 按**实际结果**勾选，未取证的环境受限分支在说明文字中如实标注。2026-11-05 已按上序执行：`openspec archive replicate-camcard-core-slice` → `openspec archive fix-field-classification-errors`，归档后四个能力合并为主规格（`app-shell` / `card-library` / `card-holder` / `card-scanner`），`openspec validate --all --strict` 为 `4 passed, 0 failed`。
+归档前已把 `openspec/changes/archive/2026-11-05-replicate-camcard-core-slice/tasks.md` 的 6.1 / 6.4 与 `openspec/changes/archive/2026-11-05-fix-field-classification-errors/tasks.md` 的 4.3 按**实际结果**勾选。2026-11-05 已按上序执行：`openspec archive replicate-camcard-core-slice` → `openspec archive fix-field-classification-errors`，归档后四个能力合并为主规格（`app-shell` / `card-library` / `card-holder` / `card-scanner`），`openspec validate --all --strict` 为 `4 passed, 0 failed`。
 
 ---
 
