@@ -12,7 +12,7 @@
 | TRAE / IDE 版本 | `<待填：本机 TRAE 版本号>`（仓库内无版本留痕，不猜） |
 | 交互方式 | TRAE 内 Agent 模式，逐轮对话；每轮结束即提交并推送 |
 | 提示词形态 | WBS 逐项推进（Week 1 → Week 6），每轮一个切片；未出现一次性生成整个 App 的提示词 |
-| 上下文约束 | `PROJECT_RULES.md`、`.trae/rules/project_rules.md`、`docs/规格说明书.md`、`openspec/changes/replicate-camcard-core-slice/` |
+| 上下文约束 | `PROJECT_RULES.md`、`.trae/rules/project_rules.md`、`docs/规格说明书.md`、`openspec/changes/archive/2026-11-05-replicate-camcard-core-slice/` |
 | 机器环境 | Windows，**无 macOS / Xcode**；编译与单元测试由 GitHub Actions 的 `macos-15` runner 执行（2026-11-01 另租用一台物理 Mac 做本机编译、UI 基线录制与 OCR 导出，该机 Xcode 27.2 缺 `Simulator.app`，故 UI 验收改走无头 XCUITest，见第 21 / 23 轮） |
 | 证据口径 | 本机命令记退出码；云端编译与测试记 `iOS CI` 运行号与作业级结论（经 GitHub 公开 API 读取）。结论须有实跑依据，不把编译成功写成测试通过 |
 
